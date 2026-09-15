@@ -1,4 +1,7 @@
 {
   "extends": "@graphprotocol/graph-ts/types/tsconfig.base.json",
+  "compilerOptions": {
+    "ignoreDeprecations": "6.0"
+  },
   "include": ["src", "tests"]
 }

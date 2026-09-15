@@ -37,14 +37,14 @@ contract NeuroLoomVaultV2 is NeuroLoomVault {
         uint256 amountIn,
         uint256 timestamp
     );
-    // Fungsi untuk memperbarui alamat router dari V2 ke V3 (Hanya Admin)
+    // Fungsi untuk memperbarui alamat router dari V2 ke V3 
     function setDexRouter(address _newRouter) external onlyRole(DEFAULT_ADMIN_ROLE) {
         require(_newRouter != address(0), "Invalid Router Address");
-        dexRouter = IPancakeRouter02(_newRouter); // Sekarang IPancakeRouter02 sudah dikenali!
+        dexRouter = IPancakeRouter02(_newRouter); 
     }
 
     /**
-     * @dev Fungsi Eksekusi V2 menggunakan PancakeSwap V3
+     * @dev Fungsi Eksekusi V2 
      */
     function executeRebalanceV3(
         address tokenIn,
@@ -55,10 +55,9 @@ contract NeuroLoomVaultV2 is NeuroLoomVault {
     ) external onlyRole(AI_EXECUTOR_ROLE) whenNotPaused {
         require(amountIn > 0, "Amount must be > 0");
         
-        // 1. HARD GUARDRAILS: Cek harga AI vs Chainlink Oracle
         _validateSlippageAgainstOracle(tokenIn, tokenOut, amountIn, amountOutMin);
 
-        // 2. Eksekusi swap di PancakeSwap V3
+    
         IERC20(tokenIn).forceApprove(address(dexRouter), amountIn);
 
         ISwapRouterV3.ExactInputSingleParams memory params = ISwapRouterV3.ExactInputSingleParams({

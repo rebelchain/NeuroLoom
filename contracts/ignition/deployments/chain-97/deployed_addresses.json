@@ -1,0 +1,6 @@
+{
+  "NeuroLoomModule#MockUSDT": "0xFa45Fd644B34606cABFb7c8acc546E770e248b83",
+  "NeuroLoomModule#NeuroLoom": "0x884867663536dDB5426BEB960116F2f6C952D81F",
+  "UUPSVaultModule#NeuroLoomVault": "0x7Ddd5dfC5A850320Bf8c9da26785B50ed5549529",
+  "UUPSVaultModule#NeuroLoomProxy": "0xe38887648d7272e9Eb3C06628767bb3d84a9FF4E"
+}

@@ -1,4 +1,3 @@
-````markdown
 <div align="center">
   <!-- TODO: Insert your banner image here -->
   <!-- <img src="docs/NeuroLoom_Banner.png" width="100%" alt="NeuroLoom — Autonomous AI-Driven DeFi Vault" /> -->
@@ -121,6 +120,7 @@ NeuroLoom's core primitive is the `NeuroLoomVaultV2` contract, sitting behind an
                         │  exactInputSingle / swap   │
                         └────────────────────────────┘
 ```
+
 ````
 
 **Data flow for a rebalance:**
@@ -283,3 +283,4 @@ Unlike traditional dApps, NeuroLoom does not rely solely on a frontend dashboard
 ---
 
 _Built by rebel for the Indonesia Web3 Hackathon (BNB Chain)._
+````

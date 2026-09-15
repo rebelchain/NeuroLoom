@@ -1,4 +1,3 @@
-```
 <div align="center">
   <h1>🧠 NeuroLoom (Aegis Vault)</h1>
 </div>

@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    // Direktori Input & Output (Wajib di-uncomment)
+    "rootDir": "./src",
+    "outDir": "./dist",
+
+    // Konfigurasi Modern Node.js (ES Modules)
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "target": "ES2022",
+
+    // Strict Typing
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+
+    // Source maps untuk debugging yang lebih mudah
+    "sourceMap": true,
+    "types": ["node"],
+    "resolveJsonModule": true
+  },
+  "include": ["src/**/*"]
+}

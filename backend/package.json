@@ -1,0 +1,26 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@types/node": "^26.5.1",
+    "tsx": "^4.23.13",
+    "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "@dotenvx/dotenvx": "^2.26.1",
+    "@langchain/core": "^1.2.11",
+    "@langchain/google-genai": "^2.3.2",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^6.0.1",
+    "viem": "^2.56.5"
+  }
+}

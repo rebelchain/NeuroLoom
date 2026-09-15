@@ -121,8 +121,6 @@ NeuroLoom's core primitive is the `NeuroLoomVaultV2` contract, sitting behind an
                         └────────────────────────────┘
 ```
 
-````
-
 **Data flow for a rebalance:**
 
 ```
@@ -283,4 +281,3 @@ Unlike traditional dApps, NeuroLoom does not rely solely on a frontend dashboard
 ---
 
 _Built by rebel for the Indonesia Web3 Hackathon (BNB Chain)._
-````

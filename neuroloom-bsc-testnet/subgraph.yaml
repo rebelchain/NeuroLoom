@@ -1,0 +1,59 @@
+specVersion: 1.3.0
+indexerHints:
+  prune: auto
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: NeuroLoomVaultV2
+    network: mainnet
+    source:
+      address: "0xe38887648d7272e9Eb3C06628767bb3d84a9FF4E"
+      abi: NeuroLoomVaultV2
+      startBlock: 0
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - Approval
+        - Deposit
+        - Initialized
+        - Paused
+        - RebalanceExecuted
+        - RoleAdminChanged
+        - RoleGranted
+        - RoleRevoked
+        - Transfer
+        - Unpaused
+        - Upgraded
+        - Withdraw
+      abis:
+        - name: NeuroLoomVaultV2
+          file: ./abis/NeuroLoomVaultV2.json
+      eventHandlers:
+        - event: Approval(indexed address,indexed address,uint256)
+          handler: handleApproval
+        - event: Deposit(indexed address,indexed address,uint256,uint256)
+          handler: handleDeposit
+        - event: Initialized(uint64)
+          handler: handleInitialized
+        - event: Paused(address)
+          handler: handlePaused
+        - event: RebalanceExecuted(indexed address,indexed address,uint256,uint256)
+          handler: handleRebalanceExecuted
+        - event: RoleAdminChanged(indexed bytes32,indexed bytes32,indexed bytes32)
+          handler: handleRoleAdminChanged
+        - event: RoleGranted(indexed bytes32,indexed address,indexed address)
+          handler: handleRoleGranted
+        - event: RoleRevoked(indexed bytes32,indexed address,indexed address)
+          handler: handleRoleRevoked
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+        - event: Unpaused(address)
+          handler: handleUnpaused
+        - event: Upgraded(indexed address)
+          handler: handleUpgraded
+        - event: Withdraw(indexed address,indexed address,indexed address,uint256,uint256)
+          handler: handleWithdraw
+      file: ./src/neuro-loom-vault-v-2.ts

@@ -30,6 +30,13 @@ contract NeuroLoomVaultV2 is NeuroLoomVault {
 
     uint256 public constant MAX_SLIPPAGE_BPS = 200; // 2% maksimal slippage (1 BPS = 0.01%)
 
+    // Event yang akan "didengar" oleh The Graph untuk grafik Frontend
+    event RebalanceExecuted(
+        address indexed tokenIn,
+        address indexed tokenOut,
+        uint256 amountIn,
+        uint256 timestamp
+    );
     // Fungsi untuk memperbarui alamat router dari V2 ke V3 (Hanya Admin)
     function setDexRouter(address _newRouter) external onlyRole(DEFAULT_ADMIN_ROLE) {
         require(_newRouter != address(0), "Invalid Router Address");
@@ -66,6 +73,7 @@ contract NeuroLoomVaultV2 is NeuroLoomVault {
         });
 
         ISwapRouterV3(address(dexRouter)).exactInputSingle(params);
+        emit RebalanceExecuted(tokenIn, tokenOut, amountIn, block.timestamp);
     }
 
    /**

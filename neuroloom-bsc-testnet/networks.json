@@ -1,0 +1,8 @@
+{
+  "mainnet": {
+    "NeuroLoomVaultV2": {
+      "address": "0xe38887648d7272e9Eb3C06628767bb3d84a9FF4E",
+      "startBlock": 0
+    }
+  }
+}

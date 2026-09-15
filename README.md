@@ -8,7 +8,7 @@
 
 NeuroLoom is a next-generation decentralized finance (DeFi) protocol that merges Artificial Intelligence with secure on-chain execution. It allows an autonomous AI agent to manage portfolio rebalancing 24/7, while strict Smart Contract guardrails protect the Total Value Locked (TVL) from MEV bots, flash loan attacks, and AI hallucinations.
 
-Built for the 2026 Web3 Hackathon.
+Built for Indonesia Web3 Hackathon (Built on BNB Chain).
 
 <p align="center">
   <img alt="Solidity 0.8.24" src="https://img.shields.io/badge/Solidity-0.8.24-363636?logo=solidity&logoColor=white&style=flat-square" />

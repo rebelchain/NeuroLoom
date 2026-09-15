@@ -68,40 +68,39 @@ contract NeuroLoomVaultV2 is NeuroLoomVault {
         ISwapRouterV3(address(dexRouter)).exactInputSingle(params);
     }
 
-    /**
+   /**
      * @dev Proteksi Manipulasi & MEV: Kalkulasi ketat berbasis Oracle
      */
     function _validateSlippageAgainstOracle(
         address /* tokenIn */, 
         address /* tokenOut */, 
         uint256 amountIn, 
-        uint256 amountOutMin
-    ) internal view override {
+        uint256 amountOutMin 
+    ) internal view virtual override { // [PERBAIKAN 1]: Tambahkan kata kunci "override" di sini
         (
-            ,
+            /* uint80 roundID */,
             int256 price,
-            ,
+            /* uint startedAt */,
             uint256 updatedAt,
-            
+            /* uint80 answeredInRound */
         ) = priceFeed.latestRoundData();
 
+        // 1. Cek Data Basi
         if (block.timestamp - updatedAt > 3600) revert StaleOracleData();
-        require(price > 0, "Oracle price <= 0");
+        require(price > 0, "Invalid Oracle Price");
 
-        // Asumsi standar: MockUSDT (18 decimals) dikonversi ke BNB (18 decimals)
-        // Chainlink BNB/USD Oracle biasanya memiliki 8 decimals.
-        // Formula: Expected BNB = (amountIn * 1e8) / oraclePrice
-        
         uint256 oraclePrice = uint256(price);
-        uint256 expectedAmountOut = (amountIn * 1e8) / oraclePrice;
 
-        // Toleransi slippage maksimal 2% (MAX_SLIPPAGE_BPS = 200)
-        // Minimum amount out wajar = expectedAmountOut * 98%
-        uint256 lowestAcceptableOut = (expectedAmountOut * (10000 - MAX_SLIPPAGE_BPS)) / 10000;
+        // 2. Normalisasi Desimal & Hitung Fair Value
+        uint256 expectedAmountOut = (amountIn * oraclePrice) / 1e8;
 
-        // Jika AI mencoba mengeksekusi swap yang menghasilkan output di bawah harga wajar Oracle -> REVERT!
-        if (amountOutMin < lowestAcceptableOut) {
-            revert SlippageExceeded();
+        // 3. Kalkulasi Minimum Acceptable (Batas Slippage 2%)
+        uint256 minimumAcceptableAmount = (expectedAmountOut * (10000 - MAX_SLIPPAGE_BPS)) / 10000;
+
+        // 4. Circuit Breaker!
+        if (amountOutMin < minimumAcceptableAmount) {
+            // [PERBAIKAN 2]: Hapus argumen agar sesuai dengan deklarasi "error SlippageExceeded();" di V1
+            revert SlippageExceeded(); 
         }
     }
 }

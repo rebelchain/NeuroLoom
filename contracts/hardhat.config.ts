@@ -1,5 +1,5 @@
-import { defineConfig } from "hardhat/config";
 import hardhatToolboxViem from "@nomicfoundation/hardhat-toolbox-viem";
+import { defineConfig } from "hardhat/config";
 // Plugin legacy OpenZeppelin tetap di-import secara side-effect karena belum update ke v3
 import "@openzeppelin/hardhat-upgrades";
 import * as dotenv from "dotenv";
@@ -20,9 +20,15 @@ export default defineConfig({
     },
   },
   networks: {
+    hardhat: {
+      type: "edr-simulated",
+      forking: {
+        url: "https://api.zan.top/bsc-testnet",
+      },
+    },
     bscTestnet: {
       type: "http",
-      url: "https://bsc-testnet-rpc.publicnode.com",
+      url: "https://api.zan.top/bsc-testnet",
       chainId: 97,
       accounts: PRIVATE_KEY,
     },

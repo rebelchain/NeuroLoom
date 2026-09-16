@@ -30,10 +30,15 @@ export async function getVaultState(): Promise<VaultState> {
       args: [CONFIG.VAULT_PROXY],
     });
 
+    // return {
+    //   wbnbBalance: formatUnits(wbnbRaw, 18),
+    //   usdtBalance: formatUnits(usdtRaw, 18),
+    // };
+
+    // [MOCK UNTUK TESTING]: Seolah-olah kita punya 10,000 USDT dan 0 WBNB
     return {
-      // WBNB dan USDT di ekosistem ini kita asumsikan 18 desimal
-      wbnbBalance: formatUnits(wbnbRaw, 18),
-      usdtBalance: formatUnits(usdtRaw, 18),
+      wbnbBalance: "0.0",
+      usdtBalance: "10000.0",
     };
   } catch (error) {
     console.error("❌ Gagal membaca state on-chain Vault:", error);

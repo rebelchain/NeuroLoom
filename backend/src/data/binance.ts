@@ -19,11 +19,19 @@ export async function fetchBinanceData(
 
     const data = await response.json();
 
+    // return {
+    //   symbol: symbol,
+    //   price: data.binancecoin.usd,
+    //   priceChangePercent: data.binancecoin.usd_24h_change,
+    //   volume: 0, // Tidak relevan untuk strategi BPS dasar kita saat ini
+    // };
+
+    // [MOCK UNTUK TESTING]: Seolah-olah harga WBNB hancur -10% hari ini (Sinyal Beli Kuat!)
     return {
       symbol: symbol,
       price: data.binancecoin.usd,
-      priceChangePercent: data.binancecoin.usd_24h_change,
-      volume: 0, // Tidak relevan untuk strategi BPS dasar kita saat ini
+      priceChangePercent: -10.5,
+      volume: 0,
     };
   } catch (error) {
     console.error(`❌ Gagal mengambil data pasar untuk ${symbol}:`, error);

@@ -13,9 +13,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" data-theme="dark">
-      {/* Kita ganti class font-nya dengan font-sans bawaan Tailwind */}
-      <body className="font-sans antialiased min-h-screen bg-base-300 text-base-content">
+    <html lang="en">
+      {/* KITA HAPUS data-theme dan bg-base-300. Biarkan CSS custom kita yang bekerja! */}
+      <body className="font-sans antialiased min-h-screen">
         <Providers>{children}</Providers>
       </body>
     </html>

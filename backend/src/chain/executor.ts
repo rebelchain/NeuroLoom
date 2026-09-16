@@ -1,15 +1,17 @@
 import {
   createWalletClient,
+  createPublicClient,
   http,
   parseUnits,
   publicActions,
   BaseError,
+  ContractFunctionExecutionError,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { bscTestnet } from "viem/chains";
 import { CONFIG } from "../config.js";
 
-// [PERBAIKAN 1]: Menggunakan 'with' sesuai standar TypeScript 5.3+
+// Menggunakan 'with' sesuai standar TypeScript 5.3+
 import VaultABI from "../abi/NeuroLoomVaultV2.json" with { type: "json" };
 
 export async function executeTradeOnChain(
@@ -32,6 +34,12 @@ export async function executeTradeOnChain(
   const privateKey = (pk.startsWith("0x") ? pk : `0x${pk}`) as `0x${string}`;
   const account = privateKeyToAccount(privateKey);
 
+  // Gunakan publicClient untuk kalkulasi bacaan on-chain
+  const publicClient = createPublicClient({
+    chain: bscTestnet,
+    transport: http(CONFIG.RPC_URL),
+  });
+
   const walletClient = createWalletClient({
     account,
     chain: bscTestnet,
@@ -46,15 +54,26 @@ export async function executeTradeOnChain(
     const tokenIn = isBuy ? CONFIG.TOKENS.USDT : CONFIG.TOKENS.WBNB;
     const tokenOut = isBuy ? CONFIG.TOKENS.WBNB : CONFIG.TOKENS.USDT;
 
+    // Untuk testing MVP, kita gunakan angka statis yang kecil
     const amountIn = parseUnits("0.01", 18);
-    const amountOutMin = 0n;
-    const poolFee = 2500;
+    const poolFee = 2500; // PancakeSwap V3 fee tier (0.25%)
 
-    console.log(
-      `[NETWORK] Simulating executeRebalanceV3 call to the Vault contract...`,
-    );
+    // ==========================================
+    // THE MEV GUARDRAIL FIX
+    // ==========================================
+    // Idealnya, AI atau SDK Router memberikan nilai minimum berdasarkan harga pasar.
+    // Jika amountOutMin = 0, fungsi _validateSlippageAgainstOracle di Smart Contract akan REVERT.
+    // Untuk simulasi ini, kita pasang minimum out estimasi (misal: anggap 1 WBNB = $700)
+    // 0.01 USDT / 700 = ~0.000014 WBNB
+    const estimatedOut = isBuy ? "0.000014" : "7.0";
+    const amountOutMin = parseUnits(estimatedOut, 18);
 
-    const { request } = await walletClient.simulateContract({
+    console.log(`[NETWORK] Simulating executeRebalanceV3...`);
+    console.log(`   -> Input: ${amountIn.toString()} wei`);
+    console.log(`   -> Expected Min Output: ${amountOutMin.toString()} wei`);
+
+    // 1. Simulasi Transaksi (Viem akan melempar error di sini jika Smart Contract mereject)
+    const { request } = await publicClient.simulateContract({
       address: CONFIG.VAULT_PROXY as `0x${string}`,
       abi: VaultABI.abi,
       functionName: "executeRebalanceV3",
@@ -62,6 +81,11 @@ export async function executeTradeOnChain(
       account,
     });
 
+    console.log(
+      `[NETWORK] Simulation passed! Anti-MEV Guardrail accepted the slippage.`,
+    );
+
+    // 2. Eksekusi Aktual ke Blockchain
     const hash = await walletClient.writeContract(request);
 
     console.log(`[SUCCESS] Transaction ${action} broadcasted successfully.`);
@@ -69,13 +93,17 @@ export async function executeTradeOnChain(
       `[BLOCK EXPLORER] Transaction Hash: https://testnet.bscscan.com/tx/${hash}`,
     );
   } catch (error) {
-    console.error("[ERROR] Failed to execute on-chain transaction. Reason:");
+    console.error(
+      "\n❌ [ERROR] Failed to execute on-chain transaction. Reason:",
+    );
 
-    // [PERBAIKAN 2]: Mengecek tipe BaseError dari Viem secara spesifik
-    if (error instanceof BaseError) {
-      console.error(error.shortMessage || error.message);
+    // Penanganan error Viem yang sangat presisi untuk membaca pesan revert Smart Contract
+    if (error instanceof ContractFunctionExecutionError) {
+      console.error("   [SMART CONTRACT REVERT]:", error.shortMessage);
+    } else if (error instanceof BaseError) {
+      console.error("   [VIEM ERROR]:", error.shortMessage || error.message);
     } else if (error instanceof Error) {
-      console.error(error.message);
+      console.error("   [SYSTEM ERROR]:", error.message);
     }
   }
 }

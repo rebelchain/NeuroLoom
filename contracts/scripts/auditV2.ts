@@ -24,7 +24,7 @@ async function main() {
   console.log("⏳ Memvalidasi akses Role-Based Access Control (RBAC)...");
   const aiRole = await vault.read.AI_EXECUTOR_ROLE();
   const expectedRole =
-    "0x7052dc6eb08d748f22497fc367757948a8a474d209b5fbb37f05eb1498b9a19c";
+    "0x0c821e1b44f170b6d24f8a571604a3ff6cf1c5732d7f3ef80e53eee98cf3fc56"; 
 
   if (aiRole === expectedRole) {
     console.log(

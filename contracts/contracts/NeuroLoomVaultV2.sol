@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-
 import {NeuroLoomVault, IPancakeRouter02} from "./NeuroLoomVault.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -43,35 +42,41 @@ contract NeuroLoomVaultV2 is NeuroLoomVault {
         dexRouter = IPancakeRouter02(_newRouter); 
     }
 
-    /**
-     * @dev Fungsi Eksekusi V2 
+/**
+     * @dev Fungsi Eksekusi TRUE OMNICHAIN
+     * Menerima byte data mentah dari AI Agent (Python) untuk dieksekusi ke target mana pun.
      */
-    function executeRebalanceV3(
+    function executeOmnichain(
+        address targetProtocol,
+        bytes calldata data,
         address tokenIn,
         address tokenOut,
-        uint24 poolFee,
         uint256 amountIn,
-        uint256 amountOutMin
+        uint256 expectedAmountOutMin
     ) external onlyRole(AI_EXECUTOR_ROLE) whenNotPaused {
         require(amountIn > 0, "Amount must be > 0");
+        require(targetProtocol != address(0), "Invalid target");
+
+        // 1. Validasi slippage awal dengan Chainlink Oracle (Circuit Breaker)
+        _validateSlippageAgainstOracle(tokenIn, tokenOut, amountIn, expectedAmountOutMin);
+
+        // 2. Approve protokol tujuan secara dinamis
+        IERC20(tokenIn).forceApprove(targetProtocol, amountIn);
+
+        // 3. Snapshot saldo sebelum eksekusi (Proteksi Lapis 2)
+        uint256 balanceBefore = IERC20(tokenOut).balanceOf(address(this));
+
+        // 4. Eksekusi instruksi AI (Bisa berupa swap V2, swap V3, deposit Venus, dll)
+        (bool success, bytes memory returnData) = targetProtocol.call(data);
         
-        _validateSlippageAgainstOracle(tokenIn, tokenOut, amountIn, amountOutMin);
+        // Membungkam warning unused returnData
+        require(success || returnData.length > 0, "Omnichain routing failed");
+        require(success, "Transaction reverted at target protocol");
 
-    
-        IERC20(tokenIn).forceApprove(address(dexRouter), amountIn);
+        // 5. Validasi hasil akhir yang mutlak (Mencegah AI kena sandwich attack / slippage)
+        uint256 balanceAfter = IERC20(tokenOut).balanceOf(address(this));
+        require((balanceAfter - balanceBefore) >= expectedAmountOutMin, "Fatal: Post-execution slippage/loss detected");
 
-        ISwapRouterV3.ExactInputSingleParams memory params = ISwapRouterV3.ExactInputSingleParams({
-            tokenIn: tokenIn,
-            tokenOut: tokenOut,
-            fee: poolFee,
-            recipient: address(this),
-            deadline: block.timestamp + 300,
-            amountIn: amountIn,
-            amountOutMinimum: amountOutMin,
-            sqrtPriceLimitX96: 0
-        });
-
-        ISwapRouterV3(address(dexRouter)).exactInputSingle(params);
         emit RebalanceExecuted(tokenIn, tokenOut, amountIn, block.timestamp);
     }
 

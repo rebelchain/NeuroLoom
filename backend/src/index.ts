@@ -2,6 +2,7 @@ import * as dotenvx from "@dotenvx/dotenvx";
 dotenvx.config();
 
 import { getAIDecision } from "./ai/agent.js";
+import { runEvaluatorLoop } from "./ai/evaluator.js";
 import { executeTradeOnChain } from "./chain/executor.js";
 import { getVaultState } from "./chain/vault.js";
 import { fetchBinanceData } from "./data/binance.js";
@@ -21,27 +22,28 @@ async function neuroLoomCycle() {
     const vault = await getVaultState();
     const memories = await getRecentMemories(3);
 
-    console.log(
-      `[MARKET DATA] WBNB: $${market.price} (24H: ${market.priceChangePercent}%)`,
-    );
-    console.log(
-      `[VAULT STATE] Balance: ${vault.wbnbBalance} WBNB | ${vault.usdtBalance} USDT`,
-    );
-
     console.log("[AGENT] Analyzing market conditions and memory state...");
-    const decision = await getAIDecision(market, vault, memories);
+    // 1. Dapatkan draf dari Orchestrator-Workers
+    const draftDecision = await getAIDecision(market, vault, memories);
+
+    // 2. Masukkan draf ke dalam mesin Evaluator-Optimizer
+    const finalDecision = await runEvaluatorLoop(draftDecision, market, vault);
 
     console.log(
-      `[DECISION] Action: ${decision.action} | Allocation: ${decision.amountPercentage}%`,
+      `[FINAL DECISION] Action: ${finalDecision.action} | Allocation: ${finalDecision.amountPercentage}%`,
     );
-    console.log(`[REASONING] ${decision.reasoning}`);
+    console.log(`[REASONING] ${finalDecision.reasoning}`);
 
-    await executeTradeOnChain(decision.action, decision.amountPercentage);
+    // 3. Eksekusi HANYA finalDecision yang sudah diaudit
+    await executeTradeOnChain(
+      finalDecision.action,
+      finalDecision.amountPercentage,
+    );
 
     await logAIDecision(
-      decision.action,
-      decision.amountPercentage,
-      decision.reasoning,
+      finalDecision.action,
+      finalDecision.amountPercentage,
+      finalDecision.reasoning,
     );
   } catch (error) {
     console.error(`[CRITICAL ERROR] Cycle execution failed:`, error);

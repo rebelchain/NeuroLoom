@@ -1,329 +1,602 @@
 "use client";
 
+import { AnimatePresence, motion } from "framer-motion";
 import {
   Activity,
   BrainCircuit,
   ChevronRight,
-  Lock,
-  Server,
-  Terminal,
+  Network,
+  ShieldCheck,
+  Terminal as TerminalIcon,
   Wallet,
-  Zap,
 } from "lucide-react";
-import { useState } from "react";
-import { AIEventLog } from "../components/AIEventLog";
-import { MetricCard } from "../components/MetricCard";
-import { VaultPanel } from "../components/VaultPanel";
+import { useEffect, useState } from "react";
+
+// Komponen Modular
+import { AITerminalView } from "../components/AITerminalView";
+import { BenefitRow } from "../components/BenefitRow";
+import { DashboardView } from "../components/DashboardView";
+import { FeatureCard } from "../components/FeatureCard";
+import { FloatingCoins } from "../components/FloatingCoins";
+import { Header } from "../components/Header";
+import { HistoryView } from "../components/HistoryView";
+import { LandingEventLog } from "../components/LandingEventLog";
+import { LiveTicker } from "../components/LiveTicker";
+import { ParticlesBackground } from "../components/ParticlesBackground";
+import { ProtocolCard } from "../components/ProtocolCard";
+import { SectionLabel } from "../components/SectionLabel";
+import { Sidebar, type PageId } from "../components/Sidebar";
+import { SmartVaultsView } from "../components/SmartVaultsView";
+import { StepCard } from "../components/StepCard";
+import { useTyping } from "../lib/useTyping";
+
+// ==========================================
+// KONFIGURASI ANIMASI & TEMA (ATM dari Referensi)
+// ==========================================
+const ease = [0.4, 0, 0.2, 1] as const;
+
+const pageVariants = {
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.35, ease } },
+  exit: { opacity: 0, y: -8, transition: { duration: 0.2, ease } },
+};
+
+const shellVariants = {
+  initial: { opacity: 0, scale: 0.985 },
+  animate: { opacity: 1, scale: 1, transition: { duration: 0.45, ease } },
+  exit: { opacity: 0, scale: 1.01, transition: { duration: 0.3, ease } },
+};
+
+const PAGE_TITLES: Record<PageId, string> = {
+  overview: "Overview",
+  vaults: "Smart Vaults",
+  terminal: "AI Terminal",
+  history: "History",
+};
+
+// Pendaran cahaya dinamis yang berubah saat pindah menu
+const SECTION_ACCENTS: Record<PageId, string> = {
+  overview:
+    "radial-gradient(at 15% 20%, rgba(139,92,246,0.16) 0%, transparent 55%), radial-gradient(at 85% 88%, rgba(6,182,212,0.12) 0%, transparent 50%)",
+  vaults:
+    "radial-gradient(at 15% 20%, rgba(16,185,129,0.16) 0%, transparent 55%), radial-gradient(at 85% 88%, rgba(16,185,129,0.11) 0%, transparent 50%)",
+  terminal:
+    "radial-gradient(at 15% 20%, rgba(6,182,212,0.15) 0%, transparent 55%), radial-gradient(at 85% 88%, rgba(16,185,129,0.1) 0%, transparent 50%)",
+  history:
+    "radial-gradient(at 15% 20%, rgba(139,92,246,0.16) 0%, transparent 55%), radial-gradient(at 85% 88%, rgba(167,139,250,0.11) 0%, transparent 50%)",
+};
 
 export default function NeuroLoomApp() {
-  const [activeTab, setActiveTab] = useState<"intro" | "dashboard">("intro");
+  const [view, setView] = useState<"landing" | "app">("landing");
+  const [activePage, setActivePage] = useState<PageId>("overview");
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const typedText = useTyping(view === "landing");
+  const [activeStep, setActiveStep] = useState(0);
+  const [activeProtocol, setActiveProtocol] = useState(0);
+
+  // Kunci scroll body saat menu mobile terbuka
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = "";
+      };
+    }
+  }, [mobileOpen]);
+
+  useEffect(() => {
+    if (view === "landing") {
+      document.body.style.overflow = "";
+      window.scrollTo(0, 0);
+    }
+  }, [view]);
+
+  const navigate = (page: PageId) => {
+    setActivePage(page);
+    setMobileOpen(false);
+  };
+
+  // Saklar Halaman (Router Manual)
+  // Saklar Halaman (Router Manual)
+  const renderPage = () => {
+    switch (activePage) {
+      case "overview":
+        return <DashboardView />;
+      case "vaults":
+        return <SmartVaultsView />;
+      case "terminal":
+        return <AITerminalView />;
+      case "history":
+        return <HistoryView />;
+      default:
+        return <DashboardView />;
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-[#04060d] text-white relative overflow-x-hidden font-sans flex flex-col">
-      {/* =========================================
-          EFEK BACKGROUND (Global)
-      ========================================= */}
-      <div
-        className="fixed inset-0 pointer-events-none opacity-20"
-        style={{
-          backgroundImage:
-            "radial-gradient(at 40% 20%, hsla(267,100%,74%,0.15) 0px, transparent 50%), radial-gradient(at 80% 0%, hsla(189,100%,56%,0.15) 0px, transparent 50%)",
-        }}
-      />
-      <div className="fixed top-[-10%] left-[-10%] w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px] pointer-events-none" />
-      <div className="fixed bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-info/10 rounded-full blur-[120px] pointer-events-none" />
-
-      {/* =========================================
-          GLOBAL NAVBAR
-      ========================================= */}
-      <nav className="sticky top-0 z-50 border-b border-white/[0.05] bg-[#04060d]/80 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <div
-            className="flex items-center gap-3 cursor-pointer"
-            onClick={() => setActiveTab("intro")}
+    <>
+      <AnimatePresence mode="wait">
+        {view === "landing" ? (
+          /* =========================================
+             VIEW 1: LANDING PAGE
+          ========================================= */
+          <motion.div
+            key="landing"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1, transition: { duration: 0.4 } }}
+            exit={{ opacity: 0, transition: { duration: 0.3 } }}
+            className="min-h-screen bg-[#04060d] text-white relative flex flex-col overflow-x-hidden font-sans"
           >
-            <div className="w-10 h-10 bg-primary/10 border border-primary/20 rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(139,92,246,0.3)]">
-              <Activity className="w-5 h-5 text-primary" />
-            </div>
-            <span className="font-bold text-xl tracking-widest">NEUROLOOM</span>
-          </div>
+            {/* Latar Belakang Interaktif Baru */}
+            <ParticlesBackground />
+            <FloatingCoins />
 
-          <div className="hidden md:flex items-center gap-8 font-mono text-xs uppercase tracking-[0.1em]">
-            <button
-              onClick={() => setActiveTab("intro")}
-              className={`transition-colors hover:text-primary ${activeTab === "intro" ? "text-primary font-bold" : "text-gray-400"}`}
-            >
-              Introduction
-            </button>
-            <button
-              onClick={() => setActiveTab("dashboard")}
-              className={`transition-colors hover:text-primary ${activeTab === "dashboard" ? "text-primary font-bold" : "text-gray-400"}`}
-            >
-              Terminal
-            </button>
-            <a
-              href="#"
-              className="text-gray-400 hover:text-white transition-colors"
-            >
-              GitHub
-            </a>
-          </div>
+            {/* Latar Belakang Statis (Di bawah partikel) */}
+            <div
+              className="fixed inset-0 pointer-events-none opacity-20 z-0"
+              style={{
+                backgroundImage:
+                  "radial-gradient(at 40% 20%, hsla(267,100%,74%,0.15) 0px, transparent 50%), radial-gradient(at 80% 0%, hsla(189,100%,56%,0.15) 0px, transparent 50%)",
+              }}
+            />
 
-          <div className="flex items-center gap-4">
-            <div className="hidden lg:flex items-center gap-2 px-4 py-2 bg-white/[0.02] border border-white/[0.05] rounded-full shadow-inner">
-              <span className="w-2 h-2 rounded-full bg-success animate-pulse"></span>
-              <span className="text-xs font-mono text-gray-300 tracking-wider">
-                AI: ONLINE
-              </span>
-            </div>
-            <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/[0.05] border border-white/[0.1] hover:bg-white/[0.1] transition-colors text-sm font-semibold">
-              <Wallet className="w-4 h-4" />
-              Connect
-            </button>
-          </div>
-        </div>
-      </nav>
-
-      {/* =========================================
-          DYNAMIC VIEW RENDERER
-      ========================================= */}
-      <main className="relative z-10 flex-grow flex flex-col">
-        {activeTab === "intro" ? (
-          /* --- VIEW 1: INTRODUCTION (LANDING PAGE) --- */
-          <div className="flex flex-col w-full animate-in fade-in zoom-in-95 duration-700">
-            {/* 1. HERO SECTION */}
-            <section className="flex flex-col items-center justify-center text-center px-6 py-32 min-h-[85vh]">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.03] border border-white/10 text-primary text-xs font-medium mb-8">
-                <Terminal className="w-4 h-4" />
-                BSC Testnet Live
-              </div>
-              <h1 className="text-5xl md:text-7xl lg:text-[5.5rem] font-black tracking-tight mb-6 leading-[1.1]">
-                Autonomous Yield <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#a78bfa] via-[#38bdf8] to-[#a78bfa] bg-[length:200%_auto] animate-[shimmer_3s_linear_infinite]">
-                  Driven by AI Intents
-                </span>
-              </h1>
-              <p className="text-lg text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
-                NeuroLoom is an enterprise-grade DeFi vault that dynamically
-                rebalances your portfolio across the Binance Smart Chain. No
-                manual strategies. Just deposit, and let the AI execute optimal
-                routes.
-              </p>
-              <div className="flex gap-4">
-                <button
-                  onClick={() => setActiveTab("dashboard")}
-                  className="group flex items-center gap-3 px-8 py-4 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:shadow-[0_0_30px_rgba(139,92,246,0.5)] transition-all hover:-translate-y-1 text-white font-bold text-base"
-                >
-                  Launch Terminal
-                  <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </button>
-                <a
-                  href="#how-it-works"
-                  className="flex items-center gap-3 px-8 py-4 rounded-xl bg-white/[0.05] border border-white/10 hover:bg-white/[0.1] transition-all text-white font-medium text-base"
-                >
-                  How it works
-                </a>
-              </div>
-            </section>
-
-            {/* 2. THE PROBLEM SECTION */}
-            <section className="py-24 px-6 border-t border-white/[0.02] bg-gradient-to-b from-transparent to-black/40">
-              <div className="max-w-7xl mx-auto">
-                <div className="mb-16">
-                  <span className="text-[10px] font-mono text-gray-500 uppercase tracking-[0.2em]">
-                    The Problem
+            <nav className="sticky top-0 z-50 border-b border-white/[0.05] bg-[#04060d]/80 backdrop-blur-xl">
+              {/* ... Isi Nav Navbar tetep sama seperti sebelumnya ... */}
+              <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+                <div className="flex items-center gap-3 cursor-pointer">
+                  <div className="w-10 h-10 bg-primary/10 border border-primary/20 rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(139,92,246,0.3)]">
+                    <Activity className="w-5 h-5 text-primary" />
+                  </div>
+                  <span className="font-bold text-xl tracking-widest">
+                    NEUROLOOM
                   </span>
-                  <h2 className="text-3xl md:text-5xl font-bold mt-4 mb-6 leading-tight">
-                    Static Strategies in a <br className="hidden md:block" />{" "}
-                    Dynamic Market.
-                  </h2>
-                  <p className="text-gray-400 text-lg max-w-2xl leading-relaxed">
-                    DeFi yields fluctuate by the minute. Traditional vaults lock
-                    your assets into rigid, static strategies. By the time a
-                    human manually rebalances a position, the alpha is gone, and
-                    gas fees eat the profits.
-                  </p>
                 </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  {/* Problem Card */}
-                  <div className="p-8 rounded-3xl bg-white/[0.02] border border-white/[0.05] backdrop-blur-md">
-                    <div className="text-[10px] font-mono text-error uppercase tracking-widest mb-6">
-                      Without Autonomous AI
-                    </div>
-                    <div className="flex flex-col gap-3 font-mono text-xs">
-                      <div className="flex justify-between p-4 rounded-xl bg-white/[0.02] border border-white/[0.05]">
-                        <span className="text-gray-400">
-                          Market Shift Detected
-                        </span>
-                        <span className="text-white">
-                          Human sleeping (T+4 hrs)
-                        </span>
-                      </div>
-                      <div className="flex justify-between p-4 rounded-xl bg-white/[0.02] border border-white/[0.05]">
-                        <span className="text-gray-400">
-                          Manual Withdraw & Swap
-                        </span>
-                        <span className="text-white">High Gas / Slippage</span>
-                      </div>
-                      <div className="flex justify-between p-4 rounded-xl bg-error/10 border border-error/20">
-                        <span className="text-error">Resulting Yield</span>
-                        <span className="text-error font-bold">
-                          Sub-optimal
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  {/* Quote Card */}
-                  <div className="p-8 rounded-3xl bg-primary/5 border border-primary/20 backdrop-blur-md flex flex-col justify-center">
-                    <BrainCircuit className="w-10 h-10 text-primary mb-6" />
-                    <blockquote className="text-2xl font-medium leading-snug">
-                      "In a market that operates 24/7 at the speed of code,
-                      human execution is the ultimate bottleneck."
-                    </blockquote>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* 3. HOW IT WORKS SECTION */}
-            <section
-              id="how-it-works"
-              className="py-24 px-6 border-t border-white/[0.02]"
-            >
-              <div className="max-w-7xl mx-auto">
-                <div className="text-center mb-16">
-                  <span className="text-[10px] font-mono text-gray-500 uppercase tracking-[0.2em]">
-                    The Architecture
-                  </span>
-                  <h2 className="text-3xl md:text-5xl font-bold mt-4 mb-4">
-                    How NeuroLoom Works
-                  </h2>
-                  <p className="text-gray-400 max-w-2xl mx-auto">
-                    Three simple steps to institutional-grade yield automation,
-                    powered by Intent-Driven AI and The Graph protocol.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
-                  {/* Step 1 */}
-                  <div className="p-8 rounded-3xl bg-white/[0.02] border border-white/[0.05] hover:border-primary/50 transition-colors">
-                    <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mb-6">
-                      <Lock className="w-6 h-6 text-primary" />
-                    </div>
-                    <div className="text-xs font-mono text-gray-500 mb-2">
-                      STEP 01
-                    </div>
-                    <h3 className="text-xl font-bold mb-3">Smart Deposit</h3>
-                    <p className="text-gray-400 text-sm leading-relaxed">
-                      Users deposit assets into the NeuroLoom Vault smart
-                      contract. Funds are securely locked and mathematically
-                      accounted for on the BSC chain.
-                    </p>
-                  </div>
-                  {/* Step 2 */}
-                  <div className="p-8 rounded-3xl bg-white/[0.02] border border-white/[0.05] hover:border-info/50 transition-colors">
-                    <div className="w-12 h-12 bg-info/10 rounded-xl flex items-center justify-center mb-6">
-                      <Server className="w-6 h-6 text-info" />
-                    </div>
-                    <div className="text-xs font-mono text-gray-500 mb-2">
-                      STEP 02
-                    </div>
-                    <h3 className="text-xl font-bold mb-3">AI Monitoring</h3>
-                    <p className="text-gray-400 text-sm leading-relaxed">
-                      Our off-chain AI Agent constantly ingests live blockchain
-                      data indexed by The Graph, simulating thousands of yield
-                      routes to find the perfect intent.
-                    </p>
-                  </div>
-                  {/* Step 3 */}
-                  <div className="p-8 rounded-3xl bg-white/[0.02] border border-white/[0.05] hover:border-success/50 transition-colors">
-                    <div className="w-12 h-12 bg-success/10 rounded-xl flex items-center justify-center mb-6">
-                      <Zap className="w-6 h-6 text-success" />
-                    </div>
-                    <div className="text-xs font-mono text-gray-500 mb-2">
-                      STEP 03
-                    </div>
-                    <h3 className="text-xl font-bold mb-3">
-                      Autonomous Rebalance
-                    </h3>
-                    <p className="text-gray-400 text-sm leading-relaxed">
-                      When the AI finds a strictly profitable route, it calls
-                      the vault's rebalance function. The smart contract
-                      validates and executes the trade trustlessly.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* 4. CTA SECTION */}
-            <section className="py-24 px-6">
-              <div className="max-w-5xl mx-auto p-12 md:p-20 rounded-[3rem] bg-gradient-to-br from-[#0b1120] to-black border border-white/[0.05] relative overflow-hidden text-center shadow-2xl">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 rounded-full blur-[100px] pointer-events-none" />
-                <div className="relative z-10">
-                  <h2 className="text-4xl md:text-5xl font-bold mb-6">
-                    Enter the New Era of DeFi
-                  </h2>
-                  <p className="text-gray-400 text-lg max-w-xl mx-auto mb-10">
-                    Stop managing your yields manually. Connect your wallet and
-                    let the NeuroLoom AI agent maximize your portfolio.
-                  </p>
+                <div className="hidden md:flex items-center gap-8 font-mono text-xs uppercase tracking-[0.1em]">
+                  <button className="text-primary font-bold transition-colors">
+                    Introduction
+                  </button>
                   <button
-                    onClick={() => setActiveTab("dashboard")}
-                    className="inline-flex items-center gap-3 px-10 py-5 rounded-2xl bg-white text-black font-bold text-lg hover:bg-gray-200 transition-all hover:scale-105"
+                    onClick={() => setView("app")}
+                    className="text-gray-400 hover:text-primary transition-colors"
                   >
-                    Launch Terminal
-                    <ChevronRight className="w-5 h-5" />
+                    Terminal
                   </button>
                 </div>
+                <button
+                  onClick={() => setView("app")}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/[0.05] border border-white/[0.1] hover:bg-white/[0.1] transition-colors text-sm font-semibold"
+                >
+                  <Wallet className="w-4 h-4" /> Connect
+                </button>
               </div>
-            </section>
+            </nav>
 
-            {/* 5. FOOTER */}
-            <footer className="py-8 px-6 border-t border-white/[0.05] text-center text-sm text-gray-500 font-mono flex flex-col md:flex-row justify-between items-center max-w-7xl mx-auto w-full gap-4">
-              <div className="flex items-center gap-2">
-                <Activity className="w-4 h-4 text-primary" />
-                <span className="text-white font-semibold">NEUROLOOM</span>
-                <span>· Built for Indonesia Web3 Hackathon 2026</span>
-              </div>
-              <div>© 2026 NeuroLoom · Built on BNB Chain</div>
-            </footer>
-          </div>
+            <main className="flex-grow flex flex-col z-10">
+              <section className="flex flex-col items-center justify-center text-center px-6 py-32 min-h-[85vh] relative">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.03] border border-white/10 text-primary text-xs font-medium mb-8">
+                  <TerminalIcon className="w-4 h-4" /> BSC Testnet Live
+                </div>
+                <h1 className="text-5xl md:text-7xl lg:text-[5.5rem] font-black tracking-tight mb-6 leading-[1.1]">
+                  On-Chain <br />
+                  <span className="gradient-text-shimmer">{typedText}</span>
+                </h1>
+                <p className="text-lg text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
+                  NeuroLoom is an enterprise-grade DeFi vault that dynamically
+                  rebalances your portfolio across the Binance Smart Chain.
+                </p>
+                <div className="flex gap-4">
+                  <button
+                    onClick={() => setView("app")}
+                    className="group flex items-center gap-3 px-8 py-4 rounded-xl bg-gradient-to-r from-primary to-info hover:shadow-[0_0_30px_rgba(139,92,246,0.5)] transition-all hover:-translate-y-1 text-white font-bold text-base"
+                  >
+                    Launch Terminal{" "}
+                    <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  </button>
+                </div>
+              </section>
+
+              <LiveTicker />
+              {/* =========================================
+                  SEKSI: THE PROBLEM & FEATURES
+              ========================================= */}
+              <section
+                id="features"
+                className="py-24 px-6 relative border-t border-white/[0.02] mt-12 bg-gradient-to-b from-transparent to-[#04060d]"
+              >
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-primary/[0.03] rounded-full blur-[100px] pointer-events-none" />
+                <div className="max-w-7xl mx-auto relative z-10">
+                  <div className="max-w-3xl mb-14">
+                    <SectionLabel>The Problem</SectionLabel>
+                    <h2 className="text-3xl md:text-5xl font-bold text-white mb-5 leading-tight">
+                      Static Strategies in a <br className="hidden md:block" />{" "}
+                      Dynamic Market.
+                    </h2>
+                    <p className="text-gray-400 text-lg leading-relaxed">
+                      DeFi yields fluctuate by the minute. Traditional vaults
+                      lock your assets into rigid strategies. By the time a
+                      human manually rebalances a position, the alpha is gone,
+                      and gas fees eat the profits.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-stretch">
+                    {/* Problem Narrative (Kiri) */}
+                    <div className="lg:col-span-3 flex flex-col gap-6">
+                      <div className="liquid-glass rounded-2xl p-6 md:p-8 flex-1 border border-white/[0.05]">
+                        <div className="text-[10px] uppercase tracking-[0.2em] text-gray-500 mb-5">
+                          Without Autonomous AI
+                        </div>
+                        <div className="flex flex-col gap-2.5 font-mono text-xs">
+                          <div className="flex items-center justify-between rounded-lg bg-white/[0.02] border border-white/[0.05] px-4 py-3">
+                            <span className="text-gray-400">
+                              Market Shift Detected
+                            </span>
+                            <span className="text-white font-medium">
+                              Human sleeping (T+4 hrs)
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between rounded-lg bg-white/[0.02] border border-white/[0.05] px-4 py-3">
+                            <span className="text-gray-400">
+                              Manual Withdraw & Swap
+                            </span>
+                            <span className="text-warning font-medium">
+                              High Gas / Slippage
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between rounded-lg bg-error/10 border border-error/20 px-4 py-3">
+                            <span className="text-gray-400">
+                              Resulting Yield
+                            </span>
+                            <span className="text-error font-medium">
+                              Sub-optimal APY
+                            </span>
+                          </div>
+                        </div>
+                        <p className="mt-5 text-sm text-gray-400 leading-relaxed">
+                          In a market that operates 24/7 at the speed of code,
+                          human execution is the ultimate bottleneck.
+                        </p>
+                      </div>
+                      <figure className="liquid-glass rounded-2xl p-6 md:p-8 border border-white/[0.05]">
+                        <blockquote className="text-lg md:text-2xl font-semibold gradient-text leading-snug">
+                          “The biggest risk in modern DeFi isn&apos;t smart
+                          contract failure, it&apos;s inefficient capital
+                          allocation.”
+                        </blockquote>
+                      </figure>
+                    </div>
+
+                    {/* The Answer / Features (Kanan) */}
+                    <div className="lg:col-span-2 flex flex-col gap-6">
+                      <FeatureCard
+                        featured
+                        icon={
+                          <BrainCircuit
+                            className="w-6 h-6 text-primary"
+                            strokeWidth={1.5}
+                          />
+                        }
+                        title="Real-Time Order Flow Analysis"
+                        desc="The AI agent constantly analyzes order book dynamics and detects liquidity sweeps across DEXs. It calculates the optimal route and rebalances the vault automatically to secure maximum APY before the market shifts."
+                        accent="from-primary/10 to-transparent"
+                        delay="0ms"
+                      />
+                      <BenefitRow
+                        icon={
+                          <Network
+                            className="w-6 h-6 text-info"
+                            strokeWidth={1.5}
+                          />
+                        }
+                        title="Dynamic Multi-Routing"
+                        desc="Simulates thousands of yield routes instantly via The Graph to avoid high slippage and optimize gas efficiency."
+                        delay="100ms"
+                      />
+                      <BenefitRow
+                        icon={
+                          <ShieldCheck
+                            className="w-6 h-6 text-success"
+                            strokeWidth={1.5}
+                          />
+                        }
+                        title="Immutable Audit Trail"
+                        desc="Every execution and rebalance is cryptographically verified and recorded permanently on the BSC network."
+                        delay="200ms"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </section>
+              {/* =========================================
+                  SEKSI: HOW IT WORKS
+              ========================================= */}
+              <section
+                id="how-it-works"
+                className="py-24 px-6 relative border-t border-white/[0.02]"
+              >
+                <div className="max-w-7xl mx-auto relative z-10">
+                  <div className="text-center mb-16">
+                    <SectionLabel>The Execution Flow</SectionLabel>
+                    <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">
+                      How NeuroLoom Works
+                    </h2>
+                    <p className="text-gray-400 max-w-2xl mx-auto">
+                      No manual bridges, no complex staking. The AI agent
+                      handles the entire yield optimization lifecycle in three
+                      automated steps.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative mb-10">
+                    {/* Garis Penghubung (Desktop) */}
+                    <div className="hidden md:block absolute top-8 left-[18%] right-[18%] h-px">
+                      <div className="w-full h-full bg-gradient-to-r from-primary/20 via-primary/40 to-primary/20" />
+                      <div
+                        className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/60 to-transparent animate-shimmer"
+                        style={{ backgroundSize: "200% 100%" }}
+                      />
+                    </div>
+
+                    <StepCard
+                      step="01"
+                      title="Smart Deposit"
+                      desc="Deposit single-sided assets (like USDT or BNB) into the unified NeuroLoom vault."
+                      active={activeStep === 0}
+                      onClick={() => setActiveStep(0)}
+                    />
+                    <StepCard
+                      step="02"
+                      title="Order Flow Analysis"
+                      desc="The AI continuously indexes The Graph to monitor liquidity shifts and APY spikes."
+                      active={activeStep === 1}
+                      onClick={() => setActiveStep(1)}
+                    />
+                    <StepCard
+                      step="03"
+                      title="Autonomous Routing"
+                      desc="Assets are dynamically routed to the optimal protocol via flash-swaps."
+                      active={activeStep === 2}
+                      onClick={() => setActiveStep(2)}
+                    />
+                  </div>
+
+                  {/* Panel Detail Terminal UI */}
+                  <div className="max-w-4xl mx-auto liquid-glass rounded-2xl p-6 md:p-10 relative overflow-hidden border border-white/5">
+                    {activeStep === 0 && (
+                      <div className="text-center animate-fade-in-up">
+                        <h4 className="text-xl font-semibold text-white mb-2">
+                          Initialize Vault Position
+                        </h4>
+                        <p className="text-sm text-gray-400 max-w-2xl mx-auto mb-8">
+                          User deposits $5,000 USDT. The smart contract
+                          validates the deposit and queues the capital for the
+                          next AI execution cycle.
+                        </p>
+                        <div className="max-w-xl mx-auto">
+                          <LandingEventLog
+                            events={[
+                              {
+                                msg: "TX DEPOSIT · 5,000 USDT -> Vault",
+                                type: "info",
+                              },
+                              {
+                                msg: "CONTRACT VERIFIED · Balance Updated",
+                                type: "pass",
+                              },
+                              {
+                                msg: "STATUS: WAITING AI ALLOCATION QUEUE",
+                                type: "mint",
+                              },
+                            ]}
+                          />
+                        </div>
+                      </div>
+                    )}
+                    {activeStep === 1 && (
+                      <div className="text-center animate-fade-in-up">
+                        <h4 className="text-xl font-semibold text-white mb-2">
+                          Real-Time Graph Indexing
+                        </h4>
+                        <p className="text-sm text-gray-400 max-w-2xl mx-auto mb-8">
+                          The AI detects a massive liquidity withdrawal on
+                          PancakeSwap, projecting a temporary APY spike to 24%
+                          for WBNB pairs.
+                        </p>
+                        <div className="max-w-xl mx-auto">
+                          <LandingEventLog
+                            events={[
+                              {
+                                msg: "INDEXING · Venus Protocol Rates ... OK",
+                                type: "info",
+                              },
+                              {
+                                msg: "INDEXING · PancakeSwap V3 Liquidity",
+                                type: "info",
+                              },
+                              {
+                                msg: "ALERT · Market Inefficiency Found (Spread 2.1%)",
+                                type: "mint",
+                              },
+                              {
+                                msg: "TARGET APY PROJECTED: 24.1%",
+                                type: "pass",
+                              },
+                            ]}
+                          />
+                        </div>
+                      </div>
+                    )}
+                    {activeStep === 2 && (
+                      <div className="text-center animate-fade-in-up">
+                        <h4 className="text-xl font-semibold text-white mb-2">
+                          Execute Optimal Path
+                        </h4>
+                        <p className="text-sm text-gray-400 max-w-2xl mx-auto mb-8">
+                          The agent constructs a multi-hop transaction, swaps
+                          the assets with minimal slippage, and stakes them in
+                          the target protocol.
+                        </p>
+                        <div className="max-w-xl mx-auto">
+                          <LandingEventLog
+                            events={[
+                              {
+                                msg: "ROUTING · USDT -> WBNB (Flash Swap)",
+                                type: "info",
+                              },
+                              {
+                                msg: "EXECUTE · Stake in PancakeSwap Pool",
+                                type: "pass",
+                              },
+                              {
+                                msg: "OPTIMIZATION · Gas saved: $14.20",
+                                type: "mint",
+                              },
+                              { msg: "YIELD GENERATION ACTIVE", type: "pass" },
+                            ]}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </section>
+
+              {/* =========================================
+                  SEKSI: SUPPORTED PROTOCOLS
+              ========================================= */}
+              <section
+                id="protocols"
+                className="py-24 px-6 relative border-t border-white/[0.02]"
+              >
+                <div className="max-w-7xl mx-auto relative z-10">
+                  <div className="text-center mb-16">
+                    <SectionLabel>Ecosystem</SectionLabel>
+                    <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">
+                      Integrated Protocols
+                    </h2>
+                    <p className="text-gray-400 max-w-2xl mx-auto">
+                      NeuroLoom seamlessly interfaces with the largest liquidity
+                      pools on the BNB Chain, ensuring deep liquidity and exit
+                      safety.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <ProtocolCard
+                      image=""
+                      name="Venus"
+                      desc="The largest lending and borrowing protocol on BNB Chain."
+                      metric="$1.4B TVL"
+                      sub="Lending Markets"
+                      active={activeProtocol === 0}
+                      onClick={() => setActiveProtocol(0)}
+                    />
+                    <ProtocolCard
+                      image=""
+                      name="PancakeSwap"
+                      desc="Deepest AMM liquidity for efficient flash-swaps."
+                      metric="$2.1B TVL"
+                      sub="DEX & Yield Farms"
+                      active={activeProtocol === 1}
+                      onClick={() => setActiveProtocol(1)}
+                    />
+                    <ProtocolCard
+                      image=""
+                      name="Radiant"
+                      desc="Omni-chain money market for cross-chain yield."
+                      metric="$300M TVL"
+                      sub="Omnichain Lending"
+                      active={activeProtocol === 2}
+                      onClick={() => setActiveProtocol(2)}
+                    />
+                    <ProtocolCard
+                      image=""
+                      name="Kinza"
+                      desc="Next-generation lending protocol with ve-tokenomics."
+                      metric="$150M TVL"
+                      sub="DeFi 2.0"
+                      active={activeProtocol === 3}
+                      onClick={() => setActiveProtocol(3)}
+                    />
+                  </div>
+                </div>
+              </section>
+            </main>
+          </motion.div>
         ) : (
-          /* --- VIEW 2: DASHBOARD (APP) --- */
-          <div className="max-w-7xl mx-auto px-6 py-8 flex flex-col gap-8 w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <MetricCard
-                label="Total Value Locked"
-                value="$0.00"
-                detail="Managed by Agent"
-                accent="default"
+          /* =========================================
+             VIEW 2: DASHBOARD APPLICATION
+          ========================================= */
+          <motion.div
+            key="app"
+            variants={shellVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            className="relative flex h-screen bg-[#04060d] text-white overflow-hidden font-sans"
+          >
+            {/* Latar Belakang Ambient (Termasuk Grid CSS kita) */}
+            <div
+              className="fixed inset-0 mesh-gradient pointer-events-none"
+              aria-hidden
+            />
+            <div
+              className="fixed inset-0 grid-bg opacity-25 pointer-events-none"
+              aria-hidden
+            />
+
+            {/* Aksen Pendaran Warna Berdasarkan Halaman Aktif */}
+            <AnimatePresence>
+              <motion.div
+                key={activePage}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.8, ease }}
+                className="fixed inset-0 pointer-events-none"
+                style={{
+                  background:
+                    SECTION_ACCENTS[activePage] ?? SECTION_ACCENTS.overview,
+                }}
+                aria-hidden
               />
-              <MetricCard
-                label="Current APY"
-                value="24.5%"
-                detail="Simulated AI Strategy"
-                accent="buy"
+            </AnimatePresence>
+
+            <Sidebar
+              activePage={activePage}
+              onNavigate={navigate}
+              mobileOpen={mobileOpen}
+              onCloseMobile={() => setMobileOpen(false)}
+              onBackToLanding={() => setView("landing")}
+            />
+
+            <div className="flex-1 flex flex-col overflow-hidden relative z-10">
+              <Header
+                onConnectWallet={() => alert("Wallet integration coming soon!")}
+                connected={false}
+                onBackToLanding={() => setView("landing")}
+                onOpenMobile={() => setMobileOpen(true)}
+                pageTitle={PAGE_TITLES[activePage] ?? "Overview"}
               />
-              <MetricCard
-                label="Active AI Routes"
-                value="0"
-                detail="Awaiting Graph sync"
-                accent="sell"
-              />
+
+              <main className="flex-1 overflow-y-auto px-6">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={activePage}
+                    variants={pageVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    className="py-6"
+                  >
+                    {renderPage()}
+                  </motion.div>
+                </AnimatePresence>
+              </main>
             </div>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:h-[500px]">
-              <div className="lg:col-span-2 h-full flex flex-col">
-                <AIEventLog />
-              </div>
-              <div className="lg:col-span-1 h-full flex flex-col">
-                <VaultPanel />
-              </div>
-            </div>
-          </div>
+          </motion.div>
         )}
-      </main>
-    </div>
+      </AnimatePresence>
+    </>
   );
 }

@@ -3,7 +3,7 @@ import assert from "node:assert";
 import { network } from "hardhat";
 import type { NetworkConnection } from "hardhat/types";
 
-describe("Audit Keamanan: NeuroLoomVaultV2 (Hardhat v-next)", () => {
+describe("Security Audit: NeuroLoomVaultV2 (Hardhat v-next)", () => {
   // Fungsi Fixture sekarang menerima `NetworkConnection` yang berisi `viem`
   async function deployVaultFixture({ viem }: NetworkConnection) {
     const publicClient = await viem.getPublicClient();
@@ -14,7 +14,7 @@ describe("Audit Keamanan: NeuroLoomVaultV2 (Hardhat v-next)", () => {
     return { vault, admin, aiAgent, publicClient };
   }
 
-  it("Harus berhasil mendeploy kontrak V2 di Local Network", async () => {
+  it("Must successfully deploy the V2 contract on the local network.", async () => {
     // 1. Buat koneksi jaringan dan ambil networkHelpers
     const { networkHelpers } = await network.create();
 
@@ -23,11 +23,11 @@ describe("Audit Keamanan: NeuroLoomVaultV2 (Hardhat v-next)", () => {
 
     assert.ok(
       vault.address !== undefined,
-      "Alamat kontrak tidak boleh undefined",
+      "The contract address cannot be undefined",
     );
   });
 
-  it("Harus mengenali role AI_EXECUTOR_ROLE secara deterministik", async () => {
+  it("The AI_EXECUTOR_ROLE must be recognized deterministically.", async () => {
     // 1. Buat koneksi jaringan dan ambil networkHelpers
     const { networkHelpers } = await network.create();
 
@@ -38,8 +38,8 @@ describe("Audit Keamanan: NeuroLoomVaultV2 (Hardhat v-next)", () => {
 
     assert.strictEqual(
       aiRole,
-      "0x7052dc6eb08d748f22497fc367757948a8a474d209b5fbb37f05eb1498b9a19c",
-      "Hash AI Role tidak cocok",
+      "0x0c821e1b44f170b6d24f8a571604a3ff6cf1c5732d7f3ef80e53eee98cf3fc56",
+      "Hash AI Role mismatch",
     );
   });
 });

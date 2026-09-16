@@ -17,7 +17,6 @@ const UUPSVaultModule = buildModule("UUPSVaultModule", (m) => {
     CHAINLINK_BNB_USD,
   ]);
 
-  // [PERUBAHAN DI SINI]: Gunakan NeuroLoomProxy yang baru kita buat
   const proxy = m.contract("NeuroLoomProxy", [vaultImplementation, initData]);
 
   return { vaultImplementation, proxy };

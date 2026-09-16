@@ -10,10 +10,14 @@
   },
   "dependencies": {
     "@apollo/client": "^4.3.0",
-    "@tanstack/react-query": "^5.102.8",
+    "@rainbow-me/rainbowkit": "^2.2.11",
+    "@tanstack/react-query": "^5.103.1",
     "@tsparticles/engine": "^4.4.0",
     "@tsparticles/react": "^4.4.0",
     "@tsparticles/slim": "^4.4.0",
+    "@x402/core": "^2.26.0",
+    "@x402/evm": "^2.26.0",
+    "@x402/svm": "^2.26.0",
     "daisyui": "^5.7.38",
     "framer-motion": "^13.3.0",
     "graphql": "^16.14.2",
@@ -22,7 +26,7 @@
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "viem": "^2.56.5",
-    "wagmi": "^3.7.7"
+    "wagmi": "^2.19.5"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

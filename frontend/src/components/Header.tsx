@@ -1,20 +1,16 @@
+"use client";
+
 import { Menu, Wallet, ChevronRight, LogOut, Activity } from "lucide-react";
-import { cn, formatAddress } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 interface HeaderProps {
-  onConnectWallet: () => void;
-  connected: boolean;
-  accountId?: string | null;
-  evmAddress?: string | null;
   onBackToLanding?: () => void;
   onOpenMobile?: () => void;
   pageTitle?: string;
 }
 
 export function Header({
-  onConnectWallet,
-  connected,
-  evmAddress,
   onBackToLanding,
   onOpenMobile,
   pageTitle = "Dashboard",
@@ -34,7 +30,6 @@ export function Header({
           onClick={onBackToLanding}
           className="hidden sm:flex items-center gap-2.5 hover:opacity-80 transition-opacity shrink-0"
         >
-          {/* Ikon Pengganti Logo */}
           <div className="w-7 h-7 bg-primary/10 border border-primary/20 rounded-md flex items-center justify-center shadow-[0_0_10px_rgba(139,92,246,0.3)]">
             <Activity className="w-4 h-4 text-primary" />
           </div>
@@ -61,29 +56,81 @@ export function Header({
           <span className="text-gray-400 font-mono">BSC Testnet</span>
         </div>
 
-        <button
-          onClick={onConnectWallet}
-          className={cn(
-            "px-4 md:px-5 py-2 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-2",
-            connected
-              ? "liquid-glass border border-primary/30 text-primary"
-              : "liquid-glass liquid-cta liquid-glass-button",
-          )}
-        >
-          {connected ? (
-            <LogOut className="w-4 h-4" strokeWidth={2} />
-          ) : (
-            <Wallet className="w-4 h-4" strokeWidth={2} />
-          )}
-          <span className="hidden sm:inline">
-            {connected
-              ? evmAddress
-                ? formatAddress(evmAddress)
-                : "0x1234…ABCD"
-              : "Connect Wallet"}
-          </span>
-          <span className="sm:hidden">{connected ? "✓" : "Connect"}</span>
-        </button>
+        {/* JURUS RAHASIA: Custom RainbowKit Button */}
+        <ConnectButton.Custom>
+          {({
+            account,
+            chain,
+            openAccountModal,
+            openChainModal,
+            openConnectModal,
+            authenticationStatus,
+            mounted,
+          }) => {
+            const ready = mounted && authenticationStatus !== "loading";
+            const connected =
+              ready &&
+              account &&
+              chain &&
+              (!authenticationStatus ||
+                authenticationStatus === "authenticated");
+
+            return (
+              <div
+                {...(!ready && {
+                  "aria-hidden": true,
+                  style: {
+                    opacity: 0,
+                    pointerEvents: "none",
+                    userSelect: "none",
+                  },
+                })}
+              >
+                {(() => {
+                  if (!connected) {
+                    return (
+                      <button
+                        onClick={openConnectModal}
+                        type="button"
+                        className="px-4 md:px-5 py-2 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-2 liquid-glass liquid-cta liquid-glass-button"
+                      >
+                        <Wallet className="w-4 h-4" strokeWidth={2} />
+                        <span className="hidden sm:inline">Connect Wallet</span>
+                        <span className="sm:hidden">Connect</span>
+                      </button>
+                    );
+                  }
+
+                  if (chain.unsupported) {
+                    return (
+                      <button
+                        onClick={openChainModal}
+                        type="button"
+                        className="px-4 md:px-5 py-2 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-2 liquid-glass border border-red-500/30 text-red-500"
+                      >
+                        Wrong network
+                      </button>
+                    );
+                  }
+
+                  return (
+                    <button
+                      onClick={openAccountModal}
+                      type="button"
+                      className="px-4 md:px-5 py-2 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-2 liquid-glass border border-primary/30 text-primary"
+                    >
+                      <LogOut className="w-4 h-4" strokeWidth={2} />
+                      <span className="hidden sm:inline">
+                        {account.displayName}
+                      </span>
+                      <span className="sm:hidden">✓</span>
+                    </button>
+                  );
+                })()}
+              </div>
+            );
+          }}
+        </ConnectButton.Custom>
       </div>
     </header>
   );

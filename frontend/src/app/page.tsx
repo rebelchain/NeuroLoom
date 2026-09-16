@@ -572,8 +572,6 @@ export default function NeuroLoomApp() {
 
             <div className="flex-1 flex flex-col overflow-hidden relative z-10">
               <Header
-                onConnectWallet={() => alert("Wallet integration coming soon!")}
-                connected={false}
                 onBackToLanding={() => setView("landing")}
                 onOpenMobile={() => setMobileOpen(true)}
                 pageTitle={PAGE_TITLES[activePage] ?? "Overview"}

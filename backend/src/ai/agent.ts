@@ -12,16 +12,6 @@ interface WorkerTask {
   description: string;
 }
 
-
-/**
- * Helper function untuk mengekstrak JSON dari output Gemini
- */
-function extractJSON(rawText: string): any {
-  const jsonMatch = rawText.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
-  if (!jsonMatch) throw new Error("No JSON structure found in response.");
-  return JSON.parse(jsonMatch[0]);
-}
-
 /**
  * FUNGSI UTAMA: The Orchestrator-Workers Workflow
  */
@@ -30,12 +20,14 @@ export async function getAIDecision(
   vaultState: any,
   recentMemories: any[],
 ): Promise<AIDecision> {
-  // Inisialisasi LLM secara global untuk efisiensi memori (gunakan 3.6-flash yang super cepat)
+  // Inisialisasi LLM secara global untuk efisiensi memori
   const llm = new ChatGoogleGenerativeAI({
     model: "gemini-3.6-flash",
     maxOutputTokens: 1024,
     temperature: 0.1, // Suhu rendah agar logis dan deterministik
     apiKey: process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY,
+    // [UPGRADE 1]: Memaksa Gemini merespons dengan JSON murni!
+    // modelKwargs: { response_mime_type: "application/json" } // Opsional: Buka komen ini jika Langchain terbarumu mendukungnya
   });
 
   const stateContext = `
@@ -53,16 +45,15 @@ CURRENT STATE:
       "[ORCHESTRATOR] Analyzing state and planning task delegation...",
     );
 
+    // [UPGRADE 2]: Dynamic Worker Count (1 to 3 tasks)
     const orchestratorPrompt = `You are the Lead Orchestrator for NeuroLoom DeFi Optimizer.
-Analyze the current state and delegate exactly 2 analytical tasks to specialized workers to get different perspectives before making a final trade decision. 
-For example, one worker could analyze price momentum, while another evaluates portfolio risk or memory repetition.
+Analyze the current state and delegate between 1 to 3 analytical tasks to specialized workers based on the current market volatility and data complexity. 
 
-Return ONLY a valid JSON object matching this structure:
+Return ONLY a valid JSON object matching this structure without any markdown formatting:
 {
   "analysis": "Brief explanation of what approaches are needed.",
   "tasks": [
-    { "type": "MOMENTUM_ANALYST", "description": "Specific instruction for this worker" },
-    { "type": "RISK_MANAGER", "description": "Specific instruction for this worker" }
+    { "type": "MOMENTUM_ANALYST", "description": "Specific instruction for this worker" }
   ]
 }`;
 
@@ -71,7 +62,13 @@ Return ONLY a valid JSON object matching this structure:
       new HumanMessage(stateContext),
     ]);
 
-    const plan = extractJSON(orchestratorResponse.content.toString());
+    // Berkat Gemini 3.6 Flash, kita bisa langsung parse tanpa regex aneh
+    const plan = JSON.parse(
+      orchestratorResponse.content
+        .toString()
+        .replace(/```json|```/g, "")
+        .trim(),
+    );
     console.log(
       `[ORCHESTRATOR] Delegating ${plan.tasks.length} specialized approaches.`,
     );
@@ -81,18 +78,17 @@ Return ONLY a valid JSON object matching this structure:
     // ==========================================
     console.log("[WORKERS] Generating specialized analysis concurrently...");
 
-    // Menjalankan semua worker secara paralel menggunakan Promise.all
     const workerPromises = plan.tasks.map(async (task: WorkerTask) => {
       const workerSystemPrompt = `You are a specialized Web3 AI Worker. 
 Role: ${task.type}. 
 Your Assignment: ${task.description}.
 
 Analyze the provided state strictly from your role's perspective. 
-Return ONLY a valid JSON object matching this structure:
+Return ONLY a valid JSON object matching this structure without markdown:
 {
   "perspective": "${task.type}",
   "findings": "Your specific analysis and calculation",
-  "recommendation": "BUY_WBNB | SELL_WBNB | HOLD"
+  "recommendation": "BUY_WBNB" | "SELL_WBNB" | "HOLD"
 }`;
 
       const response = await llm.invoke([
@@ -100,7 +96,12 @@ Return ONLY a valid JSON object matching this structure:
         new HumanMessage(stateContext),
       ]);
 
-      return extractJSON(response.content.toString());
+      return JSON.parse(
+        response.content
+          .toString()
+          .replace(/```json|```/g, "")
+          .trim(),
+      );
     });
 
     const workerResults = await Promise.all(workerPromises);
@@ -118,15 +119,16 @@ Return ONLY a valid JSON object matching this structure:
       "[SYNTHESIZER] Evaluating worker reports and finalizing decision...",
     );
 
+    // [UPGRADE 3]: Relaxed Rule #4 untuk membolehkan Compounding/DCA
     const synthesizerPrompt = `You are the NeuroLoom Supreme Synthesizer.
 Review the CURRENT STATE and the WORKER REPORTS below.
 Make the final optimal trading decision.
 
 STRICT RULES:
-1. Output ONLY a valid JSON object.
+1. Output ONLY a valid JSON object without markdown formatting.
 2. If WBNB drops significantly and we have USDT, consider BUY_WBNB.
 3. If WBNB rises significantly and we have WBNB, consider SELL_WBNB.
-4. Do NOT repeat the exact same action from Recent Memories to prevent infinite loops.
+4. Avoid repeating the exact same action from Recent Memories UNLESS market conditions strongly justify compounding the position (DCA).
 5. amountPercentage must be between 0 and 100.
 
 WORKER REPORTS:
@@ -144,14 +146,18 @@ JSON FORMAT EXPECTED:
       new HumanMessage(stateContext),
     ]);
 
-    const decision: AIDecision = extractJSON(finalResponse.content.toString());
+    const decision: AIDecision = JSON.parse(
+      finalResponse.content
+        .toString()
+        .replace(/```json|```/g, "")
+        .trim(),
+    );
     return decision;
   } catch (error) {
     console.error(
       "[CRITICAL] AI Workflow failed, triggering circuit breaker:",
       error,
     );
-    // Fallback yang aman jika terjadi rate-limit atau kegagalan parsing
     return {
       action: "HOLD",
       reasoning:

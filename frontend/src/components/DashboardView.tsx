@@ -4,38 +4,6 @@ import { KPICard } from "./KPICard";
 import { EventLog, type AIEventRow } from "./EventLog";
 import { VaultPanel } from "./VaultPanel";
 
-const DUMMY_EVENTS: AIEventRow[] = [
-  {
-    id: "1",
-    type: "ROUTE_OPTIMIZED",
-    protocol: "PancakeSwap",
-    asset: "USDT/WBNB",
-    amount: 15400,
-    detail: "Found +2.4% APY Arbitrage",
-    timestamp: Date.now() - 30000,
-    txHash: "0xabc123456789",
-  },
-  {
-    id: "2",
-    type: "REBALANCE_EXECUTED",
-    protocol: "Venus",
-    asset: "USDT",
-    amount: 5000,
-    detail: "Moved to higher yield pool",
-    timestamp: Date.now() - 120000,
-    txHash: "0xdef456789abc",
-  },
-  {
-    id: "3",
-    type: "YIELD_HARVESTED",
-    protocol: "NeuroLoom",
-    asset: "WBNB",
-    amount: 120,
-    detail: "Auto-compounded",
-    timestamp: Date.now() - 360000,
-    txHash: "0xghi789abcdef",
-  },
-];
 
 export function DashboardView() {
   return (
@@ -111,7 +79,7 @@ export function DashboardView() {
           <VaultPanel />
         </div>
         <div className="lg:col-span-2 h-full">
-          <EventLog events={DUMMY_EVENTS} />
+          <EventLog />
         </div>
       </div>
     </div>

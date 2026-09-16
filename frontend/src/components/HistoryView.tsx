@@ -1,6 +1,57 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { PageHero } from "./PageHero";
+import { formatTimeAgo } from "@/lib/utils";
+
+const GRAPHQL_URL =
+  "https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.2";
+
+interface GraphRebalanceData {
+  id: string;
+  amountIn: string;
+  expectedAmountOutMin: string;
+  blockTimestamp: string;
+  transactionHash: string;
+}
 
 export function HistoryView() {
+  const [history, setHistory] = useState<GraphRebalanceData[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const query = `
+          {
+            rebalanceExecuteds(first: 20, orderBy: blockTimestamp, orderDirection: desc) {
+              id
+              amountIn
+              expectedAmountOutMin
+              blockTimestamp
+              transactionHash
+            }
+          }
+        `;
+        const res = await fetch(GRAPHQL_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query }),
+        });
+        const { data } = await res.json();
+        if (data?.rebalanceExecuteds) {
+          setHistory(data.rebalanceExecuteds);
+        }
+      } catch (error) {
+        console.error("Error fetching history from Graph:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchHistory();
+  }, []);
+
   return (
     <div className="space-y-6">
       <div className="-mt-6">
@@ -13,9 +64,81 @@ export function HistoryView() {
         />
       </div>
 
-      {/* Nanti Tabel History kita taruh di sini */}
-      <div className="p-12 text-center text-gray-500 mt-4 border border-white/5 rounded-3xl bg-white/[0.02] shadow-inner">
-        History Content (Segera Hadir)
+      <div className="mt-8 overflow-hidden border border-white/5 rounded-3xl bg-[#0b1120]/80 shadow-2xl backdrop-blur-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left text-gray-400">
+            <thead className="text-xs uppercase bg-white/5 text-gray-300 font-mono">
+              <tr>
+                <th scope="col" className="px-6 py-4">
+                  Action
+                </th>
+                <th scope="col" className="px-6 py-4">
+                  Amount In (WBNB)
+                </th>
+                <th scope="col" className="px-6 py-4">
+                  Min. Expected (USDT)
+                </th>
+                <th scope="col" className="px-6 py-4">
+                  Age
+                </th>
+                <th scope="col" className="px-6 py-4 text-right">
+                  Transaction
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="px-6 py-12 text-center animate-pulse"
+                  >
+                    Syncing Ledger from BSC Testnet...
+                  </td>
+                </tr>
+              ) : history.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="px-6 py-12 text-center text-gray-500"
+                  >
+                    No Rebalance History Found.
+                  </td>
+                </tr>
+              ) : (
+                history.map((tx, idx) => (
+                  <tr
+                    key={tx.id}
+                    className="border-b border-white/[0.02] hover:bg-white/[0.04] transition-colors"
+                  >
+                    <td className="px-6 py-4 font-medium text-emerald-400">
+                      AI_REBALANCE
+                    </td>
+                    <td className="px-6 py-4 text-gray-200">
+                      {(Number(tx.amountIn) / 1e18).toFixed(4)} WBNB
+                    </td>
+                    <td className="px-6 py-4 text-gray-200">
+                      {(Number(tx.expectedAmountOutMin) / 1e18).toFixed(4)} USDT
+                    </td>
+                    <td className="px-6 py-4 text-gray-500">
+                      {formatTimeAgo(Number(tx.blockTimestamp) * 1000)}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <a
+                        href={`https://testnet.bscscan.com/tx/${tx.transactionHash}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-primary hover:text-primary-light hover:underline font-mono"
+                      >
+                        {tx.transactionHash.slice(0, 14)}...
+                      </a>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

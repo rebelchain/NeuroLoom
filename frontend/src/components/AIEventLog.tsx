@@ -1,4 +1,71 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { formatTimeAgo } from "@/lib/utils";
+
+const GRAPHQL_URL =
+  "https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.2";
+
+interface GraphRebalanceData {
+  id: string;
+  amountIn: string;
+  expectedAmountOutMin: string;
+  blockTimestamp: string;
+  transactionHash: string;
+}
+
 export function AIEventLog() {
+  const [events, setEvents] = useState<GraphRebalanceData[]>([]);
+  const [isSyncing, setIsSyncing] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true; // Bendera keamanan anti memory-leak
+
+    const fetchGraphData = async () => {
+      try {
+        const query = `
+          {
+            rebalanceExecuteds(first: 5, orderBy: blockTimestamp, orderDirection: desc) {
+              id
+              amountIn
+              expectedAmountOutMin
+              blockTimestamp
+              transactionHash
+            }
+          }
+        `;
+        const res = await fetch(GRAPHQL_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query }),
+        });
+        const { data } = await res.json();
+
+        // HANYA update state jika komponen masih aktif di layar
+        if (isMounted && data?.rebalanceExecuteds) {
+          setEvents(data.rebalanceExecuteds);
+        }
+      } catch (error) {
+        console.error("Error fetching AI Events:", error);
+      } finally {
+        if (isMounted) {
+          setIsSyncing(false);
+        }
+      }
+    };
+
+    // Panggilan pertama (aman dari linter karena didefinisikan secara lokal)
+    void fetchGraphData();
+
+    // Live stream polling setiap 10 detik
+    const interval = setInterval(fetchGraphData, 10000);
+
+    return () => {
+      isMounted = false; // Cleanup flag saat komponen mati
+      clearInterval(interval);
+    };
+  }, []);
+
   return (
     <section className="flex flex-col h-full bg-[#0b1120]/80 rounded-3xl border border-white/[0.05] overflow-hidden backdrop-blur-2xl">
       <header className="flex justify-between items-center p-5 border-b border-white/[0.05] bg-black/20">
@@ -11,8 +78,12 @@ export function AIEventLog() {
           </span>
         </div>
         <div className="flex items-center gap-2 text-[10px] font-mono bg-success/10 border border-success/20 px-3 py-1 rounded-full">
-          <span className="w-2 h-2 rounded-full bg-success animate-pulse"></span>
-          <span className="text-success tracking-widest">SYNCED</span>
+          <span
+            className={`w-2 h-2 rounded-full bg-success ${isSyncing ? "animate-pulse" : ""}`}
+          ></span>
+          <span className="text-success tracking-widest">
+            {isSyncing ? "SYNCING..." : "SYNCED"}
+          </span>
         </div>
       </header>
 
@@ -27,30 +98,56 @@ export function AIEventLog() {
             </tr>
           </thead>
           <tbody className="font-mono text-xs">
-            {/* Dummy Data - Nanti akan diganti dengan data Apollo GraphQL */}
-            <tr className="hover:bg-white/[0.02] border-b border-white/[0.02] transition-colors group">
-              <td className="px-5 py-4">
-                <div className="flex flex-col">
-                  <strong className="text-white">RebalanceExecuted</strong>
-                  <small className="text-gray-500 text-[10px]">
-                    AI Threshold Reached
-                  </small>
-                </div>
-              </td>
-              <td className="px-5 py-4">
-                <div className="flex items-center gap-2">
-                  <span className="text-error font-medium">100 USDT</span>
-                  <span className="text-gray-600">→</span>
-                  <span className="text-success font-medium">0.3 WBNB</span>
-                </div>
-              </td>
-              <td className="px-5 py-4 text-gray-400 text-[11px]">Just now</td>
-              <td className="px-5 py-4">
-                <span className="text-primary hover:text-primary/80 hover:underline cursor-pointer transition-colors">
-                  0x7cb4...47ee
-                </span>
-              </td>
-            </tr>
+            {events.length === 0 && !isSyncing ? (
+              <tr>
+                <td colSpan={4} className="px-5 py-8 text-center text-gray-500">
+                  Waiting for AI intents...
+                </td>
+              </tr>
+            ) : (
+              events.map((event) => (
+                <tr
+                  key={event.id}
+                  className="hover:bg-white/[0.02] border-b border-white/[0.02] transition-colors group"
+                >
+                  <td className="px-5 py-4">
+                    <div className="flex flex-col">
+                      <strong className="text-white">RebalanceExecuted</strong>
+                      <small className="text-gray-500 text-[10px]">
+                        AI Threshold Reached
+                      </small>
+                    </div>
+                  </td>
+                  <td className="px-5 py-4">
+                    <div className="flex items-center gap-2">
+                      <span className="text-error font-medium">
+                        {(Number(event.amountIn) / 1e18).toFixed(4)} WBNB
+                      </span>
+                      <span className="text-gray-600">→</span>
+                      <span className="text-success font-medium">
+                        Min.{" "}
+                        {(Number(event.expectedAmountOutMin) / 1e18).toFixed(4)}{" "}
+                        USDT
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-5 py-4 text-gray-400 text-[11px]">
+                    {formatTimeAgo(Number(event.blockTimestamp) * 1000)}
+                  </td>
+                  <td className="px-5 py-4">
+                    <a
+                      href={`https://testnet.bscscan.com/tx/${event.transactionHash}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-primary hover:text-primary/80 hover:underline cursor-pointer transition-colors"
+                    >
+                      {event.transactionHash.slice(0, 6)}...
+                      {event.transactionHash.slice(-4)}
+                    </a>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

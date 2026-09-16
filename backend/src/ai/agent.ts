@@ -1,5 +1,5 @@
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
-import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+import { ChatOpenAI } from "@langchain/openai";
 
 export interface AIDecision {
   action: "BUY_WBNB" | "SELL_WBNB" | "HOLD";
@@ -21,13 +21,18 @@ export async function getAIDecision(
   recentMemories: any[],
 ): Promise<AIDecision> {
   // Inisialisasi LLM secara global untuk efisiensi memori
-  const llm = new ChatGoogleGenerativeAI({
-    model: "gemini-3.6-flash",
-    maxOutputTokens: 1024,
-    temperature: 0.1, // Suhu rendah agar logis dan deterministik
-    apiKey: process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY,
-    // [UPGRADE 1]: Memaksa Gemini merespons dengan JSON murni!
-    // modelKwargs: { response_mime_type: "application/json" } // Opsional: Buka komen ini jika Langchain terbarumu mendukungnya
+  const llm = new ChatOpenAI({
+    modelName: "google/gemma-4-26b-a4b-it:free",
+    temperature: 0.1,
+    maxTokens: 4096,
+    openAIApiKey: process.env.OPENAI_API_KEY,
+    configuration: {
+      baseURL: "https://openrouter.ai/api/v1",
+      defaultHeaders: {
+        "HTTP-Referer": "https://neuroloom.app", // OpenRouter butuh ini
+        "X-Title": "NeuroLoom", // OpenRouter butuh ini
+      },
+    },
   });
 
   const stateContext = `

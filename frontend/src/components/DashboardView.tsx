@@ -1,16 +1,50 @@
+"use client";
+
 import { Activity, Coins, TrendingUp, Network, BadgePlus } from "lucide-react";
 import { PageHero } from "./PageHero";
 import { KPICard } from "./KPICard";
-import { EventLog, type AIEventRow } from "./EventLog";
+import { EventLog } from "./EventLog";
 import { VaultPanel } from "./VaultPanel";
+import { useReadContract } from "wagmi";
 
+// Alamat Smart Contract Proxy V2 milikmu
+const VAULT_ADDRESS = "0xe38887648d7272e9Eb3C06628767bb3d84a9FF4E";
+
+// Minimal ABI untuk membaca TVL
+const vaultABI = [
+  {
+    inputs: [],
+    name: "totalAssets",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+] as const;
 
 export function DashboardView() {
+  // 🔗 WAGMI HOOK: Membaca totalAssets dari BSC Testnet secara real-time
+  const { data: totalAssetsData, isLoading: isTvlLoading } = useReadContract({
+    address: VAULT_ADDRESS,
+    abi: vaultABI,
+    functionName: "totalAssets",
+    query: {
+      refetchInterval: 10000, // Auto-refresh data setiap 10 detik!
+    },
+  });
+
+  // Mengonversi saldo dari Wei (18 desimal) ke format desimal biasa
+  // Jika saldo kosong atau error, fallback ke 0
+  const realTVL = totalAssetsData ? Number(totalAssetsData) / 1e18 : 0;
+  console.log(
+    "🔎 Raw TVL Data dari Blockchain:",
+    totalAssetsData,
+    "Real TVL:",
+    realTVL,
+  );
+
   return (
-    // UBAH BARIS INI: Hanya gunakan space-y-6
     <div className="space-y-6">
       {/* 1. HERO BANNER */}
-      {/* UBAH BARIS INI: Tambahkan div pembungkus dengan margin-top negatif */}
       <div className="-mt-6">
         <PageHero
           badge="Overview · Autonomous Vault"
@@ -31,12 +65,12 @@ export function DashboardView() {
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         <KPICard
           title="Total Value Locked"
-          value={145200}
+          value={realTVL} // Pastikan ini murni number (akan 0 saat loading)
           prefix="$"
           icon={Activity}
-          change="+12.5%"
+          change={isTvlLoading ? "Syncing..." : "Live On-Chain"} // Pindahkan indikator loading ke sini
           changeType="positive"
-          subtext="Managed by AI Agent"
+          subtext="Verified via Wagmi"
           delay={0}
         />
         <KPICard
@@ -52,10 +86,10 @@ export function DashboardView() {
         />
         <KPICard
           title="Available Liquidity"
-          value={45000}
+          value={realTVL * 0.2} // Pastikan ini murni number
           prefix="$"
           icon={Coins}
-          change="Ready"
+          change={isTvlLoading ? "Syncing..." : "Ready"} // Pindahkan indikator loading ke sini
           changeType="neutral"
           subtext="Awaiting new routes"
           delay={160}

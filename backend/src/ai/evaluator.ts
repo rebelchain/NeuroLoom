@@ -1,5 +1,5 @@
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
-import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+import { ChatOpenAI } from "@langchain/openai";
 import { AIDecision } from "./agent.js";
 
 function extractJSON(rawText: string): any {
@@ -9,7 +9,7 @@ function extractJSON(rawText: string): any {
 }
 
 async function evaluateDecision(
-  llm: ChatGoogleGenerativeAI,
+  llm: ChatOpenAI, // [UBAH]: Tipe data parameter diganti
   draft: AIDecision,
   marketData: any,
   vaultState: any,
@@ -38,7 +38,7 @@ Output ONLY a valid JSON object:
 }
 
 async function optimizeDecision(
-  llm: ChatGoogleGenerativeAI,
+  llm: ChatOpenAI, // [UBAH]: Tipe data parameter diganti
   previousDraft: AIDecision,
   feedback: string,
   marketData: any,
@@ -62,11 +62,18 @@ export async function runEvaluatorLoop(
   console.log("\n🛡️ [EVALUATOR] Initiating Risk Management Audit Loop...");
 
   try {
-    const llm = new ChatGoogleGenerativeAI({
-      model: "gemini-3.6-flash",
-      maxOutputTokens: 512,
+    const llm = new ChatOpenAI({
+      modelName: "google/gemma-4-26b-a4b-it:free",
       temperature: 0,
-      apiKey: process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY,
+      maxTokens: 512,
+      openAIApiKey: process.env.OPENAI_API_KEY,
+      configuration: {
+        baseURL: "https://openrouter.ai/api/v1",
+        defaultHeaders: {
+          "HTTP-Referer": "https://neuroloom.app",
+          "X-Title": "NeuroLoom",
+        },
+      },
     });
 
     let currentDecision = initialDecision;
@@ -112,9 +119,10 @@ export async function runEvaluatorLoop(
     );
     console.log("🔄 [SYSTEM] Activating Emergency Web3 Mock Execution...");
     return {
-      action: "SELL_WBNB",
-      amountPercentage: 50,
-      reasoning: "Emergency Bypass AI. Forcing SELL_WBNB to keep system alive.",
+      action: "BUY_WBNB",
+      amountPercentage: 50, // Akan memakai 50% dari USDT yang ada di brankas
+      reasoning:
+        "Emergency Bypass AI. Executing BUY_WBNB to utilize available USDT liquidity.",
     };
   }
 }

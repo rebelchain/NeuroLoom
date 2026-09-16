@@ -29,6 +29,7 @@ import { Sidebar, type PageId } from "../components/Sidebar";
 import { SmartVaultsView } from "../components/SmartVaultsView";
 import { StepCard } from "../components/StepCard";
 import { useTyping } from "../lib/useTyping";
+import { IdentityGateModal } from "@/components/IdentityGateModal";
 
 // ==========================================
 // KONFIGURASI ANIMASI & TEMA (ATM dari Referensi)
@@ -73,6 +74,7 @@ export default function NeuroLoomApp() {
   const typedText = useTyping(view === "landing");
   const [activeStep, setActiveStep] = useState(0);
   const [activeProtocol, setActiveProtocol] = useState(0);
+  const [showGate, setShowGate] = useState(false);
 
   // Kunci scroll body saat menu mobile terbuka
   useEffect(() => {
@@ -115,6 +117,17 @@ export default function NeuroLoomApp() {
 
   return (
     <>
+      {/* =========================================
+          MODAL GERBANG IDENTITAS
+      ========================================= */}
+      <IdentityGateModal
+        isOpen={showGate}
+        onClose={() => setShowGate(false)}
+        onContinue={() => {
+          setShowGate(false);
+          setView("app"); // 🚀 Baru pindah ke dashboard setelah verifikasi
+        }}
+      />
       <AnimatePresence mode="wait">
         {view === "landing" ? (
           /* =========================================
@@ -163,10 +176,10 @@ export default function NeuroLoomApp() {
                   </button>
                 </div>
                 <button
-                  onClick={() => setView("app")}
+                  onClick={() => setShowGate(true)} // <-- UBAH BAGIAN INI
                   className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/[0.05] border border-white/[0.1] hover:bg-white/[0.1] transition-colors text-sm font-semibold"
                 >
-                  <Wallet className="w-4 h-4" /> Connect
+                  <Wallet className="w-4 h-4" /> Launch Dashboard
                 </button>
               </div>
             </nav>
@@ -186,7 +199,7 @@ export default function NeuroLoomApp() {
                 </p>
                 <div className="flex gap-4">
                   <button
-                    onClick={() => setView("app")}
+                    onClick={() => setShowGate(true)} // <-- UBAH BAGIAN INI JUGA
                     className="group flex items-center gap-3 px-8 py-4 rounded-xl bg-gradient-to-r from-primary to-info hover:shadow-[0_0_30px_rgba(139,92,246,0.5)] transition-all hover:-translate-y-1 text-white font-bold text-base"
                   >
                     Launch Terminal{" "}

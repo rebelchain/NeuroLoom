@@ -28,7 +28,7 @@ export default defineConfig({
     },
     bscTestnet: {
       type: "http",
-      url: "https://api.zan.top/bsc-testnet",
+      url: "https://data-seed-prebsc-2-s2.bnbchain.org:8545/",
       chainId: 97,
       accounts: PRIVATE_KEY,
     },

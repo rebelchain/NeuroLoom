@@ -281,25 +281,23 @@ npm run dev
 | Sandwich MEV Attack | Absolute post-execution balance check via Fair Value | ✅ On-chain |
 | AI API Failure / Network Outage | Evaluator Circuit Breaker (Halts execution to `HOLD`) | ✅ Off-chain |
 
-### Deterministic E2E Testing
+## Deterministic E2E Testing
 
-NeuroLoom's core security mechanisms are strictly validated using Hardhat v3, testing both aggressive MEV simulated attacks and multi-protocol happy paths with decimal mapping.
+NeuroLoom's core security mechanisms are strictly validated using Hardhat v3, testing both aggressive MEV simulated attacks and multi-protocol happy paths with dynamic decimal mapping.
 
 ```console
-$ npx hardhat test test/E2ESlippage.test.ts nodejs
+$ npx hardhat test test/E2ESlippage.test.ts
 
-  E2E Mainnet Fork: Anti-Sandwich Attack & Omnichain (Hardhat v3)
+  E2E BSC Testnet Fork: Anti-Sandwich Attack & Multi-Protocol Routing (Hardhat v3)
     🛡️ Security Guards (Negative Paths)
       ✔ Must revert if called by a non-AI role (Access Control) (295ms)
       ✔ Must revert if AI targets an unapproved protocol (Protocol Whitelist) (120ms)
       ✔ Must revert if AI sends an expectedAmountOutMin below the 2% slippage limit (Anti-MEV) (158ms)
-    ⚡ True Omnichain Routing (Happy Path)
+    ⚡ True Multi-Protocol Routing (Happy Path)
       ✔ Must successfully execute a cross-protocol swap with correct calldata & dynamic decimals (350ms)
 
-  4 passing (4 nodejs)
-
+  4 passing (2s)
 ```
-
 ---
 
 ## Known Limitations & Production Roadmap

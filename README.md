@@ -117,7 +117,7 @@ The core primitive of NeuroLoom is the `NeuroLoomVaultV2` contract, adopting the
 ```text
                 ┌─────────────────────────────────────────────────────────────┐
                 │             AGENTIC HARNESS (Node.js Backend)               │
-                │ 1. ORCHESTRATOR: Analyzes market & delegates tasks          │
+                │ 1. ORCHESTRATOR: Analyzes DeFi state & delegates tasks      │
                 │ 2. WORKERS: Parallel processing via LangChain (Gemma 4 MoE) │
                 │ 3. EVALUATOR: Refines strategy in a strict feedback loop    │
                 │ 4. EXECUTOR: Builds 'calldata' & signs Viem Transaction     │
@@ -130,15 +130,15 @@ The core primitive of NeuroLoom is the `NeuroLoomVaultV2` contract, adopting the
                                        │ delegates calls to
                         ┌──────────────▼─────────────┐   ┌──────────────────────┐
                         │  NeuroLoomVaultV2 (Logic)  │───▶   Chainlink Oracle   │
-                        │  _validateSlippage()       │   │  latestRoundData()   │
-                        │  executeOmnichain()        │   └──────────────────────┘
+                        │  1. onlyApprovedProtocol   │   │  latestRoundData()   │
+                        │  2. executeOmnichain()     │   └──────────────────────┘
                         └──────────────┬─────────────┘
                                        │ If safe, injects raw calldata
            ┌───────────────────────────┼───────────────────────────┐
            ▼                           ▼                           ▼
  ┌───────────────────┐       ┌───────────────────┐       ┌───────────────────┐
- │   PancakeSwap V3  │       │   Venus Lending   │       │   Any Future DEX  │
- │ exactInputSingle  │       │    mint/supply    │       │     swap/add      │
+ │   PancakeSwap V2  │       │   Venus Lending   │       │   Any Future DEX  │
+ │swapExactTokensFor…│       │    mint/supply    │       │     swap/add      │
  └───────────────────┘       └───────────────────┘       └───────────────────┘
 ```
 

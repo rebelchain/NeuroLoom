@@ -253,6 +253,22 @@ npm run dev
 | Sandwich MEV Attack | Absolute post-execution balance check | ✅ On-chain |
 | AI Infinite Loop | Memory-aware prompting via localized SQLite DB | ✅ Off-chain |
 
+### Deterministic E2E Testing
+
+NeuroLoom's core security mechanisms are strictly validated using Hardhat v3 to simulate live MEV attack scenarios.
+
+```console
+$ npx hardhat test test/E2ESlippage.test.ts test/SecurityGuard.test.ts
+
+  E2E Mainnet Fork: Anti-Sandwich Attack & Omnichain (Hardhat v3)
+    ✔ Must revert if the AI sends an expectedAmountOutMin below the reasonable limit (MEV Attack Simulation). (8960ms)
+
+  Security Audit: NeuroLoomVaultV2 (Hardhat v-next)
+    ✔ Must successfully deploy the V2 contract on the local network.
+    ✔ The AI_EXECUTOR_ROLE must be recognized deterministically.
+
+  3 passing (3 nodejs)
+```
 ---
 
 ## Known Limitations & Production Roadmap
@@ -271,22 +287,7 @@ To transition this architecture into a production-ready Mainnet environment, the
    * *Current Prototype:* The slippage guardrail intercepts data from a single Chainlink testnet aggregator.
    * *Production Target:* Integration of multi-asset Time-Weighted Average Price (TWAP) and redundant decentralized oracle networks (DONs) to completely neutralize isolated flash-crash vulnerabilities.
 
-### Deterministic E2E Testing
-
-NeuroLoom's core security mechanisms are strictly validated using Hardhat v3 to simulate live MEV attack scenarios.
-
-```console
-$ npx hardhat test test/E2ESlippage.test.ts test/SecurityGuard.test.ts
-
-  E2E Mainnet Fork: Anti-Sandwich Attack & Omnichain (Hardhat v3)
-    ✔ Must revert if the AI sends an expectedAmountOutMin below the reasonable limit (MEV Attack Simulation). (8960ms)
-
-  Security Audit: NeuroLoomVaultV2 (Hardhat v-next)
-    ✔ Must successfully deploy the V2 contract on the local network.
-    ✔ The AI_EXECUTOR_ROLE must be recognized deterministically.
-
-  3 passing (3 nodejs)
-```
+---
 
 *NeuroLoom — AI that routes, Blockchain that verifies.*
 

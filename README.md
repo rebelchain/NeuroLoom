@@ -12,7 +12,7 @@ NeuroLoom is a next-generation Decentralized Finance (DeFi) protocol that fuses 
 Built for the **Indonesia Web3 Hackathon 2026** on the **BNB Chain**.
 
 <p align="center">
-  <img alt="Solidity 0.8.24" src="https://img.shields.io/badge/Solidity-0.8.24-363636?logo=solidity&logoColor=white&style=for-the-badge" />
+  <img alt="Solidity 0.8.24" src="https://img.shields.io/badge/Solidity-0.8.28-363636?logo=solidity&logoColor=white&style=for-the-badge" />
   <img alt="Next.js" src="https://img.shields.io/badge/Next.js-14-000000?logo=next.js&logoColor=white&style=for-the-badge" />
   <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white&style=for-the-badge" />
   <img alt="LangChain" src="https://img.shields.io/badge/AI-LangChain%20%7C%20Gemma%204%20MoE-10B981?style=for-the-badge" />

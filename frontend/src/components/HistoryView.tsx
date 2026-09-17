@@ -16,10 +16,22 @@ interface GraphRebalanceData {
 }
 
 export function HistoryView() {
-  const [history, setHistory] = useState<GraphRebalanceData[]>([]);
+  // [HACKATHON DEMO MODE]: Injeksi 1 data statis agar tabel History tidak kosong saat demo
+  const [history, setHistory] = useState<GraphRebalanceData[]>([
+    {
+      id: "demo-tx-1",
+      amountIn: "5000000000000000000",
+      expectedAmountOutMin: "8000000000000000",
+      blockTimestamp: "1789585000", // Waktu statis
+      transactionHash:
+        "0xfcca1bd79e41ce5b9df81b1eff4762cf9fb013c8b3efa56ff33213ab0fac84b4",
+    },
+  ]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
+
     const fetchHistory = async () => {
       try {
         const query = `
@@ -39,17 +51,30 @@ export function HistoryView() {
           body: JSON.stringify({ query }),
         });
         const { data } = await res.json();
-        if (data?.rebalanceExecuteds) {
+
+        // HANYA timpa tabel jika data dari The Graph BENAR-BENAR ADA (> 0)
+        // Jika kosong, biarkan data demo tetap mejeng di layar
+        if (
+          isMounted &&
+          data?.rebalanceExecuteds &&
+          data.rebalanceExecuteds.length > 0
+        ) {
           setHistory(data.rebalanceExecuteds);
         }
       } catch (error) {
         console.error("Error fetching history from Graph:", error);
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     fetchHistory();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   return (
@@ -87,7 +112,8 @@ export function HistoryView() {
               </tr>
             </thead>
             <tbody>
-              {loading ? (
+              {/* Karena kita punya data demo, state awal loading tidak akan membuat tabel kosong */}
+              {loading && history.length === 0 ? (
                 <tr>
                   <td
                     colSpan={5}
@@ -106,7 +132,7 @@ export function HistoryView() {
                   </td>
                 </tr>
               ) : (
-                history.map((tx, idx) => (
+                history.map((tx) => (
                   <tr
                     key={tx.id}
                     className="border-b border-white/[0.02] hover:bg-white/[0.04] transition-colors"

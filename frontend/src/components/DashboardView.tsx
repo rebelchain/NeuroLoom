@@ -1,11 +1,11 @@
 "use client";
 
-import { Activity, Coins, TrendingUp, Network, BadgePlus } from "lucide-react";
-import { PageHero } from "./PageHero";
-import { KPICard } from "./KPICard";
-import { EventLog } from "./EventLog";
-import { VaultPanel } from "./VaultPanel";
+import { Activity, BadgePlus, Coins, Network, TrendingUp } from "lucide-react";
 import { useReadContract } from "wagmi";
+import { EventLog } from "./EventLog";
+import { KPICard } from "./KPICard";
+import { PageHero } from "./PageHero";
+import { VaultPanel } from "./VaultPanel";
 
 // Alamat Smart Contract Proxy V2 milikmu
 const VAULT_ADDRESS = "0xe38887648d7272e9Eb3C06628767bb3d84a9FF4E";
@@ -53,7 +53,14 @@ export function DashboardView() {
           subtitle="Live strategy state across the BSC network — what is held, what is yielding, and where the AI is routing funds."
           media={{ kind: "video", src: "/bg/plexuspurple.mp4", opacity: 60 }}
           actions={
-            <button className="liquid-glass liquid-cta liquid-glass-button px-5 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2">
+            <button
+              onClick={() => {
+                document
+                  .getElementById("vault-panel-section")
+                  ?.scrollIntoView({ behavior: "smooth" });
+              }}
+              className="liquid-glass liquid-cta liquid-glass-button px-5 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 transition-transform hover:scale-105 active:scale-95"
+            >
               <BadgePlus className="w-4 h-4" />
               Deposit Asset
             </button>
@@ -109,7 +116,7 @@ export function DashboardView() {
 
       {/* 3. TERMINAL UI GRID */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start mt-8">
-        <div className="lg:col-span-1 h-full">
+        <div id="vault-panel-section" className="lg:col-span-1 h-full">
           <VaultPanel />
         </div>
         <div className="lg:col-span-2 h-full">

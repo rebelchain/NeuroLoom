@@ -13,6 +13,7 @@ import {
 import { useEffect, useState } from "react";
 
 // Komponen Modular
+import { IdentityGateModal } from "@/components/IdentityGateModal";
 import { AITerminalView } from "../components/AITerminalView";
 import { BenefitRow } from "../components/BenefitRow";
 import { DashboardView } from "../components/DashboardView";
@@ -29,7 +30,6 @@ import { Sidebar, type PageId } from "../components/Sidebar";
 import { SmartVaultsView } from "../components/SmartVaultsView";
 import { StepCard } from "../components/StepCard";
 import { useTyping } from "../lib/useTyping";
-import { IdentityGateModal } from "@/components/IdentityGateModal";
 
 // ==========================================
 // KONFIGURASI ANIMASI & TEMA (ATM dari Referensi)
@@ -76,6 +76,19 @@ export default function NeuroLoomApp() {
   const [activeProtocol, setActiveProtocol] = useState(0);
   const [showGate, setShowGate] = useState(false);
 
+  useEffect(() => {
+    const handleCustomNavigate = (e: Event) => {
+      const customEvent = e as CustomEvent<string>;
+      if (customEvent.detail) {
+        setActivePage(customEvent.detail as PageId);
+      }
+    };
+
+    window.addEventListener("app-navigate", handleCustomNavigate);
+    return () =>
+      window.removeEventListener("app-navigate", handleCustomNavigate);
+  }, []);
+
   // Kunci scroll body saat menu mobile terbuka
   useEffect(() => {
     if (mobileOpen) {
@@ -98,7 +111,6 @@ export default function NeuroLoomApp() {
     setMobileOpen(false);
   };
 
-  // Saklar Halaman (Router Manual)
   // Saklar Halaman (Router Manual)
   const renderPage = () => {
     switch (activePage) {
@@ -153,10 +165,15 @@ export default function NeuroLoomApp() {
               }}
             />
 
-            <nav className="sticky top-0 z-50 border-b border-white/[0.05] bg-[#04060d]/80 backdrop-blur-xl">
-              {/* ... Isi Nav Navbar tetep sama seperti sebelumnya ... */}
+            <nav className="fixed top-0 left-0 right-0 w-full z-50 border-b border-white/[0.05] bg-[#04060d]/80 backdrop-blur-xl">
               <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-                <div className="flex items-center gap-3 cursor-pointer">
+                {/* Logo: Bisa diklik untuk otomatis scroll mulus ke paling atas */}
+                <div
+                  className="flex items-center gap-3 cursor-pointer"
+                  onClick={() =>
+                    window.scrollTo({ top: 0, behavior: "smooth" })
+                  }
+                >
                   <div className="w-10 h-10 bg-primary/10 border border-primary/20 rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(139,92,246,0.3)]">
                     <Activity className="w-5 h-5 text-primary" />
                   </div>
@@ -164,28 +181,70 @@ export default function NeuroLoomApp() {
                     NEUROLOOM
                   </span>
                 </div>
-                <div className="hidden md:flex items-center gap-8 font-mono text-xs uppercase tracking-[0.1em]">
-                  <button className="text-primary font-bold transition-colors">
-                    Introduction
-                  </button>
+
+                {/* UBAHAN 2: Routing antar Section & Tambahan link Github */}
+                <div className="hidden md:flex items-center gap-8 font-semibold text-xs uppercase tracking-[0.1em]">
                   <button
-                    onClick={() => setView("app")}
+                    onClick={() =>
+                      document
+                        .getElementById("features")
+                        ?.scrollIntoView({ behavior: "smooth" })
+                    }
                     className="text-gray-400 hover:text-primary transition-colors"
                   >
-                    Terminal
+                    Features
                   </button>
+                  <button
+                    onClick={() =>
+                      document
+                        .getElementById("how-it-works")
+                        ?.scrollIntoView({ behavior: "smooth" })
+                    }
+                    className="text-gray-400 hover:text-primary transition-colors"
+                  >
+                    How it Works
+                  </button>
+                  <button
+                    onClick={() =>
+                      document
+                        .getElementById("protocols")
+                        ?.scrollIntoView({ behavior: "smooth" })
+                    }
+                    className="text-gray-400 hover:text-primary transition-colors"
+                  >
+                    Ecosystem
+                  </button>
+
+                  {/* Link Github */}
+                  <a
+                    href="https://github.com/r3belchain/NeuroLoom"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-gray-400 hover:text-primary transition-colors duration-200 flex items-center gap-1.5"
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
+                    </svg>
+                    GitHub
+                  </a>
                 </div>
+
+                {/* UBAHAN 3: Sembunyikan Launch Dashboard di Mobile (tambah class 'hidden md:flex') */}
                 <button
-                  onClick={() => setShowGate(true)} // <-- UBAH BAGIAN INI
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/[0.05] border border-white/[0.1] hover:bg-white/[0.1] transition-colors text-sm font-semibold"
+                  onClick={() => setShowGate(true)}
+                  className="hidden md:flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/[0.05] border border-white/[0.1] hover:bg-white/[0.1] transition-colors text-sm font-semibold"
                 >
                   <Wallet className="w-4 h-4" /> Launch Dashboard
                 </button>
               </div>
             </nav>
 
-            <main className="flex-grow flex flex-col z-10">
-              <section className="flex flex-col items-center justify-center text-center px-6 py-32 min-h-[85vh] relative">
+            <main className="flex-grow flex flex-col z-10 pt-20">
+              <section className="flex flex-col items-center justify-center text-center px-6 py-24 min-h-[85vh] relative">
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.03] border border-white/10 text-primary text-xs font-medium mb-8">
                   <TerminalIcon className="w-4 h-4" /> BSC Testnet Live
                 </div>
@@ -202,7 +261,7 @@ export default function NeuroLoomApp() {
                     onClick={() => setShowGate(true)} // <-- UBAH BAGIAN INI JUGA
                     className="group flex items-center gap-3 px-8 py-4 rounded-xl bg-gradient-to-r from-primary to-info hover:shadow-[0_0_30px_rgba(139,92,246,0.5)] transition-all hover:-translate-y-1 text-white font-bold text-base"
                   >
-                    Launch Terminal{" "}
+                    Launch Dashboard{" "}
                     <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                   </button>
                 </div>
@@ -290,7 +349,7 @@ export default function NeuroLoomApp() {
                           />
                         }
                         title="Real-Time Order Flow Analysis"
-                        desc="The AI agent constantly analyzes order book dynamics and detects liquidity sweeps across DEXs. It calculates the optimal route and rebalances the vault automatically to secure maximum APY before the market shifts."
+                        desc="Powered by an Agentic Workflow, our system constantly analyzes order book dynamics and detects liquidity sweeps across DEXs. The Orchestrator LLM dynamically calculates the optimal route, while an Evaluator-Optimizer loop refines the execution to secure maximum APY before the market shifts."
                         accent="from-primary/10 to-transparent"
                         delay="0ms"
                       />

@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Coins,
   LockKeyhole,
@@ -9,34 +11,20 @@ import { VaultAllocationBar, type VaultData } from "./VaultAllocationBar";
 import { PageHero } from "./PageHero";
 import { useSectionReveal } from "@/lib/useSectionReveal";
 import { cn, formatCurrency } from "@/lib/utils";
+import { useReadContract } from "wagmi";
+import { useMemo } from "react";
 
-// DUMMY DATA UNTUK HACKATHON
-const DUMMY_VAULTS: VaultData[] = [
+// 🔗 Address Smart Contract Asli Milikmu
+const VAULT_ADDRESS = "0xe38887648d7272e9Eb3C06628767bb3d84a9FF4E";
+const vaultABI = [
   {
-    id: "1",
-    name: "Stablecoin Alpha Vault",
-    symbol: "USDT",
-    totalBalance: 299989,
-    availableBalance: 49989,
-    apy: 18.5,
-    allocations: [
-      { protocolName: "Venus Protocol", amount: 150000 },
-      { protocolName: "PancakeSwap V3", amount: 100000 },
-    ],
+    inputs: [],
+    name: "totalAssets",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
   },
-  {
-    id: "2",
-    name: "BNB Yield Optimizer",
-    symbol: "WBNB",
-    totalBalance: 339988,
-    availableBalance: 39988,
-    apy: 24.2,
-    allocations: [
-      { protocolName: "Radiant Capital", amount: 200000 },
-      { protocolName: "Kinza Finance", amount: 100000 },
-    ],
-  },
-];
+] as const;
 
 function VaultCard({ vault }: { vault: VaultData }) {
   const { ref, visible } = useSectionReveal<HTMLDivElement>(0.2);
@@ -77,7 +65,10 @@ function VaultCard({ vault }: { vault: VaultData }) {
               <Coins className="w-3.5 h-3.5" /> Total TVL
             </span>
             <span className="font-mono font-semibold text-white">
-              {formatCurrency(vault.totalBalance)}
+              {/* Jika angkanya 0, tampilkan Syncing, jika ada tampilkan format currency */}
+              {vault.totalBalance > 0
+                ? formatCurrency(vault.totalBalance)
+                : "Syncing..."}
             </span>
           </div>
           <div className="flex justify-between text-sm">
@@ -93,7 +84,9 @@ function VaultCard({ vault }: { vault: VaultData }) {
               <LockKeyhole className="w-3.5 h-3.5 text-success" /> AI Allocated
             </span>
             <span className="font-mono font-semibold text-success">
-              {formatCurrency(totalAllocated)}
+              {vault.totalBalance > 0
+                ? formatCurrency(totalAllocated)
+                : "Syncing..."}
             </span>
           </div>
         </div>
@@ -114,6 +107,48 @@ function VaultCard({ vault }: { vault: VaultData }) {
 }
 
 export function SmartVaultsView() {
+  // 1. Tarik Data Nyata dari BSC Testnet
+  const { data: totalAssetsData } = useReadContract({
+    address: VAULT_ADDRESS,
+    abi: vaultABI,
+    functionName: "totalAssets",
+    query: { refetchInterval: 10000 },
+  });
+
+  // 2. Gabungkan Data Nyata dengan Dummy Data (Hybrid Approach)
+  const hybridVaults = useMemo<VaultData[]>(() => {
+    const realTVL = totalAssetsData ? Number(totalAssetsData) / 1e18 : 0;
+
+    return [
+      {
+        id: "1",
+        name: "Stablecoin Alpha Vault",
+        symbol: "USDT",
+        // Gunakan Real TVL dari blockchain! Jika 0, gunakan fallback dummy 10 USDT
+        totalBalance: realTVL > 0 ? realTVL : 10.5,
+        // Simulasikan bahwa AI selalu menyisakan 20% sebagai Available Balance
+        availableBalance: realTVL > 0 ? realTVL * 0.2 : 2.5,
+        apy: 18.5,
+        allocations: [
+          { protocolName: "Venus Protocol", amount: (realTVL || 10.5) * 0.5 },
+          { protocolName: "PancakeSwap V3", amount: (realTVL || 10.5) * 0.3 },
+        ],
+      },
+      {
+        id: "2",
+        name: "BNB Yield Optimizer",
+        symbol: "WBNB",
+        totalBalance: 339988, // Full Dummy untuk pamer multi-vault
+        availableBalance: 39988,
+        apy: 24.2,
+        allocations: [
+          { protocolName: "Radiant Capital", amount: 200000 },
+          { protocolName: "Kinza Finance", amount: 100000 },
+        ],
+      },
+    ];
+  }, [totalAssetsData]);
+
   return (
     <div className="space-y-6">
       <div className="-mt-6">
@@ -127,7 +162,7 @@ export function SmartVaultsView() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {DUMMY_VAULTS.map((vault) => (
+        {hybridVaults.map((vault) => (
           <VaultCard key={vault.id} vault={vault} />
         ))}
       </div>
@@ -143,10 +178,10 @@ export function SmartVaultsView() {
             </p>
           </div>
           <span className="text-xs font-mono text-gray-500">
-            {DUMMY_VAULTS.length} active vaults
+            {hybridVaults.length} active vaults
           </span>
         </div>
-        {DUMMY_VAULTS.map((vault) => (
+        {hybridVaults.map((vault) => (
           <VaultAllocationBar key={vault.id} vault={vault} />
         ))}
       </div>

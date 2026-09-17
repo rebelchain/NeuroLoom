@@ -37,7 +37,7 @@ export function FeatureCard({
         {featured && (
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/25 text-primary text-[11px] font-medium mb-4">
             <span className="w-1 h-1 rounded-full bg-primary animate-pulse" />{" "}
-            AI Agent Active
+            Agentic Workflow
           </div>
         )}
         <h3 className="text-lg font-semibold text-white mb-3">{title}</h3>

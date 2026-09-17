@@ -294,7 +294,7 @@ $ npx hardhat test
     ✔ Must allow Admin to successfully pause and unpause the vault (45ms)
 
   E2E BSC Testnet Fork: Anti-Sandwich Attack & Multi-Protocol Routing (E2ESlippage.test.ts)
-    🛡️ Security Guards (Negative Paths)
+     🛡️ Security Guards (Negative Paths)
       ✔ Must revert if called by a non-AI role (Access Control) (295ms)
       ✔ Must revert if AI targets an unapproved protocol (Protocol Whitelist) (120ms)
       ✔ Must revert if AI sends an expectedAmountOutMin below the 2% slippage limit (Anti-MEV) (158ms)

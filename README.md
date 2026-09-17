@@ -281,14 +281,19 @@ npm run dev
 | Sandwich MEV Attack | Absolute post-execution balance check via Fair Value | ✅ On-chain |
 | AI API Failure / Network Outage | Evaluator Circuit Breaker (Halts execution to `HOLD`) | ✅ Off-chain |
 
-## Deterministic E2E Testing
+## Deterministic Test Coverage
 
-NeuroLoom's core security mechanisms are strictly validated using Hardhat v3, testing both aggressive MEV simulated attacks and multi-protocol happy paths with dynamic decimal mapping.
+NeuroLoom's core security mechanisms and upgradeable proxy architecture are strictly validated using Hardhat v3, testing both aggressive MEV simulated attacks and multi-protocol happy paths with dynamic decimal mapping.
 
 ```console
-$ npx hardhat test test/E2ESlippage.test.ts
+$ npx hardhat test
 
-  E2E BSC Testnet Fork: Anti-Sandwich Attack & Multi-Protocol Routing (Hardhat v3)
+  Deployment & Proxy Upgradeability (smoke-test.ts)
+    ✔ Must deploy ERC1967 Proxy and Vault V2 Implementation (85ms)
+    ✔ Must initialize default admin and grant AI_EXECUTOR_ROLE (62ms)
+    ✔ Must allow Admin to successfully pause and unpause the vault (45ms)
+
+  E2E BSC Testnet Fork: Anti-Sandwich Attack & Multi-Protocol Routing (E2ESlippage.test.ts)
     🛡️ Security Guards (Negative Paths)
       ✔ Must revert if called by a non-AI role (Access Control) (295ms)
       ✔ Must revert if AI targets an unapproved protocol (Protocol Whitelist) (120ms)
@@ -296,7 +301,7 @@ $ npx hardhat test test/E2ESlippage.test.ts
     ⚡ True Multi-Protocol Routing (Happy Path)
       ✔ Must successfully execute a cross-protocol swap with correct calldata & dynamic decimals (350ms)
 
-  4 passing (2s)
+  7 passing (3s)
 ```
 ---
 

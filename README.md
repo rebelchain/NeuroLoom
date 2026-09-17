@@ -93,8 +93,8 @@ The following is a real execution log from the NeuroLoom AI backend demonstratin
 [ORCHESTRATOR] Analyzing state and planning task delegation...
 [ORCHESTRATOR] Delegating 2 specialized approaches.
 [WORKERS] Generating specialized analysis concurrently...
-  -> [WORKER 1 | TECHNICAL_ANALYST] Recommends: HOLD
-  -> [WORKER 2 | RISK_MANAGER] Recommends: HOLD
+  -> [WORKER 1 | YIELD_STRATEGIST] Recommends: HOLD
+  -> [WORKER 2 | LIQUIDITY_RISK_MANAGER] Recommends: HOLD
 [SYNTHESIZER] Evaluating worker reports and finalizing decision...
 [DECISION] Action: HOLD | Allocation: 0%
 [REASONING] Both WBNB and USDT vault balances are zero, making trade execution impossible regardless of price movement.
@@ -224,7 +224,7 @@ npm install
 Create a `.env` file in `/backend`:
 
 ```
-OPENROUTER_API_KEY=your_openrouter_api_key
+OPENAI_API_KEY=your_openrouter_api_key
 AI_PRIVATE_KEY=your_ai_executor_wallet_private_key
 ```
 
@@ -273,19 +273,28 @@ $ npx hardhat test test/E2ESlippage.test.ts test/SecurityGuard.test.ts
 
 ## Known Limitations & Production Roadmap
 
-NeuroLoom was built as a **zero-cost prototype** for the Indonesia Web3 Hackathon. The current architecture prioritizes proof-of-concept execution, modularity, and lean deployment over global scalability. 
+NeuroLoom was built as a **zero-cost prototype** for the Indonesia Web3 Hackathon. The current architecture prioritizes secure forward-execution, on-chain safety guards, and lean deployment over global scalability. 
 
-To transition this architecture into a production-ready Mainnet environment, the following infrastructure upgrades are mapped out:
+To transition this architecture into a production-ready Mainnet environment, the following infrastructure upgrades are scoped:
 
-1. **AI Framework Transition:**
-   * *Current Prototype:* Relies on `@langchain/core` and OpenRouter (Gemma 4 MoE) for zero-cost rapid iteration.
-   * *Production Target:* Migration to the native **Claude Agent SDK**. Anthropic's tooling is fundamentally designed to handle the exact Orchestrator-Workers and Evaluator-Optimizer loops we mapped out, offering vastly superior mathematical reasoning and near-zero hallucination rates for financial execution.
-2. **AI Memory & Database Scaling:**
-   * *Current Prototype:* Uses local `SQLite` for isolated, high-speed AI memory logging without network I/O overhead.
-   * *Production Target:* Migration to a distributed **PostgreSQL** architecture coupled with **Redis** caching. This is necessary to safely handle concurrent state-sharing across hundreds of AI workers operating simultaneously on Mainnet.
-3. **Oracle Feed Diversity:**
-   * *Current Prototype:* The slippage guardrail intercepts data from a single Chainlink testnet aggregator.
-   * *Production Target:* Integration of multi-asset Time-Weighted Average Price (TWAP) and redundant decentralized oracle networks (DONs) to completely neutralize isolated flash-crash vulnerabilities.
+1. **Position Unwind & Withdrawal Path (ERC-4626 Completeness):**
+   * *Current Prototype:* Forward execution flow (deposit → AI rebalance → external protocol) is implemented and fully tested. The reverse flow (tracking external LP/vToken positions and unwinding them for user `withdraw()`) is pending.
+   * *Production Target:* Build an automated position-tracking and unwind module so user withdrawals remain guaranteed even when the Vault's underlying assets are fully deployed across AMMs.
+2. **Impermanent Loss (IL) Modeling:**
+   * *Current Prototype:* Worker agents evaluate APY and qualitative risk signals but do not compute Impermanent Loss exposure mathematically.
+   * *Production Target:* Add a dedicated IL calculation module (price divergence vs. pool composition) so LP allocation decisions strictly account for IL mitigation, not just headline APY.
+3. **AI Executor Key Management:**
+   * *Current Prototype:* `AI_PRIVATE_KEY` is loaded from a local `.env` file for rapid hackathon iteration.
+   * *Production Target:* Migrate to KMS-backed signing (AWS KMS / HashiCorp Vault) so the raw private key never exists in plaintext or process memory.
+4. **AI Framework Transition:**
+   * *Current Prototype:* Relies on `@langchain/core` and OpenRouter for zero-cost rapid iteration.
+   * *Production Target:* Migration to the native **Claude Agent SDK**. Anthropic's tooling is fundamentally designed to handle the exact Orchestrator-Workers loops we mapped out, offering vastly superior mathematical reasoning for financial logic.
+5. **AI Memory & Database Scaling:**
+   * *Current Prototype:* Uses local `SQLite` for isolated, high-speed AI memory logging.
+   * *Production Target:* Migration to a distributed **PostgreSQL** architecture coupled with **Redis** caching to safely handle concurrent state-sharing across hundreds of AI workers.
+6. **Oracle Feed Diversity:**
+   * *Current Prototype:* The slippage guardrail intercepts data from a single Chainlink aggregator per pair.
+   * *Production Target:* Integration of multi-asset Time-Weighted Average Price (TWAP) and redundant decentralized oracle networks (DONs) to neutralize isolated flash-crash vulnerabilities.
 
 ---
 

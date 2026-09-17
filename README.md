@@ -125,7 +125,7 @@ The core primitive of NeuroLoom is the `NeuroLoomVaultV2` contract, adopting the
                 │ 3. EVALUATOR: Refines strategy in a strict feedback loop    │
                 │ 4. EXECUTOR: Builds 'calldata' & signs Viem Transaction     │
                 └──────────────────────┬──────────────────────────────────────┘
-                                       │ RPC (BSC Testnet)
+                                       │ RPC (https://data-seed-prebsc-2-s2.bnbchain.org:8545/)
                         ┌──────────────▼─────────────┐
                         │  NeuroLoomProxy (ERC1967)  │ <── Holds TVL (Tokens)
                         │  deployed 0xe388…FF4E      │ <── Upgradable Storage

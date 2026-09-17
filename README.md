@@ -75,7 +75,7 @@ NeuroLoom bridges this gap by combining dynamic, multi-perspective AI with a mul
 
 NeuroLoom does not rely on a simple, static LLM prompt. It implements rigorous Agentic Workflows based on industry-leading research:
 
-* **Orchestrator-Workers Workflow:** A central Orchestrator LLM analyzes real-time AMM liquidity depth and lending pool utilization rates, dynamically delegating route simulations to specialized worker LLMs (e.g., Yield Strategist, Liquidity Risk Manager). This parallel processing generates the absolute best multi-hop path.
+* **Orchestrator-Workers Workflow:** A central Orchestrator LLM analyzes real-time AMM liquidity depth and lending pool utilization rates, dynamically delegating route simulations to specialized worker LLMs (e.g., Yield Strategist, Liquidity Risk Manager). This parallel processing generates the optimal yield-routing strategy.
 * **Evaluator-Optimizer Workflow:** Before execution, the generated strategy is evaluated and refined in a strict LLM feedback loop to ensure maximum APY and zero hallucination before finalizing the action.
 
 ---
@@ -182,8 +182,8 @@ NeuroLoom/
 │       │   └── vault.ts           # Vault state reader and on-chain interaction
 │       └── data/                  # SQLite database for AI memory states
 ├── contracts/                     # Hardhat v3 workspace (ERC-4626 Vault, Proxy, Tests)
-│   ├── contracts/                 # NeuroLoomVaultV2.sol, NeuroLoomProxy.sol, MockOracle.sol
-│   ├── scripts/                   # Deployment, smoke tests, and UUPS upgrades
+│   ├── contracts/                 # NeuroLoomVaultV2.sol, NeuroLoomProxy.sol, MockOracle.sol, MockERC20.sol, MockDex.sol
+│   ├── scripts/                   # Deployment, smoke tests, whitelist protocol, and UUPS upgrades
 │   └── test/                      # E2E Slippage & Security Guard MEV tests
 └── neuroloom-bsc-testnet/         # The Graph Subgraph (Event Indexing)
     ├── abis/                      # NeuroLoomVaultV2.json ABI definitions
@@ -246,7 +246,7 @@ npm install
 Create a `.env` file in `/backend` for the **AI Node Wallet**:
 
 ```env
-OPENROUTER_API_KEY=your_openrouter_api_key
+OPENAI_API_KEY=your_openrouter_api_key
 AI_PRIVATE_KEY=your_ai_executor_wallet_private_key
 
 ```
@@ -325,12 +325,6 @@ To transition this architecture into a production-ready Mainnet environment, the
    * *Current Prototype:* The slippage guardrail intercepts data from a single Chainlink aggregator per pair.
    * *Production Target:* Integration of multi-asset Time-Weighted Average Price (TWAP) and redundant decentralized oracle networks (DONs) to neutralize isolated flash-crash vulnerabilities.
 
-
-
 ---
 
 *NeuroLoom — AI that routes, Blockchain that verifies.*
-
-```
-
-```

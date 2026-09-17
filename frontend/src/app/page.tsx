@@ -2,14 +2,13 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  Activity,
   BrainCircuit,
   ChevronRight,
   Network,
   ShieldCheck,
-  Terminal as TerminalIcon,
   Wallet,
 } from "lucide-react";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 
 // Komponen Modular
@@ -18,7 +17,6 @@ import { AITerminalView } from "../components/AITerminalView";
 import { BenefitRow } from "../components/BenefitRow";
 import { DashboardView } from "../components/DashboardView";
 import { FeatureCard } from "../components/FeatureCard";
-import { FloatingCoins } from "../components/FloatingCoins";
 import { Header } from "../components/Header";
 import { HistoryView } from "../components/HistoryView";
 import { LandingEventLog } from "../components/LandingEventLog";
@@ -137,7 +135,7 @@ export default function NeuroLoomApp() {
         onClose={() => setShowGate(false)}
         onContinue={() => {
           setShowGate(false);
-          setView("app"); // 🚀 Baru pindah ke dashboard setelah verifikasi
+          setView("app");
         }}
       />
       <AnimatePresence mode="wait">
@@ -154,7 +152,7 @@ export default function NeuroLoomApp() {
           >
             {/* Latar Belakang Interaktif Baru */}
             <ParticlesBackground />
-            <FloatingCoins />
+            {/* <FloatingCoins /> */}
 
             {/* Latar Belakang Statis (Di bawah partikel) */}
             <div
@@ -174,8 +172,15 @@ export default function NeuroLoomApp() {
                     window.scrollTo({ top: 0, behavior: "smooth" })
                   }
                 >
-                  <div className="w-10 h-10 bg-primary/10 border border-primary/20 rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(139,92,246,0.3)]">
-                    <Activity className="w-5 h-5 text-primary" />
+                  <div className="w-10 h-10 bg-primary/10 border border-primary/20 rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(139,92,246,0.3)] overflow-hidden p-0">
+                    <Image
+                      src="/neuroloom2.png"
+                      alt="NeuroLoom Logo"
+                      width={40}
+                      height={40}
+                      className="w-full h-full object-contain scale-110"
+                      priority
+                    />
                   </div>
                   <span className="font-bold text-xl tracking-widest">
                     NEUROLOOM
@@ -192,7 +197,7 @@ export default function NeuroLoomApp() {
                     }
                     className="text-gray-400 hover:text-primary transition-colors"
                   >
-                    Features
+                    Why NeuroLoom
                   </button>
                   <button
                     onClick={() =>
@@ -202,7 +207,7 @@ export default function NeuroLoomApp() {
                     }
                     className="text-gray-400 hover:text-primary transition-colors"
                   >
-                    How it Works
+                    Execution Flow
                   </button>
                   <button
                     onClick={() =>
@@ -245,8 +250,16 @@ export default function NeuroLoomApp() {
 
             <main className="flex-grow flex flex-col z-10 pt-20">
               <section className="flex flex-col items-center justify-center text-center px-6 py-24 min-h-[85vh] relative">
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.03] border border-white/10 text-primary text-xs font-medium mb-8">
-                  <TerminalIcon className="w-4 h-4" /> BSC Testnet Live
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.03] border border-white/10 text-[#F3BA2F] text-xs font-medium mb-8">
+                  <Image
+                    src="https://cryptologos.cc/logos/bnb-bnb-logo.svg?v=035"
+                    alt="BNB Logo"
+                    width={16}
+                    height={16}
+                    className="w-4 h-4"
+                    unoptimized
+                  />
+                  BSC Testnet Live
                 </div>
                 <h1 className="text-5xl md:text-7xl lg:text-[5.5rem] font-black tracking-tight mb-6 leading-[1.1]">
                   On-Chain <br />
@@ -258,7 +271,7 @@ export default function NeuroLoomApp() {
                 </p>
                 <div className="flex gap-4">
                   <button
-                    onClick={() => setShowGate(true)} // <-- UBAH BAGIAN INI JUGA
+                    onClick={() => setShowGate(true)}
                     className="group flex items-center gap-3 px-8 py-4 rounded-xl bg-gradient-to-r from-primary to-info hover:shadow-[0_0_30px_rgba(139,92,246,0.5)] transition-all hover:-translate-y-1 text-white font-bold text-base"
                   >
                     Launch Dashboard{" "}
@@ -348,8 +361,8 @@ export default function NeuroLoomApp() {
                             strokeWidth={1.5}
                           />
                         }
-                        title="Real-Time Order Flow Analysis"
-                        desc="Powered by an Agentic Workflow, our system constantly analyzes order book dynamics and detects liquidity sweeps across DEXs. The Orchestrator LLM dynamically calculates the optimal route, while an Evaluator-Optimizer loop refines the execution to secure maximum APY before the market shifts."
+                        title="Real-Time AMM Liquidity Analysis"
+                        desc="Powered by an Agentic Workflow, our system constantly analyzes concentrated liquidity depth and lending pool utilization rates across DeFi protocols. The Orchestrator LLM dynamically calculates the optimal multi-protocol route, while an Evaluator-Optimizer loop refines the execution to secure maximum APY before the market shifts."
                         accent="from-primary/10 to-transparent"
                         delay="0ms"
                       />
@@ -361,7 +374,7 @@ export default function NeuroLoomApp() {
                           />
                         }
                         title="Dynamic Multi-Routing"
-                        desc="Simulates thousands of yield routes instantly via The Graph to avoid high slippage and optimize gas efficiency."
+                        desc="The AI Orchestrator evaluates hundreds of potential yield routes off-chain to minimize slippage and optimize gas efficiency before broadcasting."
                         delay="100ms"
                       />
                       <BenefitRow
@@ -418,7 +431,7 @@ export default function NeuroLoomApp() {
                     />
                     <StepCard
                       step="02"
-                      title="Order Flow Analysis"
+                      title="Market State Analysis"
                       desc="The AI continuously indexes The Graph to monitor liquidity shifts and APY spikes."
                       active={activeStep === 1}
                       onClick={() => setActiveStep(1)}
@@ -426,7 +439,7 @@ export default function NeuroLoomApp() {
                     <StepCard
                       step="03"
                       title="Autonomous Routing"
-                      desc="Assets are dynamically routed to the optimal protocol via flash-swaps."
+                      desc="Assets are dynamically routed to the optimal protocol with absolute on-chain slippage protection."
                       active={activeStep === 2}
                       onClick={() => setActiveStep(2)}
                     />
@@ -482,7 +495,7 @@ export default function NeuroLoomApp() {
                                 type: "info",
                               },
                               {
-                                msg: "INDEXING · PancakeSwap V3 Liquidity",
+                                msg: "INDEXING · PancakeSwap V2 Liquidity",
                                 type: "info",
                               },
                               {
@@ -512,7 +525,7 @@ export default function NeuroLoomApp() {
                           <LandingEventLog
                             events={[
                               {
-                                msg: "ROUTING · USDT -> WBNB (Flash Swap)",
+                                msg: "ROUTING · USDT -> WBNB (Optimal Route)",
                                 type: "info",
                               },
                               {
@@ -555,7 +568,7 @@ export default function NeuroLoomApp() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                     <ProtocolCard
-                      image=""
+                      image="/protocolcard/venus.jpeg"
                       name="Venus"
                       desc="The largest lending and borrowing protocol on BNB Chain."
                       metric="$1.4B TVL"
@@ -564,29 +577,29 @@ export default function NeuroLoomApp() {
                       onClick={() => setActiveProtocol(0)}
                     />
                     <ProtocolCard
-                      image=""
+                      image="/protocolcard/pancakeswap.jpeg"
                       name="PancakeSwap"
-                      desc="Deepest AMM liquidity for efficient flash-swaps."
+                      desc="Deepest AMM liquidity for efficient and secure asset routing."
                       metric="$2.1B TVL"
                       sub="DEX & Yield Farms"
                       active={activeProtocol === 1}
                       onClick={() => setActiveProtocol(1)}
                     />
                     <ProtocolCard
-                      image=""
+                      image="/protocolcard/radiant.jpeg"
                       name="Radiant"
                       desc="Omni-chain money market for cross-chain yield."
-                      metric="$300M TVL"
-                      sub="Omnichain Lending"
+                      metric="Upcoming Integration"
+                      sub="Upcoming Integration"
                       active={activeProtocol === 2}
                       onClick={() => setActiveProtocol(2)}
                     />
                     <ProtocolCard
-                      image=""
+                      image="/protocolcard/kinza.jpeg"
                       name="Kinza"
                       desc="Next-generation lending protocol with ve-tokenomics."
-                      metric="$150M TVL"
-                      sub="DeFi 2.0"
+                      metric="Upcoming Integration"
+                      sub="Upcoming Integration"
                       active={activeProtocol === 3}
                       onClick={() => setActiveProtocol(3)}
                     />

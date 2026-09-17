@@ -185,7 +185,7 @@ body {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: shimmer 3s linear infinite;
+  animation: shimmer 8s linear infinite;
 }
 
 /* Mesh background animasi yang lebih Cyberpunk */

@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 interface ProtocolCardProps {
   image: string;
   name: string;
@@ -18,20 +20,39 @@ export function ProtocolCard({
   onClick,
 }: ProtocolCardProps) {
   return (
-    <button
+    // [PERBAIKAN]: Mengganti <button> menjadi <div> yang memiliki properti aksesibilitas tombol
+    <div
       onClick={onClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        // Memastikan tombol bisa ditekan menggunakan keyboard (Enter / Spasi)
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick();
+        }
+      }}
       className={`liquid-glass rounded-xl group cursor-pointer text-left transition-all duration-300 focus:outline-none relative overflow-hidden bg-white/[0.02] border border-white/5 ${active ? "ring-1 ring-primary/50 border-primary/30" : "hover:bg-white/[0.04]"}`}
     >
       <div className="relative h-24 shrink-0 overflow-hidden bg-black/40 flex items-center justify-center">
-        {/* Fallback gradient jika gambar belum ada */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-[#04060d] opacity-50" />
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-[#04060d] opacity-50 z-0" />
+
+        {image && (
+          <Image
+            src={image}
+            alt={name}
+            fill
+            className="object-cover opacity-40 group-hover:opacity-70 transition-opacity duration-300 z-0 mix-blend-overlay"
+          />
+        )}
+
         <span
-          className={`absolute top-2 right-2 text-xs font-mono px-2 py-0.5 rounded-full backdrop-blur-md ${active ? "bg-primary/20 text-primary border border-primary/30" : "bg-black/40 text-gray-400 border border-white/10"}`}
+          className={`absolute top-2 right-2 text-xs font-mono px-2 py-0.5 rounded-full backdrop-blur-md z-10 ${active ? "bg-primary/20 text-primary border border-primary/30" : "bg-black/40 text-gray-400 border border-white/10"}`}
         >
           {metric}
         </span>
-        {/* Jika kamu punya logo, kamu bisa memakai <img src={image} ... /> di sini */}
-        <span className="text-xl font-black text-white/20 tracking-widest uppercase z-10">
+
+        <span className="text-xl font-black text-white/40 tracking-widest uppercase z-10 drop-shadow-md">
           {name}
         </span>
       </div>
@@ -44,6 +65,6 @@ export function ProtocolCard({
           {sub}
         </div>
       </div>
-    </button>
+    </div>
   );
 }

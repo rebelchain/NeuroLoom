@@ -1,13 +1,8 @@
 "use client";
 
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import {
-  Activity,
-  ArrowRight,
-  LogOut,
-  ShieldCheck,
-  Wallet,
-} from "lucide-react";
+import { ArrowRight, LogOut, ShieldCheck, Wallet } from "lucide-react";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useAccount, useDisconnect } from "wagmi";
 
@@ -42,7 +37,14 @@ export function IdentityGateModal({
         {/* Header Modal */}
         <div className="flex items-center gap-3 mb-8">
           <div className="w-10 h-10 bg-black border border-white/10 rounded-xl flex items-center justify-center shadow-inner">
-            <Activity className="w-5 h-5 text-primary" />
+            <Image
+              src="/neuroloom2.png"
+              alt="NeuroLoom Logo"
+              width={40}
+              height={40}
+              className="w-full h-full object-contain scale-110"
+              priority
+            />
           </div>
           <div>
             <h3 className="font-bold text-white text-sm tracking-wide">

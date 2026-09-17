@@ -20,11 +20,10 @@ export function useTyping(active: boolean, speed = 90, pause = 1800) {
     if (!deleting && text.length === word.length) {
       timeout = setTimeout(() => setDeleting(true), pause);
     } else if (deleting && text.length === 0) {
-      // FIX: Dibungkus setTimeout agar tidak memicu cascading renders
       timeout = setTimeout(() => {
         setDeleting(false);
         setIndex((i) => i + 1);
-      }, 500); // Jeda 500ms sebelum mulai mengetik kata baru
+      }, 500); 
     } else {
       timeout = setTimeout(
         () => {

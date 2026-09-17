@@ -9,7 +9,7 @@ function extractJSON(rawText: string): any {
 }
 
 async function evaluateDecision(
-  llm: ChatOpenAI, // [UBAH]: Tipe data parameter diganti
+  llm: ChatOpenAI,
   draft: AIDecision,
   marketData: any,
   vaultState: any,
@@ -17,11 +17,12 @@ async function evaluateDecision(
   status: "PASS" | "NEEDS_IMPROVEMENT" | "FAIL";
   feedback: string;
 }> {
-  const evaluatorPrompt = `You are the Chief Risk Officer for NeuroLoom DeFi Vault.
-Evaluate the proposed trading decision based on the following rules:
-1. Risk Limit: amountPercentage MUST NOT exceed 30% per cycle to prevent high slippage.
-2. Liquidity Check: If market volume is 0 or suspiciously low, trading is unsafe.
-3. Rationality: The reasoning must logically support the action.
+  // [PERBAIKAN 1]: Mengubah mindset Evaluator dari "Trading" menjadi "DeFi Routing & Liquidity"
+  const evaluatorPrompt = `You are the Chief Risk Officer for the NeuroLoom DeFi Vault.
+Evaluate the proposed yield routing decision based on the following strict rules:
+1. Risk Limit: amountPercentage MUST NOT exceed 30% per cycle to prevent catastrophic slippage.
+2. Liquidity Check: If AMM liquidity depth is 0 or lending utilization is suspiciously low, routing is unsafe.
+3. Rationality: The reasoning must logically support the action based on APY opportunities or impermanent loss mitigation.
 
 Output ONLY a valid JSON object:
 {
@@ -29,7 +30,7 @@ Output ONLY a valid JSON object:
   "feedback": "Reasoning here."
 }`;
 
-  const context = `MARKET DATA: ${JSON.stringify(marketData)}\nVAULT BALANCES: ${JSON.stringify(vaultState)}\nPROPOSED DECISION: ${JSON.stringify(draft)}`;
+  const context = `DEFI STATE: ${JSON.stringify(marketData)}\nVAULT BALANCES: ${JSON.stringify(vaultState)}\nPROPOSED DECISION: ${JSON.stringify(draft)}`;
   const response = await llm.invoke([
     new SystemMessage(evaluatorPrompt),
     new HumanMessage(context),
@@ -38,15 +39,15 @@ Output ONLY a valid JSON object:
 }
 
 async function optimizeDecision(
-  llm: ChatOpenAI, // [UBAH]: Tipe data parameter diganti
+  llm: ChatOpenAI,
   previousDraft: AIDecision,
   feedback: string,
   marketData: any,
 ): Promise<AIDecision> {
-  const optimizerPrompt = `You are the NeuroLoom Strategy Optimizer. Fix the rejected decision based on Evaluator feedback.
+  const optimizerPrompt = `You are the NeuroLoom Strategy Optimizer. Fix the rejected routing decision based on the Risk Officer's feedback.
 Output ONLY valid JSON: {"action": "BUY_WBNB"|"SELL_WBNB"|"HOLD", "reasoning": "fix logic", "amountPercentage": <number>}`;
 
-  const context = `MARKET: ${JSON.stringify(marketData)}\nPREVIOUS: ${JSON.stringify(previousDraft)}\nFEEDBACK: ${feedback}`;
+  const context = `DEFI STATE: ${JSON.stringify(marketData)}\nPREVIOUS: ${JSON.stringify(previousDraft)}\nFEEDBACK: ${feedback}`;
   const response = await llm.invoke([
     new SystemMessage(optimizerPrompt),
     new HumanMessage(context),
@@ -66,7 +67,9 @@ export async function runEvaluatorLoop(
       modelName: "google/gemma-4-26b-a4b-it:free",
       temperature: 0,
       maxTokens: 512,
-      openAIApiKey: process.env.OPENAI_API_KEY,
+      // [PERBAIKAN 2]: Memastikan kompatibilitas dengan .env milikmu
+      openAIApiKey:
+        process.env.OPENROUTER_API_KEY || process.env.OPENAI_API_KEY,
       configuration: {
         baseURL: "https://openrouter.ai/api/v1",
         defaultHeaders: {
@@ -110,19 +113,20 @@ export async function runEvaluatorLoop(
     return {
       action: "HOLD",
       amountPercentage: 0,
-      reasoning: "Max iterations reached.",
+      reasoning: "Max iterations reached without passing risk audit.",
     };
   } catch (error: any) {
     console.error(
       "⚠️ [EVALUATOR ERROR] AI API failed (Rate Limit/Network):",
       error.message,
     );
-    console.log("🔄 [SYSTEM] Activating Emergency Web3 Mock Execution...");
+    // [PERBAIKAN 3]: Mengubah mode darurat menjadi HOLD absolut demi keamanan dana
+    console.log("🔄 [SYSTEM] Activating Emergency Circuit Breaker (HOLD)...");
     return {
-      action: "BUY_WBNB",
-      amountPercentage: 50, // Akan memakai 50% dari USDT yang ada di brankas
+      action: "HOLD",
+      amountPercentage: 0,
       reasoning:
-        "Emergency Bypass AI. Executing BUY_WBNB to utilize available USDT liquidity.",
+        "Emergency Bypass AI triggered due to API failure. Halting execution to protect TVL.",
     };
   }
 }

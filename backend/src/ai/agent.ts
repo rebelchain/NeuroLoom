@@ -29,17 +29,18 @@ export async function getAIDecision(
     configuration: {
       baseURL: "https://openrouter.ai/api/v1",
       defaultHeaders: {
-        "HTTP-Referer": "https://neuroloom.app", // OpenRouter butuh ini
-        "X-Title": "NeuroLoom", // OpenRouter butuh ini
+        "HTTP-Referer": "https://neuroloom.app",
+        "X-Title": "NeuroLoom",
       },
     },
   });
 
+  // [PERBAIKAN]: Konteks diubah dari "Market Data" murni menjadi "DeFi State"
   const stateContext = `
-CURRENT STATE:
-- Market Data: ${JSON.stringify(marketData)}
+CURRENT DEFI STATE:
+- Protocol Data (AMM Depth & Lending Rates): ${JSON.stringify(marketData)}
 - Vault Balances: ${JSON.stringify(vaultState)}
-- Recent Memories (Last Decisions): ${JSON.stringify(recentMemories)}
+- Recent Memories (Last Routing Decisions): ${JSON.stringify(recentMemories)}
   `;
 
   try {
@@ -47,18 +48,20 @@ CURRENT STATE:
     // PHASE 1: ORCHESTRATOR (ANALYSIS & PLANNING)
     // ==========================================
     console.log(
-      "[ORCHESTRATOR] Analyzing state and planning task delegation...",
+      "[ORCHESTRATOR] Analyzing AMM liquidity and planning task delegation...",
     );
 
-    // [UPGRADE 2]: Dynamic Worker Count (1 to 3 tasks)
-    const orchestratorPrompt = `You are the Lead Orchestrator for NeuroLoom DeFi Optimizer.
-Analyze the current state and delegate between 1 to 3 analytical tasks to specialized workers based on the current market volatility and data complexity. 
+    // [PERBAIKAN]: Mengarahkan Orchestrator untuk memikirkan Yield, Impermanent Loss, dan Slippage (Bukan Volatility)
+    const orchestratorPrompt = `You are the Lead Orchestrator for the NeuroLoom DeFi Yield Optimizer.
+Analyze the current on-chain state (AMM liquidity depth, lending pool utilization rates, and vault balances).
+Delegate between 1 to 3 analytical tasks to specialized workers based on current DeFi yield opportunities, impermanent loss risks, and slippage data.
 
 Return ONLY a valid JSON object matching this structure without any markdown formatting:
 {
-  "analysis": "Brief explanation of what approaches are needed.",
+  "analysis": "Brief explanation of what yield strategies or risk checks are needed.",
   "tasks": [
-    { "type": "MOMENTUM_ANALYST", "description": "Specific instruction for this worker" }
+    { "type": "YIELD_STRATEGIST", "description": "Specific instruction for this worker" },
+    { "type": "LIQUIDITY_RISK_MANAGER", "description": "Specific instruction for this worker" }
   ]
 }`;
 
@@ -67,7 +70,6 @@ Return ONLY a valid JSON object matching this structure without any markdown for
       new HumanMessage(stateContext),
     ]);
 
-    // Berkat Gemini 3.6 Flash, kita bisa langsung parse tanpa regex aneh
     const plan = JSON.parse(
       orchestratorResponse.content
         .toString()
@@ -81,18 +83,21 @@ Return ONLY a valid JSON object matching this structure without any markdown for
     // ==========================================
     // PHASE 2: WORKERS (PARALLEL EXECUTION)
     // ==========================================
-    console.log("[WORKERS] Generating specialized analysis concurrently...");
+    console.log(
+      "[WORKERS] Generating specialized yield and risk analysis concurrently...",
+    );
 
     const workerPromises = plan.tasks.map(async (task: WorkerTask) => {
-      const workerSystemPrompt = `You are a specialized Web3 AI Worker. 
+      // [PERBAIKAN]: Melarang worker menggunakan istilah Order Book atau CEX
+      const workerSystemPrompt = `You are a specialized Web3 DeFi AI Worker. 
 Role: ${task.type}. 
 Your Assignment: ${task.description}.
 
-Analyze the provided state strictly from your role's perspective. 
+Analyze the provided DeFi state strictly from your role's perspective. Focus on AMM mechanics, APY, utilization rates, and on-chain liquidity (NOT order books or CEX momentum).
 Return ONLY a valid JSON object matching this structure without markdown:
 {
   "perspective": "${task.type}",
-  "findings": "Your specific analysis and calculation",
+  "findings": "Your specific on-chain analysis and yield calculation",
   "recommendation": "BUY_WBNB" | "SELL_WBNB" | "HOLD"
 }`;
 
@@ -121,19 +126,19 @@ Return ONLY a valid JSON object matching this structure without markdown:
     // PHASE 3: SYNTHESIZER (FINAL DECISION)
     // ==========================================
     console.log(
-      "[SYNTHESIZER] Evaluating worker reports and finalizing decision...",
+      "[SYNTHESIZER] Evaluating worker reports and finalizing multi-protocol routing decision...",
     );
 
-    // [UPGRADE 3]: Relaxed Rule #4 untuk membolehkan Compounding/DCA
+    // [PERBAIKAN]: Merombak Aturan Keputusan (Rules 2 & 3) menjadi bahasa DeFi Yield Routing
     const synthesizerPrompt = `You are the NeuroLoom Supreme Synthesizer.
-Review the CURRENT STATE and the WORKER REPORTS below.
-Make the final optimal trading decision.
+Review the CURRENT DEFI STATE and the WORKER REPORTS below.
+Make the final optimal yield-routing decision.
 
 STRICT RULES:
 1. Output ONLY a valid JSON object without markdown formatting.
-2. If WBNB drops significantly and we have USDT, consider BUY_WBNB.
-3. If WBNB rises significantly and we have WBNB, consider SELL_WBNB.
-4. Avoid repeating the exact same action from Recent Memories UNLESS market conditions strongly justify compounding the position (DCA).
+2. If PancakeSwap AMM liquidity offers optimal depth and WBNB yields outpace holding USDT, consider BUY_WBNB (Swap USDT to WBNB for yield pairing).
+3. If Venus lending rates for USDT spike, or WBNB faces impermanent loss/price degradation risks, consider SELL_WBNB (Swap WBNB to USDT to lock in stable yield).
+4. Avoid repeating the exact same action from Recent Memories UNLESS market conditions strongly justify compounding the position.
 5. amountPercentage must be between 0 and 100.
 
 WORKER REPORTS:
@@ -142,7 +147,7 @@ ${JSON.stringify(workerResults)}
 JSON FORMAT EXPECTED:
 {
   "action": "BUY_WBNB" | "SELL_WBNB" | "HOLD",
-  "reasoning": "One clear sentence explaining why this final decision was made over others.",
+  "reasoning": "One clear sentence explaining the DeFi yield or risk-management rationale.",
   "amountPercentage": 50
 }`;
 
@@ -166,7 +171,7 @@ JSON FORMAT EXPECTED:
     return {
       action: "HOLD",
       reasoning:
-        "System error or API failure, defaulting to safe hold to protect TVL.",
+        "System error or API failure, defaulting to safe hold to protect TVL from unverified routing.",
       amountPercentage: 0,
     };
   }

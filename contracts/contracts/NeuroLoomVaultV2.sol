@@ -1,11 +1,14 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.28;
 
-import {NeuroLoomVault, IPancakeRouter02} from "./NeuroLoomVault.sol";
+import {NeuroLoomVault, IPancakeRouter02, IChainlinkAggregator} from "./NeuroLoomVault.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
-// Antarmuka ASLI PancakeSwap V3
+// [PERBAIKAN OPENZEPPELIN V5]: Menggunakan ReentrancyGuard standar yang sudah mendukung ERC-7201 Upgradeable
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+
 interface ISwapRouterV3 {
     struct ExactInputSingleParams {
         address tokenIn;
@@ -22,29 +25,47 @@ interface ISwapRouterV3 {
 
 /**
  * @title NeuroLoomVaultV2
- * @dev Upgrade V2: Integrasi PancakeSwap V3 Router & Proteksi Slippage Chainlink On-Chain
+ * @dev Upgrade V2: ReentrancyGuard, Protocol Whitelist, Multi-Pair Oracle & Deprecation of legacy routing.
  */
-contract NeuroLoomVaultV2 is NeuroLoomVault {
+contract NeuroLoomVaultV2 is NeuroLoomVault, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
-    uint256 public constant MAX_SLIPPAGE_BPS = 200; // 2% maksimal slippage (1 BPS = 0.01%)
+    uint256 public constant MAX_SLIPPAGE_BPS = 200; // 2% maksimal slippage
 
-    // Event yang akan "didengar" oleh The Graph untuk grafik Frontend
+    // Storage untuk Whitelist & Multi-Oracle 
+    mapping(address => bool) public approvedProtocols;
+    mapping(address => mapping(address => address)) public pairPriceFeeds;
+
     event RebalanceExecuted(
         address indexed tokenIn,
         address indexed tokenOut,
         uint256 amountIn,
         uint256 timestamp
     );
-    // Fungsi untuk memperbarui alamat router dari V2 ke V3 
-    function setDexRouter(address _newRouter) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        require(_newRouter != address(0), "Invalid Router Address");
-        dexRouter = IPancakeRouter02(_newRouter); 
+
+    // --- ADMIN CONFIGURATIONS ---
+    function setApprovedProtocol(address protocol, bool status) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(protocol != address(0), "Invalid address");
+        approvedProtocols[protocol] = status;
     }
 
-/**
+    function setPairPriceFeed(address tokenIn, address tokenOut, address feed) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(feed != address(0), "Invalid feed address");
+        pairPriceFeeds[tokenIn][tokenOut] = feed;
+    }
+
+    // --- DEPRECATE LEGACY FUNCTION ---
+    function executeRebalance(
+        uint256,
+        uint256,
+        address[] calldata
+    ) external pure override {
+        revert("Deprecated, use executeOmnichain");
+    }
+
+    /**
      * @dev Fungsi Eksekusi TRUE OMNICHAIN
-     * Menerima byte data mentah dari AI Agent (Python) untuk dieksekusi ke target mana pun.
+     * Dilindungi oleh nonReentrant dari OZ v5 dan Protocol Whitelist.
      */
     function executeOmnichain(
         address targetProtocol,
@@ -53,27 +74,19 @@ contract NeuroLoomVaultV2 is NeuroLoomVault {
         address tokenOut,
         uint256 amountIn,
         uint256 expectedAmountOutMin
-    ) external onlyRole(AI_EXECUTOR_ROLE) whenNotPaused {
+    ) external nonReentrant onlyRole(AI_EXECUTOR_ROLE) whenNotPaused {
         require(amountIn > 0, "Amount must be > 0");
-        require(targetProtocol != address(0), "Invalid target");
+        require(approvedProtocols[targetProtocol], "Protocol not approved");
 
-        // 1. Validasi slippage awal dengan Chainlink Oracle (Circuit Breaker)
         _validateSlippageAgainstOracle(tokenIn, tokenOut, amountIn, expectedAmountOutMin);
 
-        // 2. Approve protokol tujuan secara dinamis
         IERC20(tokenIn).forceApprove(targetProtocol, amountIn);
 
-        // 3. Snapshot saldo sebelum eksekusi (Proteksi Lapis 2)
         uint256 balanceBefore = IERC20(tokenOut).balanceOf(address(this));
 
-        // 4. Eksekusi instruksi AI (Bisa berupa swap V2, swap V3, deposit Venus, dll)
-        (bool success, bytes memory returnData) = targetProtocol.call(data);
-        
-        // Membungkam warning unused returnData
-        require(success || returnData.length > 0, "Omnichain routing failed");
+        (bool success, ) = targetProtocol.call(data);
         require(success, "Transaction reverted at target protocol");
 
-        // 5. Validasi hasil akhir yang mutlak (Mencegah AI kena sandwich attack / slippage)
         uint256 balanceAfter = IERC20(tokenOut).balanceOf(address(this));
         require((balanceAfter - balanceBefore) >= expectedAmountOutMin, "Fatal: Post-execution slippage/loss detected");
 
@@ -81,37 +94,39 @@ contract NeuroLoomVaultV2 is NeuroLoomVault {
     }
 
    /**
-     * @dev Proteksi Manipulasi & MEV: Kalkulasi ketat berbasis Oracle
+     * @dev Proteksi MEV OMNICHAIN: Menghitung Fair Value antar pasangan koin dengan desimal dinamis.
      */
     function _validateSlippageAgainstOracle(
-        address /* tokenIn */, 
-        address /* tokenOut */, 
+        address tokenIn, 
+        address tokenOut, 
         uint256 amountIn, 
         uint256 amountOutMin 
-    ) internal view virtual override { // [PERBAIKAN 1]: Tambahkan kata kunci "override" di sini
+    ) internal view override { 
+        address feedAddress = pairPriceFeeds[tokenIn][tokenOut];
+        require(feedAddress != address(0), "No oracle feed configured for this pair");
+
+        IChainlinkAggregator feed = IChainlinkAggregator(feedAddress);
         (
             /* uint80 roundID */,
             int256 price,
             /* uint startedAt */,
             uint256 updatedAt,
             /* uint80 answeredInRound */
-        ) = priceFeed.latestRoundData();
+        ) = feed.latestRoundData();
 
-        // 1. Cek Data Basi
         if (block.timestamp - updatedAt > 3600) revert StaleOracleData();
         require(price > 0, "Invalid Oracle Price");
 
-        uint256 oraclePrice = uint256(price);
+        uint8 tokenInDecimals = IERC20Metadata(tokenIn).decimals();
+        uint8 tokenOutDecimals = IERC20Metadata(tokenOut).decimals();
+        uint8 feedDecimals = feed.decimals(); 
 
-        // 2. Normalisasi Desimal & Hitung Fair Value
-        uint256 expectedAmountOut = (amountIn * oraclePrice) / 1e8;
+        uint256 expectedAmountOut = (amountIn * uint256(price) * (10 ** tokenOutDecimals)) / 
+                                    ((10 ** tokenInDecimals) * (10 ** feedDecimals));
 
-        // 3. Kalkulasi Minimum Acceptable (Batas Slippage 2%)
         uint256 minimumAcceptableAmount = (expectedAmountOut * (10000 - MAX_SLIPPAGE_BPS)) / 10000;
 
-        // 4. Circuit Breaker!
         if (amountOutMin < minimumAcceptableAmount) {
-            // [PERBAIKAN 2]: Hapus argumen agar sesuai dengan deklarasi "error SlippageExceeded();" di V1
             revert SlippageExceeded(); 
         }
     }

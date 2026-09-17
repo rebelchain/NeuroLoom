@@ -1,7 +1,8 @@
 import hre from "hardhat";
 
 async function main() {
-  console.log("🔍 Memulai Audit Keamanan Lokal: NeuroLoomVaultV2...\n");
+  // [PERBAIKAN]: Ubah "Audit Keamanan" menjadi "Smoke Test"
+  console.log("🔍 Memulai Smoke Test Infrastruktur: NeuroLoomVaultV2...\n");
 
   // Karena ini berjalan di main thread Hardhat, hre.viem PASTI terinjeksi dengan aman
   const viem = (hre as any).viem;
@@ -24,7 +25,7 @@ async function main() {
   console.log("⏳ Memvalidasi akses Role-Based Access Control (RBAC)...");
   const aiRole = await vault.read.AI_EXECUTOR_ROLE();
   const expectedRole =
-    "0x0c821e1b44f170b6d24f8a571604a3ff6cf1c5732d7f3ef80e53eee98cf3fc56"; 
+    "0x0c821e1b44f170b6d24f8a571604a3ff6cf1c5732d7f3ef80e53eee98cf3fc56";
 
   if (aiRole === expectedRole) {
     console.log(
@@ -37,7 +38,7 @@ async function main() {
   }
 
   console.log(
-    "\n🛡️ AUDIT SELESAI: Kontrak V2 kebal, aman, dan siap rilis (Upgrade) ke BSC Testnet! 🚀",
+    "\n🏁 Smoke Test Passed: V2 Proxy deployed and AI_EXECUTOR_ROLE bound successfully.",
   );
 }
 

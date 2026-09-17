@@ -273,11 +273,13 @@ npm run dev
 
 | Threat | Applied Mitigation | Status |
 | --- | --- | --- |
+| Unauthorized Execution | Strict `AccessControl` (`onlyRole(AI_EXECUTOR_ROLE)`) | ✅ On-chain |
 | AI Arbitrary Execution | Strict On-Chain Protocol Allowlist (`approvedProtocols`) | ✅ On-chain |
 | AI Route/Decimal Hallucination | Pre-execution Oracle validation & dynamic `IERC20Metadata` | ✅ On-chain |
 | Reentrancy Attacks | OpenZeppelin v5 `ReentrancyGuard` (ERC-7201 safe) | ✅ On-chain |
 | Oracle Stale / Flash crash | Rejects Chainlink data older than 3600 seconds | ✅ On-chain |
 | Sandwich MEV Attack | Absolute post-execution balance check via Fair Value | ✅ On-chain |
+| AI API Failure / Network Outage | Evaluator Circuit Breaker (Halts execution to `HOLD`) | ✅ Off-chain |
 
 ### Deterministic E2E Testing
 

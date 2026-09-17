@@ -75,7 +75,7 @@ NeuroLoom bridges this gap by combining dynamic, multi-perspective AI with a mul
 
 NeuroLoom does not rely on a simple, static LLM prompt. It implements rigorous Agentic Workflows based on industry-leading research:
 
-* **Orchestrator-Workers Workflow:** A central Orchestrator LLM analyzes real-time AMM liquidity depth and lending pool utilization rates, dynamically delegating route simulations to specialized worker LLMs (e.g., Risk Manager, Momentum Analyst). This parallel processing generates the absolute best multi-hop path.
+* **Orchestrator-Workers Workflow:** A central Orchestrator LLM analyzes real-time AMM liquidity depth and lending pool utilization rates, dynamically delegating route simulations to specialized worker LLMs (e.g., Yield Strategist, Liquidity Risk Manager). This parallel processing generates the absolute best multi-hop path.
 * **Evaluator-Optimizer Workflow:** Before execution, the generated strategy is evaluated and refined in a strict LLM feedback loop to ensure maximum APY and zero hallucination before finalizing the action.
 
 ---
@@ -93,8 +93,8 @@ The following is a real execution log from the NeuroLoom AI backend demonstratin
 [ORCHESTRATOR] Analyzing state and planning task delegation...
 [ORCHESTRATOR] Delegating 2 specialized approaches.
 [WORKERS] Generating specialized analysis concurrently...
-  -> [WORKER 1 | TECHNICAL_ANALYST] Recommends: HOLD
-  -> [WORKER 2 | RISK_MANAGER] Recommends: HOLD
+  -> [WORKER 1 | YIELD_STRATEGIST] Recommends: HOLD
+  -> [WORKER 2 | LIQUIDITY_RISK_MANAGER] Recommends: HOLD
 [SYNTHESIZER] Evaluating worker reports and finalizing decision...
 [DECISION] Action: HOLD | Allocation: 0%
 [REASONING] Both WBNB and USDT vault balances are zero, making trade execution impossible regardless of price movement.
@@ -120,7 +120,7 @@ The core primitive of NeuroLoom is the `NeuroLoomVaultV2` contract, adopting the
 ```text
                 ┌─────────────────────────────────────────────────────────────┐
                 │             AGENTIC HARNESS (Node.js Backend)               │
-                │ 1. ORCHESTRATOR: Analyzes market & delegates tasks          │
+                │ 1. ORCHESTRATOR: Analyzes DeFi state & delegates tasks      │
                 │ 2. WORKERS: Parallel processing via LangChain (Gemma 4 MoE) │
                 │ 3. EVALUATOR: Refines strategy in a strict feedback loop    │
                 │ 4. EXECUTOR: Builds 'calldata' & signs Viem Transaction     │
@@ -133,15 +133,15 @@ The core primitive of NeuroLoom is the `NeuroLoomVaultV2` contract, adopting the
                                        │ delegates calls to
                         ┌──────────────▼─────────────┐   ┌──────────────────────┐
                         │  NeuroLoomVaultV2 (Logic)  │───▶   Chainlink Oracle   │
-                        │  _validateSlippage()       │   │  latestRoundData()   │
-                        │  executeOmnichain()        │   └──────────────────────┘
+                        │  1. onlyApprovedProtocol   │   │  latestRoundData()   │
+                        │  2. executeOmnichain()     │   └──────────────────────┘
                         └──────────────┬─────────────┘
                                        │ If safe, injects raw calldata
            ┌───────────────────────────┼───────────────────────────┐
            ▼                           ▼                           ▼
  ┌───────────────────┐       ┌───────────────────┐       ┌───────────────────┐
- │   PancakeSwap V3  │       │   Venus Lending   │       │   Any Future DEX  │
- │ exactInputSingle  │       │    mint/supply    │       │     swap/add      │
+ │   PancakeSwap V2  │       │   Venus Lending   │       │   Any Future DEX  │
+ │swapExactTokensFor…│       │    mint/supply    │       │     swap/add      │
  └───────────────────┘       └───────────────────┘       └───────────────────┘
 
 ```

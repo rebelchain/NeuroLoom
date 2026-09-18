@@ -121,7 +121,7 @@ The core primitive of NeuroLoom is the `NeuroLoomVaultV2` contract, adopting the
                 ┌─────────────────────────────────────────────────────────────┐
                 │             AGENTIC HARNESS (Node.js Backend)               │
                 │ 1. ORCHESTRATOR: Analyzes DeFi state & delegates tasks      │
-                │ 2. WORKERS: Parallel processing via LangChain (Gemma 4 MoE) │
+                │ 2. WORKERS: Parallel processing via LangChain (qwen3.8-27b) │
                 │ 3. EVALUATOR: Refines strategy in a strict feedback loop    │
                 │ 4. EXECUTOR: Builds 'calldata' & signs Viem Transaction     │
                 └──────────────────────┬──────────────────────────────────────┘
@@ -203,7 +203,7 @@ NeuroLoom/
 | **Frontend (Web3 & Data)** | Wagmi, Viem, RainbowKit, Apollo Client (GraphQL) |
 | **Backend (AI Engine)** | Node.js (tsx), TypeScript, `viem`, `@dotenvx/dotenvx` |
 | **AI / LLM Framework** | Node.js (tsx), `@langchain/core` |
-| **Active LLM Model** | OpenRouter (Gemma 4 MoE) *— dynamic Orchestrator routing* |
+| **Active LLM Model** | Groq API (qwen/qwen3.8-27b) *— dynamic Orchestrator routing* |
 | **Data & Indexing** | SQLite (AI Memory state), The Graph (On-chain event streaming) |
 
 ---
@@ -246,8 +246,18 @@ npm install
 Create a `.env` file in `/backend` for the **AI Node Wallet**:
 
 ```env
-OPENAI_API_KEY=your_openrouter_api_key
+GROQ_API_KEY=your_groq_api_key
 AI_PRIVATE_KEY=your_ai_executor_wallet_private_key
+CYCLE_INTERVAL_MINUTES=1
+
+# DEMO SCENARIO CONTROL 
+# SCEANRIO CHOICHES: 
+# "HIGH_YIELD_ENTRY"   -> Trigger AI to Buy/Enter the LP 
+# "IL_MITIGATION_EXIT" -> Triggering AI to Sell/Exit LP (Fund Rescue Simulation)
+# "LIQUIDITY_VACUUM"   -> Triggering AI to HOLD (Simulation: Rejecting a Dangerous Route)
+# "PRODUCTION"         -> Reading On-Chain Data & Real-Time Prices (For Mainnet)
+
+MOCK_SCENARIO="HIGH_YIELD_ENTRY"
 
 ```
 

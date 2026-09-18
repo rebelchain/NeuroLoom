@@ -44,8 +44,8 @@ export function Footer() {
             </h4>
             <ul className="space-y-3">
               {/* Diubah menjadi ScrollLink agar seragam dengan Navbar */}
-              <ScrollLink targetId="features">Why NeuroLoom</ScrollLink>
-              <ScrollLink targetId="how-it-works">Execution Flow</ScrollLink>
+              <ScrollLink targetId="features">The Problem</ScrollLink>
+              <ScrollLink targetId="how-it-works">How NeuroLoom Works</ScrollLink>
               <ScrollLink targetId="protocols">Integrations</ScrollLink>
             </ul>
           </div>

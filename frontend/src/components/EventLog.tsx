@@ -25,6 +25,13 @@ export interface AIEventRow {
   txHash: string;
 }
 
+interface GraphEvent {
+  id: string;
+  assets: string;
+  blockTimestamp: string;
+  transactionHash: string;
+}
+
 const eventMeta: Record<EventOp, { glyph: string; text: string }> = {
   ROUTE_OPTIMIZED: { glyph: "⟳", text: "text-info-light" },
   REBALANCE_EXECUTED: { glyph: "→", text: "text-primary-light" },
@@ -36,7 +43,7 @@ const eventMeta: Record<EventOp, { glyph: string; text: string }> = {
 
 function ProtocolTag({ id }: { id: string }) {
   return (
-    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-surface-raised border border-white/10 text-[9px] font-mono tracking-wider text-gray-400">
+    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-surface-raised border border-white/10 text-[9px] font-mono tracking-wider text-gray-400 whitespace-nowrap">
       {id.toUpperCase()}
     </span>
   );
@@ -47,20 +54,7 @@ export function EventLog({
 }: {
   maxHeight?: string;
 }) {
-  // [HACKATHON DEMO MODE]: Injeksi Deposit 10 USDT yang kamu lakukan sebelumnya
-  const [events, setEvents] = useState<AIEventRow[]>([
-    {
-      id: "demo-deposit-1",
-      type: "VAULT_DEPOSITED",
-      protocol: "NeuroLoom Vault",
-      asset: "USDT",
-      amount: 10,
-      detail: "User Deposited Liquidity",
-      timestamp: 1789584000000, // Statis & aman dari linter
-      txHash:
-        "0xfcca1bd79e41ce5b9df81b1eff4762cf9fb013c8b3efa56ff33213ab0fac84b4",
-    },
-  ]);
+  const [events, setEvents] = useState<AIEventRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -68,7 +62,6 @@ export function EventLog({
 
     const fetchGraphData = async () => {
       try {
-        // Query disesuaikan untuk melacak aksi User (Deposit & Withdraw)
         const query = `
           {
             deposits(first: 5, orderBy: blockTimestamp, orderDirection: desc) {
@@ -99,7 +92,7 @@ export function EventLog({
 
           if (data.deposits && data.deposits.length > 0) {
             combinedEvents = combinedEvents.concat(
-              data.deposits.map((item: any) => ({
+              data.deposits.map((item: GraphEvent) => ({
                 id: item.id,
                 type: "VAULT_DEPOSITED",
                 protocol: "NeuroLoom Vault",
@@ -114,7 +107,7 @@ export function EventLog({
 
           if (data.withdraws && data.withdraws.length > 0) {
             combinedEvents = combinedEvents.concat(
-              data.withdraws.map((item: any) => ({
+              data.withdraws.map((item: GraphEvent) => ({
                 id: item.id,
                 type: "VAULT_WITHDRAWN",
                 protocol: "NeuroLoom Vault",
@@ -126,11 +119,8 @@ export function EventLog({
               })),
             );
           }
-
-          // Urutkan berdasarkan yang paling baru
           combinedEvents.sort((a, b) => b.timestamp - a.timestamp);
 
-          // Jangan timpa array jika The Graph belum punya data
           if (combinedEvents.length > 0) {
             setEvents(combinedEvents);
           }
@@ -182,9 +172,9 @@ export function EventLog({
           </span>
         </div>
 
-        <div className="px-4 py-3 font-mono text-xs leading-7 overflow-y-auto [scrollbar-width:thin]">
+        <div className="px-4 py-3 font-mono text-xs leading-relaxed overflow-y-auto [scrollbar-width:thin]">
           {events.length === 0 && !isLoading ? (
-            <div className="text-gray-500">
+            <div className="text-gray-500 italic py-4">
               Waiting for user deposits or withdrawals...
             </div>
           ) : (
@@ -193,39 +183,64 @@ export function EventLog({
               return (
                 <div
                   key={event.id}
-                  className="flex items-start gap-2 animate-fade-in-up"
+                  className="flex items-start gap-3 py-2 border-b border-white/[0.03] last:border-0 animate-fade-in-up"
                   style={{ animationDelay: `${140 + i * 180}ms` }}
                 >
-                  <span className="text-gray-600 select-none" aria-hidden>
+                  <span
+                    className="text-gray-600 select-none mt-0.5"
+                    aria-hidden
+                  >
                     ›
                   </span>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className={meta.text}>{meta.glyph}</span>
-                      <span className={meta.text}>{event.type}</span>
+
+                  <div className="flex flex-col min-w-0 w-full gap-1.5">
+                    {/* Aksi & Protokol */}
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span
+                        className={cn(
+                          meta.text,
+                          "font-semibold whitespace-nowrap",
+                        )}
+                      >
+                        {meta.glyph} {event.type}
+                      </span>
                       <ProtocolTag id={event.protocol} />
-                      <span className="text-gray-300">{event.asset}</span>
+                      <span className="text-gray-300 font-medium whitespace-nowrap">
+                        {event.asset}
+                      </span>
                     </div>
-                    <div className="flex items-center gap-2 text-gray-500">
-                      <span className={meta.text}>
+
+                    {/* Detail, Waktu, & Hash */}
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-gray-500">
+                      <span
+                        className={cn(
+                          meta.text,
+                          "whitespace-nowrap flex-shrink-0",
+                        )}
+                      >
                         {event.amount.toFixed(2)} USDT
                       </span>
+
                       {event.detail && (
                         <>
-                          <span className="mx-1">·</span>
-                          <span className="text-info truncate max-w-[220px]">
+                          <span className="text-gray-700 select-none">·</span>
+                          <span className="text-info truncate max-w-[150px] sm:max-w-[220px]">
                             {event.detail}
                           </span>
                         </>
                       )}
-                      <span className="mx-1">·</span>
-                      <span>{formatTimeAgo(event.timestamp)}</span>
-                      <span className="mx-1">·</span>
+
+                      <span className="text-gray-700 select-none">·</span>
+                      <span className="whitespace-nowrap flex-shrink-0">
+                        {formatTimeAgo(event.timestamp)}
+                      </span>
+
+                      <span className="text-gray-700 select-none">·</span>
                       <a
                         href={`https://testnet.bscscan.com/tx/${event.txHash}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="font-mono text-primary hover:underline cursor-pointer"
+                        className="font-mono text-primary hover:underline cursor-pointer whitespace-nowrap flex-shrink-0"
                       >
                         {event.txHash.slice(0, 10)}...
                       </a>
@@ -235,12 +250,13 @@ export function EventLog({
               );
             })
           )}
-          <div className="flex items-center gap-2 mt-2">
+
+          <div className="flex items-center gap-2 mt-4 pt-2">
             <span className="text-gray-600 select-none" aria-hidden>
               ›
             </span>
             <span className="text-primary inline-block animate-pulse">▍</span>
-            <span className="text-gray-500">
+            <span className="text-gray-500 text-[11px]">
               listening for user events via The Graph…
             </span>
           </div>

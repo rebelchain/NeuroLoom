@@ -72,13 +72,14 @@ export function DashboardView() {
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         <KPICard
           title="Total Value Locked"
-          value={realTVL} // Pastikan ini murni number (akan 0 saat loading)
+          value={realTVL}
           prefix="$"
           icon={Activity}
-          change={isTvlLoading ? "Syncing..." : "Live On-Chain"} // Pindahkan indikator loading ke sini
+          change="Live On-Chain"
           changeType="positive"
           subtext="Verified via Wagmi"
           delay={0}
+          isLoading={isTvlLoading} // 👈 INJEKSI LOADING WAGMI DI SINI
         />
         <KPICard
           title="Current APY"
@@ -93,13 +94,14 @@ export function DashboardView() {
         />
         <KPICard
           title="Available Liquidity"
-          value={realTVL * 0.2} // Pastikan ini murni number
+          value={realTVL * 0.2}
           prefix="$"
           icon={Coins}
-          change={isTvlLoading ? "Syncing..." : "Ready"} // Pindahkan indikator loading ke sini
+          change="Ready"
           changeType="neutral"
           subtext="Awaiting new routes"
           delay={160}
+          isLoading={isTvlLoading} 
         />
         <KPICard
           title="AI Rebalances"

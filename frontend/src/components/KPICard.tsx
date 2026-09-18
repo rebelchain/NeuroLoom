@@ -1,5 +1,5 @@
 import { type ElementType } from "react";
-import { TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, Loader2 } from "lucide-react";
 import { formatCurrency, cn } from "@/lib/utils";
 
 interface KPICardProps {
@@ -12,6 +12,7 @@ interface KPICardProps {
   icon: ElementType;
   subtext?: string;
   delay?: number;
+  isLoading?: boolean; // Taktis: Wajib untuk transisi RPC Wagmi
 }
 
 export function KPICard({
@@ -24,11 +25,20 @@ export function KPICard({
   icon: Icon,
   subtext,
   delay = 0,
+  isLoading = false,
 }: KPICardProps) {
-  // MODIFIKASI: Jika prefix adalah "$", kita gunakan formatCurrency (yang sudah ada $ nya).
-  // Jika tidak, biarkan menggunakan toLocaleString() biasa (untuk persen dll).
-  const formatted =
-    prefix === "$" ? formatCurrency(value) : value.toLocaleString();
+  // DEFENSE LAYER: Cegah NaN atau nilai null menghancurkan UI React
+  const safeValue = typeof value === "number" && !isNaN(value) ? value : 0;
+
+  // FORMATTING SAFEGUARD: Jika formatCurrency di util bermasalah, aplikasi tidak akan crash
+  let formatted = safeValue.toString();
+  try {
+    formatted =
+      prefix === "$" ? formatCurrency(safeValue) : safeValue.toLocaleString();
+  } catch (error) {
+    console.error("Format error on KPICard:", error);
+    formatted = safeValue.toFixed(2);
+  }
 
   const changeMeta = {
     positive: {
@@ -56,7 +66,7 @@ export function KPICard({
           <div className="w-11 h-11 rounded-xl bg-surface-raised border border-white/10 flex items-center justify-center text-primary group-hover:scale-110 group-hover:border-primary/30 transition-all duration-300 shadow-inner">
             <Icon className="w-5 h-5" strokeWidth={1.75} />
           </div>
-          {change && (
+          {change && !isLoading && (
             <span
               className={cn(
                 "inline-flex items-center gap-1 text-xs font-medium font-mono px-2 py-1 rounded-full border",
@@ -67,9 +77,21 @@ export function KPICard({
             </span>
           )}
         </div>
-        <div className="text-[28px] font-semibold font-mono tracking-tight gradient-text-numbers">
-          {prefix === "$" ? formatted : `${prefix}${formatted}${suffix}`}
+
+        {/* RENDER LOGIC: Loading vs Data */}
+        <div className="h-9 flex items-center">
+          {isLoading ? (
+            <div className="flex items-center gap-2 text-gray-400 animate-pulse">
+              <Loader2 className="w-5 h-5 animate-spin" />
+              <span className="text-lg font-mono tracking-widest">SYNCING</span>
+            </div>
+          ) : (
+            <div className="text-[28px] font-semibold font-mono tracking-tight gradient-text-numbers">
+              {prefix === "$" ? formatted : `${prefix}${formatted}${suffix}`}
+            </div>
+          )}
         </div>
+
         <div className="text-sm font-medium text-white mt-1.5">{title}</div>
         {subtext && <div className="text-xs text-gray-500 mt-1">{subtext}</div>}
       </div>

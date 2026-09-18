@@ -2,9 +2,11 @@
 
 import { cn, formatTimeAgo } from "@/lib/utils";
 import { useEffect, useState } from "react";
+import { formatUnits } from "viem"; 
 
+// [TWEAK 1]: Gunakan version/latest
 const GRAPHQL_URL =
-  "https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.2";
+  "https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/version/latest";
 
 export type EventOp =
   | "ROUTE_OPTIMIZED"
@@ -88,16 +90,17 @@ export function EventLog({
         const { data } = await response.json();
 
         if (isMounted && data) {
-          let combinedEvents: AIEventRow[] = [];
+          // [TWEAK 4]: Gunakan const dan push untuk menghindari peringatan linter
+          const combinedEvents: AIEventRow[] = [];
 
           if (data.deposits && data.deposits.length > 0) {
-            combinedEvents = combinedEvents.concat(
-              data.deposits.map((item: GraphEvent) => ({
+            combinedEvents.push(
+              ...data.deposits.map((item: GraphEvent) => ({
                 id: item.id,
-                type: "VAULT_DEPOSITED",
+                type: "VAULT_DEPOSITED" as EventOp,
                 protocol: "NeuroLoom Vault",
                 asset: "USDT",
-                amount: Number(item.assets) / 1e18,
+                amount: Number(formatUnits(BigInt(item.assets), 18)),
                 detail: "User Deposited Liquidity",
                 timestamp: Number(item.blockTimestamp) * 1000,
                 txHash: item.transactionHash,
@@ -106,19 +109,20 @@ export function EventLog({
           }
 
           if (data.withdraws && data.withdraws.length > 0) {
-            combinedEvents = combinedEvents.concat(
-              data.withdraws.map((item: GraphEvent) => ({
+            combinedEvents.push(
+              ...data.withdraws.map((item: GraphEvent) => ({
                 id: item.id,
-                type: "VAULT_WITHDRAWN",
+                type: "VAULT_WITHDRAWN" as EventOp,
                 protocol: "NeuroLoom Vault",
                 asset: "USDT",
-                amount: Number(item.assets) / 1e18,
+                amount: Number(formatUnits(BigInt(item.assets), 18)),
                 detail: "User Withdrew Liquidity",
                 timestamp: Number(item.blockTimestamp) * 1000,
                 txHash: item.transactionHash,
               })),
             );
           }
+
           combinedEvents.sort((a, b) => b.timestamp - a.timestamp);
 
           if (combinedEvents.length > 0) {
@@ -183,67 +187,71 @@ export function EventLog({
               return (
                 <div
                   key={event.id}
-                  className="flex items-start gap-3 py-2 border-b border-white/[0.03] last:border-0 animate-fade-in-up"
+                  className="flex items-start md:items-center gap-3 py-3 border-b border-white/[0.03] last:border-0 animate-fade-in-up hover:bg-white/[0.02] transition-colors rounded-lg px-2 -mx-2"
                   style={{ animationDelay: `${140 + i * 180}ms` }}
                 >
                   <span
-                    className="text-gray-600 select-none mt-0.5"
+                    className="text-gray-600 select-none hidden sm:block"
                     aria-hidden
                   >
                     ›
                   </span>
 
-                  <div className="flex flex-col min-w-0 w-full gap-1.5">
-                    {/* Aksi & Protokol */}
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span
-                        className={cn(
-                          meta.text,
-                          "font-semibold whitespace-nowrap",
-                        )}
-                      >
-                        {meta.glyph} {event.type}
-                      </span>
-                      <ProtocolTag id={event.protocol} />
-                      <span className="text-gray-300 font-medium whitespace-nowrap">
-                        {event.asset}
-                      </span>
+                  {/* KONTINER UTAMA: Membagi kiri dan kanan */}
+                  <div className="flex flex-col md:flex-row justify-between min-w-0 w-full gap-2 md:gap-4">
+                    {/* BAGIAN KIRI: Aksi, Protokol, dan Aset */}
+                    <div className="flex flex-col gap-1.5">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={cn(
+                            meta.text,
+                            "font-semibold whitespace-nowrap",
+                          )}
+                        >
+                          {meta.glyph} {event.type}
+                        </span>
+                        <ProtocolTag id={event.protocol} />
+                        <span className="text-gray-300 font-medium whitespace-nowrap">
+                          {event.asset}
+                        </span>
+                      </div>
+
+                      {/* Teks detail sekarang ada di bawah tipe aksi */}
+                      {event.detail && (
+                        <div className="text-info text-[11px] truncate max-w-[250px] sm:max-w-xs">
+                          {event.detail}
+                        </div>
+                      )}
                     </div>
 
-                    {/* Detail, Waktu, & Hash */}
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-gray-500">
+                    {/* BAGIAN KANAN: Nominal, Waktu, & Hash */}
+                    <div className="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-center gap-x-4 gap-y-1 w-full md:w-auto">
+                      {/* Nominal diperbesar dan ditebalkan sedikit */}
                       <span
                         className={cn(
                           meta.text,
-                          "whitespace-nowrap flex-shrink-0",
+                          "whitespace-nowrap font-medium text-sm",
                         )}
                       >
+                        {event.amount > 0 ? "+" : ""}
                         {event.amount.toFixed(2)} USDT
                       </span>
 
-                      {event.detail && (
-                        <>
-                          <span className="text-gray-700 select-none">·</span>
-                          <span className="text-info truncate max-w-[150px] sm:max-w-[220px]">
-                            {event.detail}
-                          </span>
-                        </>
-                      )}
-
-                      <span className="text-gray-700 select-none">·</span>
-                      <span className="whitespace-nowrap flex-shrink-0">
-                        {formatTimeAgo(event.timestamp)}
-                      </span>
-
-                      <span className="text-gray-700 select-none">·</span>
-                      <a
-                        href={`https://testnet.bscscan.com/tx/${event.txHash}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="font-mono text-primary hover:underline cursor-pointer whitespace-nowrap flex-shrink-0"
-                      >
-                        {event.txHash.slice(0, 10)}...
-                      </a>
+                      {/* Waktu dan Hash Transaksi */}
+                      <div className="flex items-center gap-2 text-[10px] text-gray-500 font-mono">
+                        <span className="whitespace-nowrap">
+                          {formatTimeAgo(event.timestamp)}
+                        </span>
+                        <span className="text-gray-700 select-none">·</span>
+                        <a
+                          href={`https://testnet.bscscan.com/tx/${event.txHash}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-primary hover:underline cursor-pointer whitespace-nowrap"
+                        >
+                          {event.txHash.slice(0, 6)}...{event.txHash.slice(-4)}
+                        </a>
+                      </div>
                     </div>
                   </div>
                 </div>

@@ -1,14 +1,17 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+// Pastikan formatTimeAgo ini ada di lib/utils-mu, atau kamu bisa copy fungsi dari HistoryView
 import { formatTimeAgo } from "@/lib/utils";
 import { TerminalSquare, Activity } from "lucide-react";
+import { formatUnits } from "viem";
 
+// [TWEAK 1]: Gunakan version/latest agar dinamis mengikuti deploy subgraph terbarumu
 const GRAPHQL_URL =
-  "https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.2";
+  "https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/version/latest";
 
-interface GraphRebalanceData {
-  id: string;
+  interface GraphRebalanceData {
+    id: string;
   tokenIn: string;
   tokenOut: string;
   amountIn: string;
@@ -45,7 +48,7 @@ export function AIEventLog() {
   const [visibleLogs, setVisibleLogs] = useState<string[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // LOGIKA TERMINAL YANG SUDAH DIPERBAIKI (Bebas Error)
+  // LOGIKA TERMINAL AI
   useEffect(() => {
     let currentIndex = 0;
     let isWaiting = false;
@@ -76,7 +79,7 @@ export function AIEventLog() {
     return () => clearInterval(interval);
   }, []);
 
-  // LOGIKA THE GRAPH (Asli & Aman)
+  // LOGIKA THE GRAPH OMNICHAIN SETTLEMENT
   useEffect(() => {
     let isMounted = true;
 
@@ -118,6 +121,7 @@ export function AIEventLog() {
     };
 
     void fetchGraphData();
+    // Memanggil API setiap 10 detik agar terlihat live di background saat presentasi
     const interval = setInterval(fetchGraphData, 10000);
 
     return () => {
@@ -151,7 +155,6 @@ export function AIEventLog() {
             </div>
           ) : (
             visibleLogs.map((log, index) => {
-              // DEFENSE: Jika string kosong atau undefined, jangan render
               if (!log) return null;
               return (
                 <div key={index} className="mb-1">
@@ -159,14 +162,14 @@ export function AIEventLog() {
                   <span
                     className={
                       log.includes("WARNING")
-                        ? "text-warning"
+                        ? "text-orange-400"
                         : log.includes("REJECTING")
-                          ? "text-danger"
+                          ? "text-red-500"
                           : log.includes("EXECUTION") ||
                               log.includes("TRANSACTION")
                             ? "text-success font-bold"
                             : log.includes("ROUTING")
-                              ? "text-info"
+                              ? "text-blue-400"
                               : "text-gray-300"
                     }
                   >
@@ -239,8 +242,11 @@ export function AIEventLog() {
                   </td>
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-2">
-                      <span className="text-error font-medium">
-                        {(Number(event.amountIn) / 1e18).toFixed(4)}
+                      {/* [TWEAK 2 & 3]: Ubah warna ke putih netral dan gunakan formatUnits */}
+                      <span className="text-gray-200 font-medium">
+                        {Number(
+                          formatUnits(BigInt(event.amountIn), 18),
+                        ).toFixed(4)}
                       </span>
                       <span className="text-gray-400 font-mono text-[10px] bg-white/5 px-2 py-0.5 rounded border border-white/10">
                         {event.tokenIn.slice(0, 4)}...{event.tokenIn.slice(-4)}

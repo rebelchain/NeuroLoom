@@ -1,6 +1,5 @@
 "use client";
-import { ShieldCheck } from "lucide-react";
-import Link from "next/link";
+import Image from "next/image";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -15,8 +14,15 @@ export function Footer() {
           {/* 1. Brand Anchor */}
           <div className="lg:col-span-2">
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-primary/20 border border-primary/50 flex items-center justify-center">
-                <ShieldCheck className="w-4 h-4 text-primary" />
+              <div className="w-10 h-10 bg-primary/10 border border-primary/20 rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(139,92,246,0.3)] overflow-hidden p-0">
+                <Image
+                  src="/neuroloom2.png"
+                  alt="NeuroLoom Logo"
+                  width={40}
+                  height={40}
+                  className="w-full h-full object-contain scale-110"
+                  priority
+                />
               </div>
               <span className="text-xl font-bold text-white tracking-wide">
                 NeuroLoom
@@ -45,7 +51,9 @@ export function Footer() {
             <ul className="space-y-3">
               {/* Diubah menjadi ScrollLink agar seragam dengan Navbar */}
               <ScrollLink targetId="features">The Problem</ScrollLink>
-              <ScrollLink targetId="how-it-works">How NeuroLoom Works</ScrollLink>
+              <ScrollLink targetId="how-it-works">
+                How NeuroLoom Works
+              </ScrollLink>
               <ScrollLink targetId="protocols">Integrations</ScrollLink>
             </ul>
           </div>
@@ -86,7 +94,8 @@ export function Footer() {
         {/* 3. Bottom Bar & Trust Signals */}
         <div className="pt-8 border-t border-white/[0.05] flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="text-gray-500 text-xs font-mono">
-            &copy; {currentYear} NeuroLoom. Built for Indonesia Web3 Hackathon. BNB Smart Chain.
+            &copy; {currentYear} NeuroLoom. Built for Indonesia Web3 Hackathon.
+            BNB Smart Chain.
           </div>
 
           <div className="flex items-center gap-6 text-xs font-mono">

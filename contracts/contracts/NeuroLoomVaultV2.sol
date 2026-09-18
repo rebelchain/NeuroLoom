@@ -43,10 +43,12 @@ contract NeuroLoomVaultV2 is NeuroLoomVault, ReentrancyGuard {
         uint256 timestamp
     );
 
+  event ProtocolApproved(address indexed protocol, bool status);
     // --- ADMIN CONFIGURATIONS ---
     function setApprovedProtocol(address protocol, bool status) external onlyRole(DEFAULT_ADMIN_ROLE) {
         require(protocol != address(0), "Invalid address");
         approvedProtocols[protocol] = status;
+        
     }
 
     function setPairPriceFeed(address tokenIn, address tokenOut, address feed) external onlyRole(DEFAULT_ADMIN_ROLE) {

@@ -13,7 +13,7 @@ async function main() {
 
   // Alamat Proxy Vault di BSC Testnet
   const VAULT_PROXY_ADDRESS = "0xe38887648d7272e9Eb3C06628767bb3d84a9FF4E";
-  const TARGET_PROTOCOL = "0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3"; // PancakeSwap V2 Router Testnet
+  const TARGET_PROTOCOL = "0x1b81D678ffb9C0263b24A97847620C99d213eB14";
 
   console.log("⏳ Menghubungkan ke kontrak NeuroLoomVaultV2...");
   const vault = await viem.getContractAt(

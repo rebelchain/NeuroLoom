@@ -327,9 +327,16 @@ To transition this architecture into a production-ready Mainnet environment, the
 5. **AI Memory & Database Scaling:**
    * *Current Prototype:* Uses local `SQLite` for isolated, high-speed AI memory logging.
    * *Production Target:* Migration to a distributed **PostgreSQL** architecture coupled with **Redis** caching to safely handle concurrent state-sharing across hundreds of AI workers.
-6. **Oracle Feed Diversity:**
+6. **Closed-Loop Execution Memory:**
+   * *Current Prototype:* The AI agents log their intended decisions (action, amount, reasoning) to the local database prior to on-chain execution, but the final on-chain settlement status (success/revert) is not written back.
+   * *Production Target:* Upgrade the database schema to capture `txHash`, `status`, and `errorReason`. This creates a closed feedback loop, allowing the AI to retrieve past failed transactions and dynamically learn from on-chain rejections (e.g., adjusting slippage tolerance after a revert).
+7. **Deterministic LLM Outputs & Tool Calling:**
+   * *Current Prototype:* The system relies on prompt-engineered JSON formatting and regex parsing for AI outputs, injecting all required market context directly into the prompt state as text.
+   * *Production Target:* Transition to the native `withStructuredOutput()` paradigm (via Zod schemas) to guarantee type-safe AI responses and eliminate JSON hallucination. Additionally, equip agents with explicit tool-calling capabilities (e.g., calling a deterministic `calculate_impermanent_loss()` function) rather than relying solely on LLM text reasoning for strict financial math.
+8. **Oracle Feed Diversity:**
    * *Current Prototype:* The slippage guardrail intercepts data from a single Chainlink aggregator per pair.
    * *Production Target:* Integration of multi-asset Time-Weighted Average Price (TWAP) and redundant decentralized oracle networks (DONs) to neutralize isolated flash-crash vulnerabilities.
+
 
 ---
 

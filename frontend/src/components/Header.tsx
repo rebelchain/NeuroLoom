@@ -1,8 +1,8 @@
 "use client";
 
-import { Menu, Wallet, ChevronRight, LogOut, Activity } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { ChevronRight, LogOut, Menu, Wallet } from "lucide-react";
+import Image from "next/image";
 
 interface HeaderProps {
   onBackToLanding?: () => void;
@@ -30,8 +30,15 @@ export function Header({
           onClick={onBackToLanding}
           className="hidden sm:flex items-center gap-2.5 hover:opacity-80 transition-opacity shrink-0"
         >
-          <div className="w-7 h-7 bg-primary/10 border border-primary/20 rounded-md flex items-center justify-center shadow-[0_0_10px_rgba(139,92,246,0.3)]">
-            <Activity className="w-4 h-4 text-primary" />
+          <div className="w-10 h-10 bg-primary/10 border border-primary/20 rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(139,92,246,0.3)] overflow-hidden p-0">
+            <Image
+              src="/neuroloom2.png"
+              alt="NeuroLoom Logo"
+              width={40}
+              height={40}
+              className="w-full h-full object-contain scale-110"
+              priority
+            />
           </div>
           <span className="font-bold text-white text-sm tracking-tight">
             NEUROLOOM

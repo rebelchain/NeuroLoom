@@ -35,12 +35,7 @@ export function DashboardView() {
   // Mengonversi saldo dari Wei (18 desimal) ke format desimal biasa
   // Jika saldo kosong atau error, fallback ke 0
   const realTVL = totalAssetsData ? Number(totalAssetsData) / 1e18 : 0;
-  console.log(
-    "🔎 Raw TVL Data dari Blockchain:",
-    totalAssetsData,
-    "Real TVL:",
-    realTVL,
-  );
+
 
   return (
     <div className="space-y-6">

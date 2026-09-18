@@ -1,13 +1,13 @@
-import { type ElementType } from "react";
+import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
-  Wallet,
-  TerminalSquare,
   ScrollText,
+  TerminalSquare,
+  Wallet,
   X,
-  Activity,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { type ElementType } from "react";
+import Image from "next/image";
 
 export type PageId = "overview" | "vaults" | "terminal" | "history";
 
@@ -40,8 +40,15 @@ function SidebarContent({
           title="Back to NeuroLoom landing"
           className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer w-full"
         >
-          <div className="w-9 h-9 bg-primary/10 border border-primary/20 rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(139,92,246,0.3)] shrink-0">
-            <Activity className="w-5 h-5 text-primary" />
+          <div className="w-10 h-10 bg-primary/10 border border-primary/20 rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(139,92,246,0.3)] overflow-hidden p-0">
+            <Image
+              src="/neuroloom2.png"
+              alt="NeuroLoom Logo"
+              width={40}
+              height={40}
+              className="w-full h-full object-contain scale-110"
+              priority
+            />
           </div>
           <div className="text-left">
             <div className="text-[15px] font-bold tracking-tight text-white">

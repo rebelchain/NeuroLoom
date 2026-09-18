@@ -88,7 +88,7 @@ The following is a real execution log from the NeuroLoom AI backend demonstratin
 [SYSTEM] NeuroLoom Autonomous Agent is now ONLINE. Press Ctrl+C to stop safely.
 [2026-09-18T13:02:44.285Z] INITIALIZING NEUROLOOM AI CYCLE
 =========================================================
-⚠️ [SCENARIO TEST] High Volatility Detected -> Triggering Impermanent Loss Mitigation.
+⚠️ [SCENARIO TEST] Market Crash + ZERO Volume -> Triggers a HOLD (Safety)
 [ORCHESTRATOR] Analyzing AMM liquidity and planning task delegation...
 [ORCHESTRATOR] Delegating 1 specialized approaches to minimize API overhead.
 [WORKERS] Generating specialized yield and risk analysis...

@@ -6,6 +6,7 @@ import {
   ArrowUpRight,
   Boxes,
   Activity,
+  Loader2,
 } from "lucide-react";
 import { VaultAllocationBar, type VaultData } from "./VaultAllocationBar";
 import { PageHero } from "./PageHero";
@@ -14,7 +15,6 @@ import { cn, formatCurrency } from "@/lib/utils";
 import { useReadContract } from "wagmi";
 import { useMemo } from "react";
 
-// 🔗 Address Smart Contract Asli Milikmu
 const VAULT_ADDRESS = "0xe38887648d7272e9Eb3C06628767bb3d84a9FF4E";
 const vaultABI = [
   {
@@ -26,10 +26,20 @@ const vaultABI = [
   },
 ] as const;
 
-function VaultCard({ vault }: { vault: VaultData }) {
+
+function VaultCard({
+  vault,
+  isLoading = false,
+}: {
+  vault: VaultData;
+  isLoading?: boolean;
+}) {
   const { ref, visible } = useSectionReveal<HTMLDivElement>(0.2);
+
+  // DEFENSE: Mencegah NaN crash jika totalBalance 0
   const totalAllocated = vault.totalBalance - vault.availableBalance;
-  const allocatedPct = (totalAllocated / vault.totalBalance) * 100;
+  const allocatedPct =
+    vault.totalBalance > 0 ? (totalAllocated / vault.totalBalance) * 100 : 0;
 
   return (
     <div
@@ -65,10 +75,13 @@ function VaultCard({ vault }: { vault: VaultData }) {
               <Coins className="w-3.5 h-3.5" /> Total TVL
             </span>
             <span className="font-mono font-semibold text-white">
-              {/* Jika angkanya 0, tampilkan Syncing, jika ada tampilkan format currency */}
-              {vault.totalBalance > 0
-                ? formatCurrency(vault.totalBalance)
-                : "Syncing..."}
+              {isLoading ? (
+                <span className="flex items-center gap-1.5 text-gray-500 animate-pulse text-xs">
+                  <Loader2 className="w-3 h-3 animate-spin" /> SYNCING
+                </span>
+              ) : (
+                formatCurrency(vault.totalBalance)
+              )}
             </span>
           </div>
           <div className="flex justify-between text-sm">
@@ -84,9 +97,13 @@ function VaultCard({ vault }: { vault: VaultData }) {
               <LockKeyhole className="w-3.5 h-3.5 text-success" /> AI Allocated
             </span>
             <span className="font-mono font-semibold text-success">
-              {vault.totalBalance > 0
-                ? formatCurrency(totalAllocated)
-                : "Syncing..."}
+              {isLoading ? (
+                <span className="flex items-center gap-1.5 text-gray-500 animate-pulse text-xs">
+                  <Loader2 className="w-3 h-3 animate-spin" /> SYNCING
+                </span>
+              ) : (
+                formatCurrency(totalAllocated)
+              )}
             </span>
           </div>
         </div>
@@ -107,16 +124,17 @@ function VaultCard({ vault }: { vault: VaultData }) {
 }
 
 export function SmartVaultsView() {
-  // 1. Tarik Data Nyata dari BSC Testnet
-  const { data: totalAssetsData } = useReadContract({
+  // 1. Ambil Data sekaligus status isLoading dari Wagmi
+  const { data: totalAssetsData, isLoading: isVaultLoading } = useReadContract({
     address: VAULT_ADDRESS,
     abi: vaultABI,
     functionName: "totalAssets",
     query: { refetchInterval: 10000 },
   });
 
-  // 2. Gabungkan Data Nyata dengan Dummy Data (Hybrid Approach)
+  // 2. Gabungkan Data
   const hybridVaults = useMemo<VaultData[]>(() => {
+    // Pertahankan angka 0 murni jika memang saldonya 0, agar akurat dengan Blockchain
     const realTVL = totalAssetsData ? Number(totalAssetsData) / 1e18 : 0;
 
     return [
@@ -124,21 +142,19 @@ export function SmartVaultsView() {
         id: "1",
         name: "Stablecoin Alpha Vault",
         symbol: "USDT",
-        // Gunakan Real TVL dari blockchain! Jika 0, gunakan fallback dummy 10 USDT
-        totalBalance: realTVL > 0 ? realTVL : 10.5,
-        // Simulasikan bahwa AI selalu menyisakan 20% sebagai Available Balance
-        availableBalance: realTVL > 0 ? realTVL * 0.2 : 2.5,
+        totalBalance: realTVL, // 100% Akurat On-Chain
+        availableBalance: realTVL * 0.2, // Simulasi AI memegang 20%
         apy: 18.5,
         allocations: [
-          { protocolName: "Venus Protocol", amount: (realTVL || 10.5) * 0.5 },
-          { protocolName: "PancakeSwap V3", amount: (realTVL || 10.5) * 0.3 },
+          { protocolName: "Venus Protocol", amount: realTVL * 0.5 },
+          { protocolName: "PancakeSwap V3", amount: realTVL * 0.3 },
         ],
       },
       {
         id: "2",
         name: "BNB Yield Optimizer",
         symbol: "WBNB",
-        totalBalance: 339988, // Full Dummy untuk pamer multi-vault
+        totalBalance: 339988, // Visi Produk Ekosistem (Statik)
         availableBalance: 39988,
         apy: 24.2,
         allocations: [
@@ -163,7 +179,12 @@ export function SmartVaultsView() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {hybridVaults.map((vault) => (
-          <VaultCard key={vault.id} vault={vault} />
+          <VaultCard
+            key={vault.id}
+            vault={vault}
+            // Hanya aplikasikan efek loading ke Vault 1 (karena Vault 2 statis)
+            isLoading={vault.id === "1" ? isVaultLoading : false}
+          />
         ))}
       </div>
 

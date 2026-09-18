@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { formatTimeAgo } from "@/lib/utils";
+import { TerminalSquare, Activity } from "lucide-react";
 
 const GRAPHQL_URL =
   "https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.2";
@@ -14,21 +15,61 @@ interface GraphRebalanceData {
   transactionHash: string;
 }
 
-export function AIEventLog() {
-  // [HACKATHON DEMO MODE]: Data statis murni yang aman dari linter
-  const [events, setEvents] = useState<GraphRebalanceData[]>([
-    {
-      id: "demo-tx-1",
-      amountIn: "5000000000000000000", // 5 mUSDT
-      expectedAmountOutMin: "8000000000000000", // ~0.008 WBNB
-      blockTimestamp: "1789585000", // Timestamp murni (Pure)
-      transactionHash:
-        "0xfcca1bd79e41ce5b9df81b1eff4762cf9fb013c8b3efa56ff33213ab0fac84b4",
-    },
-  ]);
+const mockAILogs = [
+  "[AGENT_SPAWN] Initializing RiskManager & YieldAnalyzer...",
+  "[FETCH] Querying Venus Protocol utilization rates...",
+  "[FETCH] Querying PancakeSwap V3 USDT/WBNB pool liquidity...",
+  "[ANALYSIS] Venus APY: 3.2% | PancakeSwap APY: 12.4%",
+  "[RISK_CHECK] Calculating Impermanent Loss exposure on PancakeSwap...",
+  "[WARNING] Volatility detected on WBNB. IL risk elevated to 4.1%.",
+  "[ROUTING] Proposing multi-hop route: 70% Venus, 30% PancakeSwap.",
+  "[EVALUATOR] Rejecting proposal. Gas fees (0.004 BNB) exceed expected 12hr yield.",
+  "[AGENT_SPAWN] Re-evaluating fallback single-asset staking...",
+  "[ROUTING] Target locked: Radiant Capital (Stablecoin Vault).",
+  "[EVALUATOR] Route approved. Expected slippage < 0.1%.",
+  "[EXECUTION] Generating payload for NeuroLoomVaultV2.rebalance()...",
+  ">>> TRANSACTION BROADCASTED TO BSC TESTNET <<<",
+];
 
+export function AIEventLog() {
+  const [events, setEvents] = useState<GraphRebalanceData[]>([]);
   const [isSyncing, setIsSyncing] = useState(true);
 
+  const [visibleLogs, setVisibleLogs] = useState<string[]>([]);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // LOGIKA TERMINAL YANG SUDAH DIPERBAIKI (Bebas Error)
+  useEffect(() => {
+    let currentIndex = 0;
+    let isWaiting = false;
+
+    const interval = setInterval(() => {
+      if (isWaiting) return;
+
+      if (currentIndex < mockAILogs.length) {
+        const nextLog = mockAILogs[currentIndex];
+        if (nextLog) {
+          setVisibleLogs((prev) => [...prev, nextLog]);
+        }
+        currentIndex++;
+
+        if (scrollRef.current) {
+          scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+        }
+      } else {
+        isWaiting = true;
+        setTimeout(() => {
+          setVisibleLogs([]);
+          currentIndex = 0;
+          isWaiting = false;
+        }, 5000);
+      }
+    }, 800);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // LOGIKA THE GRAPH (Asli & Aman)
   useEffect(() => {
     let isMounted = true;
 
@@ -52,7 +93,6 @@ export function AIEventLog() {
         });
         const { data } = await res.json();
 
-        // Mencegah The Graph menimpa data demo dengan array kosong
         if (
           isMounted &&
           data?.rebalanceExecuteds &&
@@ -80,14 +120,73 @@ export function AIEventLog() {
 
   return (
     <section className="flex flex-col h-full bg-[#0b1120]/80 rounded-3xl border border-white/[0.05] overflow-hidden backdrop-blur-2xl">
-      <header className="flex justify-between items-center p-5 border-b border-white/[0.05] bg-black/20">
-        <div>
-          <h2 className="text-base font-semibold text-white">
-            Live AI Agent Stream
-          </h2>
-          <span className="text-[10px] text-gray-400 font-mono tracking-[0.2em] uppercase">
-            Indexed by The Graph
+      {/* 1. TOP PANEL: AI THINKING PROCESS */}
+      <div className="border-b border-white/[0.05] bg-black/40">
+        <header className="flex justify-between items-center px-5 py-3 border-b border-white/[0.05]">
+          <div className="flex items-center gap-2">
+            <TerminalSquare className="w-4 h-4 text-primary" />
+            <h3 className="text-sm font-semibold text-white">
+              Agent Orchestrator Log
+            </h3>
+          </div>
+          <span className="text-[10px] text-primary font-mono tracking-widest uppercase animate-pulse">
+            Processing
           </span>
+        </header>
+        <div
+          ref={scrollRef}
+          className="h-[180px] p-4 font-mono text-[11px] text-gray-400 overflow-y-auto leading-relaxed scroll-smooth text-left"
+        >
+          {visibleLogs.length === 0 ? (
+            <div className="text-gray-600 italic">
+              Awaiting trigger events...
+            </div>
+          ) : (
+            visibleLogs.map((log, index) => {
+              // DEFENSE: Jika string kosong atau undefined, jangan render
+              if (!log) return null;
+              return (
+                <div key={index} className="mb-1">
+                  <span className="text-gray-600 mr-2">{">"}</span>
+                  <span
+                    className={
+                      log.includes("WARNING")
+                        ? "text-warning"
+                        : log.includes("REJECTING")
+                          ? "text-danger"
+                          : log.includes("EXECUTION") ||
+                              log.includes("TRANSACTION")
+                            ? "text-success font-bold"
+                            : log.includes("ROUTING")
+                              ? "text-info"
+                              : "text-gray-300"
+                    }
+                  >
+                    {log}
+                  </span>
+                </div>
+              );
+            })
+          )}
+          <div className="mt-1 flex items-center">
+            <span className="text-gray-600 mr-2">{">"}</span>
+            <span className="w-2 h-4 bg-primary animate-pulse inline-block"></span>
+          </div>
+        </div>
+      </div>
+
+      {/* 2. BOTTOM PANEL: THE GRAPH EXECUTION LOG */}
+      <header className="flex justify-between items-center p-5 border-b border-white/[0.05] bg-black/20">
+        <div className="flex items-center gap-2">
+          <Activity className="w-4 h-4 text-success" />
+          <div className="text-left">
+            <h2 className="text-base font-semibold text-white">
+              Live On-Chain Settlement
+            </h2>
+            <span className="text-[10px] text-gray-400 font-mono tracking-[0.2em] uppercase">
+              Indexed by The Graph
+            </span>
+          </div>
         </div>
         <div className="flex items-center gap-2 text-[10px] font-mono bg-success/10 border border-success/20 px-3 py-1 rounded-full">
           <span

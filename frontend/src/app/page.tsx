@@ -495,7 +495,7 @@ export default function NeuroLoomApp() {
                                 type: "info",
                               },
                               {
-                                msg: "INDEXING · PancakeSwap V2 Liquidity",
+                                msg: "INDEXING · PancakeSwap V3 Liquidity",
                                 type: "info",
                               },
                               {

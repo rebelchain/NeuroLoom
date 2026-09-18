@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { BadgePlus, CircleDot } from "lucide-react";
 import { formatCurrency, cn } from "@/lib/utils";
 import { useSectionReveal } from "@/lib/useSectionReveal";
-import Link from "next/link"; // [TAMBAHAN]: Gunakan router navigasi Next.js
+import Link from "next/link";
 
 // Tipe Data Khusus AI Vault
 export interface AIAllocation {
@@ -48,10 +48,26 @@ export function VaultAllocationBar({ vault }: { vault: VaultData }) {
     return () => clearTimeout(t);
   }, []);
 
-  const totalAllocated = vault.totalBalance - vault.availableBalance;
-  const allocatedPercent = (totalAllocated / vault.totalBalance) * 100;
-  const width = (amount: number) =>
-    mounted && visible ? `${(amount / vault.totalBalance) * 100}%` : "0%";
+  // DEFENSE: Proteksi terhadap nilai negatif (jika the graph glitch) dan pembagian nol (jika TVL = 0)
+  const safeTotalBalance = Math.max(0, vault.totalBalance);
+  const safeAvailableBalance = Math.max(
+    0,
+    Math.min(vault.availableBalance, safeTotalBalance),
+  );
+
+  const totalAllocated = safeTotalBalance - safeAvailableBalance;
+
+  // Kalkulasi persentase yang aman dari NaN
+  const allocatedPercent =
+    safeTotalBalance > 0 ? (totalAllocated / safeTotalBalance) * 100 : 0;
+
+  // Fungsi width yang aman dari NaN
+  const width = (amount: number) => {
+    if (!mounted || !visible || safeTotalBalance === 0) return "0%";
+    const percentage = (amount / safeTotalBalance) * 100;
+    // Pastikan angka valid dan tidak melebihi 100%
+    return `${Math.min(Math.max(percentage, 0), 100)}%`;
+  };
 
   return (
     <div
@@ -78,7 +94,7 @@ export function VaultAllocationBar({ vault }: { vault: VaultData }) {
               <span className="text-xs font-mono text-gray-500">
                 {vault.symbol} ·{" "}
                 <span className="text-gray-400">
-                  {formatCurrency(vault.totalBalance)}
+                  {formatCurrency(safeTotalBalance)}
                 </span>
               </span>
             </div>
@@ -109,51 +125,65 @@ export function VaultAllocationBar({ vault }: { vault: VaultData }) {
 
         {/* Bar */}
         <div className="relative h-11 rounded-xl overflow-hidden flex bg-black/30 border border-white/10 mb-3">
-          {vault.allocations.map((alloc, i) => {
-            const style = segmentStyles[i % segmentStyles.length];
-            return (
-              <div
-                key={alloc.protocolName}
-                className={cn(
-                  "h-full cursor-pointer relative transition-all duration-1000 ease-out border-r border-black/20",
-                  style.bar,
-                )}
-                style={{ width: width(alloc.amount) }}
-                onMouseEnter={() => setHovered(alloc.protocolName)}
-                onMouseLeave={() => setHovered(null)}
-              >
-                {hovered === alloc.protocolName && (
-                  <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-[#0b1120] border border-white/15 rounded-lg px-3 py-1.5 text-xs whitespace-nowrap z-20 shadow-2xl">
-                    <div className="font-semibold text-white">
-                      Routed to {alloc.protocolName}
-                    </div>
-                    <div className={cn("font-mono mt-0.5", style.text)}>
-                      {formatCurrency(alloc.amount)}
-                    </div>
+          {safeTotalBalance === 0 ? (
+            // Empty State yang Elegan jika TVL 0
+            <div className="w-full h-full flex items-center justify-center bg-white/[0.02]">
+              <span className="text-[10px] uppercase tracking-widest text-gray-600 font-mono">
+                Vault Empty · Awaiting Deposit
+              </span>
+            </div>
+          ) : (
+            <>
+              {vault.allocations.map((alloc, i) => {
+                const style = segmentStyles[i % segmentStyles.length];
+                const amount = Math.max(0, alloc.amount); // Proteksi nilai negatif
+                return (
+                  <div
+                    key={alloc.protocolName}
+                    className={cn(
+                      "h-full cursor-pointer relative transition-all duration-1000 ease-out border-r border-black/20",
+                      style.bar,
+                    )}
+                    style={{ width: width(amount) }}
+                    onMouseEnter={() => setHovered(alloc.protocolName)}
+                    onMouseLeave={() => setHovered(null)}
+                  >
+                    {hovered === alloc.protocolName && (
+                      <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-[#0b1120] border border-white/15 rounded-lg px-3 py-1.5 text-xs whitespace-nowrap z-20 shadow-2xl">
+                        <div className="font-semibold text-white">
+                          Routed to {alloc.protocolName}
+                        </div>
+                        <div className={cn("font-mono mt-0.5", style.text)}>
+                          {formatCurrency(amount)}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            );
-          })}
-          {vault.availableBalance > 0 && (
-            <div
-              className={cn(
-                "h-full cursor-pointer relative transition-all duration-1000 ease-out",
-                hovered === "available" ? "bg-success/40" : "bg-success/20",
-              )}
-              style={{ width: width(vault.availableBalance) }}
-              onMouseEnter={() => setHovered("available")}
-              onMouseLeave={() => setHovered(null)}
-            >
-              {hovered === "available" && (
-                <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-[#0b1120] border border-white/15 rounded-lg px-3 py-1.5 text-xs whitespace-nowrap z-20 shadow-2xl">
-                  <div className="font-semibold text-white">Idle in Vault</div>
-                  <div className="font-mono text-success mt-0.5">
-                    {formatCurrency(vault.availableBalance)}
-                  </div>
+                );
+              })}
+              {safeAvailableBalance > 0 && (
+                <div
+                  className={cn(
+                    "h-full cursor-pointer relative transition-all duration-1000 ease-out",
+                    hovered === "available" ? "bg-success/40" : "bg-success/20",
+                  )}
+                  style={{ width: width(safeAvailableBalance) }}
+                  onMouseEnter={() => setHovered("available")}
+                  onMouseLeave={() => setHovered(null)}
+                >
+                  {hovered === "available" && (
+                    <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-[#0b1120] border border-white/15 rounded-lg px-3 py-1.5 text-xs whitespace-nowrap z-20 shadow-2xl">
+                      <div className="font-semibold text-white">
+                        Idle in Vault
+                      </div>
+                      <div className="font-mono text-success mt-0.5">
+                        {formatCurrency(safeAvailableBalance)}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
-            </div>
+            </>
           )}
         </div>
 
@@ -180,7 +210,8 @@ export function VaultAllocationBar({ vault }: { vault: VaultData }) {
           </div>
           <span className="font-mono text-gray-500">
             {allocatedPercent.toFixed(0)}% Allocated ·{" "}
-            {vault.allocations.length} Active Routes
+            {safeTotalBalance === 0 ? 0 : vault.allocations.length} Active
+            Routes
           </span>
         </div>
       </div>

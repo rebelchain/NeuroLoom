@@ -113,3 +113,12 @@ type Withdraw @entity(immutable: true) {
   blockTimestamp: BigInt!
   transactionHash: Bytes!
 }
+
+type ProtocolApproved @entity(immutable: true) {
+  id: Bytes!
+  protocol: Bytes! # address
+  status: Boolean! # bool
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}

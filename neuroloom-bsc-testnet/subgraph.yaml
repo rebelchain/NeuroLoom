@@ -56,4 +56,6 @@ dataSources:
           handler: handleUpgraded
         - event: Withdraw(indexed address,indexed address,indexed address,uint256,uint256)
           handler: handleWithdraw
+        - event: ProtocolApproved(indexed address,bool)
+          handler: handleProtocolApproved
       file: ./src/neuro-loom-vault-v-2.ts

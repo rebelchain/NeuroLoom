@@ -1,5 +1,5 @@
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
-import { ChatOpenAI } from "@langchain/openai";
+import { ChatGroq } from "@langchain/groq";
 import { AIDecision } from "./agent.js";
 
 function extractJSON(rawText: string): any {
@@ -9,7 +9,7 @@ function extractJSON(rawText: string): any {
 }
 
 async function evaluateDecision(
-  llm: ChatOpenAI,
+  llm: ChatGroq,
   draft: AIDecision,
   marketData: any,
   vaultState: any,
@@ -17,7 +17,6 @@ async function evaluateDecision(
   status: "PASS" | "NEEDS_IMPROVEMENT" | "FAIL";
   feedback: string;
 }> {
-  // [PERBAIKAN 1]: Mengubah mindset Evaluator dari "Trading" menjadi "DeFi Routing & Liquidity"
   const evaluatorPrompt = `You are the Chief Risk Officer for the NeuroLoom DeFi Vault.
 Evaluate the proposed yield routing decision based on the following strict rules:
 1. Risk Limit: amountPercentage MUST NOT exceed 30% per cycle to prevent catastrophic slippage.
@@ -39,7 +38,7 @@ Output ONLY a valid JSON object:
 }
 
 async function optimizeDecision(
-  llm: ChatOpenAI,
+  llm: ChatGroq,
   previousDraft: AIDecision,
   feedback: string,
   marketData: any,
@@ -60,23 +59,27 @@ export async function runEvaluatorLoop(
   marketData: any,
   vaultState: any,
 ): Promise<AIDecision> {
-  console.log("\n🛡️ [EVALUATOR] Initiating Risk Management Audit Loop...");
+  console.log("\n[EVALUATOR] Initiating Risk Management Audit Loop...");
+
+  // [SECURITY GUARDRAIL]: Hard-coded limit (Disarankan oleh Auditor/Claude)
+  // Mencegah AI menguras likuiditas lebih dari 30% sebelum LLM mulai mengevaluasi
+  if (initialDecision.amountPercentage > 30) {
+    console.log(
+      `[EVALUATOR] Guardrail triggered: Requested amount (${initialDecision.amountPercentage}%) exceeds 30% safety limit.`,
+    );
+    return {
+      action: "HOLD",
+      amountPercentage: 0,
+      reasoning: `CRITICAL: Hard-coded safety bypass. The requested amount of ${initialDecision.amountPercentage}% exceeds the absolute protocol limit of 30%. Action aborted to protect liquidity.`,
+    };
+  }
 
   try {
-    const llm = new ChatOpenAI({
-      modelName: "google/gemma-4-26b-a4b-it:free",
-      temperature: 0,
-      maxTokens: 512,
-      // [PERBAIKAN 2]: Memastikan kompatibilitas dengan .env milikmu
-      openAIApiKey:
-        process.env.OPENROUTER_API_KEY || process.env.OPENAI_API_KEY,
-      configuration: {
-        baseURL: "https://openrouter.ai/api/v1",
-        defaultHeaders: {
-          "HTTP-Referer": "https://neuroloom.app",
-          "X-Title": "NeuroLoom",
-        },
-      },
+    const llm = new ChatGroq({
+      apiKey: process.env.GROQ_API_KEY,
+      model: "qwen/qwen3.8-27b",
+      temperature: 0.0,
+      maxTokens: 1024,
     });
 
     let currentDecision = initialDecision;
@@ -117,11 +120,10 @@ export async function runEvaluatorLoop(
     };
   } catch (error: any) {
     console.error(
-      "⚠️ [EVALUATOR ERROR] AI API failed (Rate Limit/Network):",
+      "[EVALUATOR ERROR] AI API failed (Rate Limit/Network):",
       error.message,
     );
-    // [PERBAIKAN 3]: Mengubah mode darurat menjadi HOLD absolut demi keamanan dana
-    console.log("🔄 [SYSTEM] Activating Emergency Circuit Breaker (HOLD)...");
+    console.log("[SYSTEM] Activating Emergency Circuit Breaker (HOLD)...");
     return {
       action: "HOLD",
       amountPercentage: 0,

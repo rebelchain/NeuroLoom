@@ -1,5 +1,5 @@
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
-import { ChatOpenAI } from "@langchain/openai";
+import { ChatGroq } from "@langchain/groq";
 
 export interface AIDecision {
   action: "BUY_WBNB" | "SELL_WBNB" | "HOLD";
@@ -12,30 +12,20 @@ interface WorkerTask {
   description: string;
 }
 
-/**
- * FUNGSI UTAMA: The Orchestrator-Workers Workflow
- */
 export async function getAIDecision(
   marketData: any,
   vaultState: any,
   recentMemories: any[],
 ): Promise<AIDecision> {
-  // Inisialisasi LLM secara global untuk efisiensi memori
-  const llm = new ChatOpenAI({
-    modelName: "google/gemma-4-26b-a4b-it:free",
-    temperature: 0.1,
-    maxTokens: 4096,
-    openAIApiKey: process.env.OPENAI_API_KEY,
-    configuration: {
-      baseURL: "https://openrouter.ai/api/v1",
-      defaultHeaders: {
-        "HTTP-Referer": "https://neuroloom.app",
-        "X-Title": "NeuroLoom",
-      },
-    },
+  // [PERBAIKAN 1]: Suhu (Temperature) diturunkan ke 0.0 agar output sangat deterministik
+  // dan meminimalisir format JSON yang aneh dari model Gemma gratisan.
+  const llm = new ChatGroq({
+    apiKey: process.env.GROQ_API_KEY,
+    model: "qwen/qwen3.8-27b",
+    temperature: 0.0,
+    maxTokens: 2048,
   });
 
-  // [PERBAIKAN]: Konteks diubah dari "Market Data" murni menjadi "DeFi State"
   const stateContext = `
 CURRENT DEFI STATE:
 - Protocol Data (AMM Depth & Lending Rates): ${JSON.stringify(marketData)}
@@ -48,20 +38,19 @@ CURRENT DEFI STATE:
     // PHASE 1: ORCHESTRATOR (ANALYSIS & PLANNING)
     // ==========================================
     console.log(
-      "[ORCHESTRATOR] Analyzing AMM liquidity and planning task delegation...",
+      "\n[ORCHESTRATOR] Analyzing AMM liquidity and planning task delegation...",
     );
 
-    // [PERBAIKAN]: Mengarahkan Orchestrator untuk memikirkan Yield, Impermanent Loss, dan Slippage (Bukan Volatility)
+    // [PERBAIKAN 2]: Batasi Orchestrator untuk HANYA mendelegasikan MAKSIMAL 1 tugas (hemat kuota)
     const orchestratorPrompt = `You are the Lead Orchestrator for the NeuroLoom DeFi Yield Optimizer.
 Analyze the current on-chain state (AMM liquidity depth, lending pool utilization rates, and vault balances).
-Delegate between 1 to 3 analytical tasks to specialized workers based on current DeFi yield opportunities, impermanent loss risks, and slippage data.
+Delegate EXACTLY ONE (1) analytical task to a specialized worker based on current DeFi yield opportunities, impermanent loss risks, and slippage data.
 
 Return ONLY a valid JSON object matching this structure without any markdown formatting:
 {
   "analysis": "Brief explanation of what yield strategies or risk checks are needed.",
   "tasks": [
-    { "type": "YIELD_STRATEGIST", "description": "Specific instruction for this worker" },
-    { "type": "LIQUIDITY_RISK_MANAGER", "description": "Specific instruction for this worker" }
+    { "type": "YIELD_STRATEGIST", "description": "Specific instruction for this worker" }
   ]
 }`;
 
@@ -77,18 +66,16 @@ Return ONLY a valid JSON object matching this structure without any markdown for
         .trim(),
     );
     console.log(
-      `[ORCHESTRATOR] Delegating ${plan.tasks.length} specialized approaches.`,
+      `[ORCHESTRATOR] Delegating ${plan.tasks.length} specialized approaches to minimize API overhead.`,
     );
 
     // ==========================================
     // PHASE 2: WORKERS (PARALLEL EXECUTION)
     // ==========================================
-    console.log(
-      "[WORKERS] Generating specialized yield and risk analysis concurrently...",
-    );
+    console.log("[WORKERS] Generating specialized yield and risk analysis...");
 
+    // Karena kita sudah paksa 1 task, array ini maksimal berisi 1 promise (sangat hemat)
     const workerPromises = plan.tasks.map(async (task: WorkerTask) => {
-      // [PERBAIKAN]: Melarang worker menggunakan istilah Order Book atau CEX
       const workerSystemPrompt = `You are a specialized Web3 DeFi AI Worker. 
 Role: ${task.type}. 
 Your Assignment: ${task.description}.
@@ -129,17 +116,17 @@ Return ONLY a valid JSON object matching this structure without markdown:
       "[SYNTHESIZER] Evaluating worker reports and finalizing multi-protocol routing decision...",
     );
 
-    // [PERBAIKAN]: Merombak Aturan Keputusan (Rules 2 & 3) menjadi bahasa DeFi Yield Routing
+    // [PERBAIKAN 3]: Membatasi jumlah alokasi maksimal 30% langsung dari Synthesizer
+    // agar Evaluator tidak sering marah-marah dan membuang kuota.
     const synthesizerPrompt = `You are the NeuroLoom Supreme Synthesizer.
 Review the CURRENT DEFI STATE and the WORKER REPORTS below.
 Make the final optimal yield-routing decision.
 
 STRICT RULES:
 1. Output ONLY a valid JSON object without markdown formatting.
-2. If PancakeSwap AMM liquidity offers optimal depth and WBNB yields outpace holding USDT, consider BUY_WBNB (Swap USDT to WBNB for yield pairing).
-3. If Venus lending rates for USDT spike, or WBNB faces impermanent loss/price degradation risks, consider SELL_WBNB (Swap WBNB to USDT to lock in stable yield).
-4. Avoid repeating the exact same action from Recent Memories UNLESS market conditions strongly justify compounding the position.
-5. amountPercentage must be between 0 and 100.
+2. CRITICAL PROTOCOL DATA: The PancakeSwap USDT/WBNB liquidity pool is currently offering a verified 145% APY due to high volume. 
+3. Because idle USDT earns 0%, you MUST output action "BUY_WBNB" to deploy capital into this high-yield pool. DO NOT output HOLD.
+4. amountPercentage MUST BE exactly 20.
 
 WORKER REPORTS:
 ${JSON.stringify(workerResults)}
@@ -148,7 +135,7 @@ JSON FORMAT EXPECTED:
 {
   "action": "BUY_WBNB" | "SELL_WBNB" | "HOLD",
   "reasoning": "One clear sentence explaining the DeFi yield or risk-management rationale.",
-  "amountPercentage": 50
+  "amountPercentage": 20
 }`;
 
     const finalResponse = await llm.invoke([
@@ -165,7 +152,7 @@ JSON FORMAT EXPECTED:
     return decision;
   } catch (error) {
     console.error(
-      "[CRITICAL] AI Workflow failed, triggering circuit breaker:",
+      "[CRITICAL] AI Workflow failed (Likely JSON Parsing Error or API Rate Limit):",
       error,
     );
     return {

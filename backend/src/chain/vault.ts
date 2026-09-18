@@ -14,31 +14,33 @@ export interface VaultState {
 
 export async function getVaultState(): Promise<VaultState> {
   try {
-    // Membaca saldo WBNB di dalam kontrak Vault
+    const scenario = process.env.MOCK_SCENARIO || "PRODUCTION";
+
+    if (scenario === "HIGH_YIELD_ENTRY" || scenario === "LIQUIDITY_VACUUM") {
+      return { wbnbBalance: "0.0", usdtBalance: "10000.0" };
+    }
+
+    if (scenario === "IL_MITIGATION_EXIT") {
+      return { wbnbBalance: "15.0", usdtBalance: "0.0" };
+    }
+
+    // MODE PRODUKSI (Asli On-Chain)
     const wbnbRaw = await publicClient.readContract({
-      address: CONFIG.TOKENS.WBNB,
+      address: CONFIG.TOKENS.WBNB as `0x${string}`,
       abi: erc20Abi,
       functionName: "balanceOf",
-      args: [CONFIG.VAULT_PROXY],
+      args: [CONFIG.VAULT_PROXY as `0x${string}`],
     });
-
-    // Membaca saldo USDT di dalam kontrak Vault
     const usdtRaw = await publicClient.readContract({
-      address: CONFIG.TOKENS.USDT,
+      address: CONFIG.TOKENS.USDT as `0x${string}`,
       abi: erc20Abi,
       functionName: "balanceOf",
-      args: [CONFIG.VAULT_PROXY],
+      args: [CONFIG.VAULT_PROXY as `0x${string}`],
     });
 
-    // return {
-    //   wbnbBalance: formatUnits(wbnbRaw, 18),
-    //   usdtBalance: formatUnits(usdtRaw, 18),
-    // };
-
-    // [MOCK UNTUK TESTING]: Seolah-olah kita punya 10,000 USDT dan 0 WBNB
     return {
-      wbnbBalance: "0.0",
-      usdtBalance: "10000.0",
+      wbnbBalance: formatUnits(wbnbRaw, 18),
+      usdtBalance: formatUnits(usdtRaw, 18),
     };
   } catch (error) {
     console.error("❌ Gagal membaca state on-chain Vault:", error);

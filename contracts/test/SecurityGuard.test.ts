@@ -4,7 +4,6 @@ import { network } from "hardhat";
 import type { NetworkConnection } from "hardhat/types";
 
 describe("Security Audit: NeuroLoomVaultV2 (Hardhat v-next)", () => {
-  // Fungsi Fixture sekarang menerima `NetworkConnection` yang berisi `viem`
   async function deployVaultFixture({ viem }: NetworkConnection) {
     const publicClient = await viem.getPublicClient();
     const [admin, aiAgent] = await viem.getWalletClients();

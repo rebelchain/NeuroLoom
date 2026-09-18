@@ -25,4 +25,5 @@ contract MockOracle {
         // Mengembalikan harga palsu yang kita tentukan, dengan timestamp saat ini (agar tidak Stale)
         return (1, currentPrice, block.timestamp, updatedAt, 1);
     }
+    
 }

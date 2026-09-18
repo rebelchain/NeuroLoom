@@ -259,7 +259,7 @@ CYCLE_INTERVAL_MINUTES=1
 # "LIQUIDITY_VACUUM"   -> Triggering AI to HOLD (Simulation: Rejecting a Dangerous Route)
 # "PRODUCTION"         -> Reading On-Chain Data & Real-Time Prices (For Mainnet)
 
-MOCK_SCENARIO="HIGH_YIELD_ENTRY"
+MOCK_SCENARIO="LIQUIDITY_VACUUM"
 
 ```
 

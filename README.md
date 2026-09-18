@@ -142,7 +142,7 @@ The core primitive of NeuroLoom is the `NeuroLoomVaultV2` contract, adopting the
            ┌───────────────────────────┼───────────────────────────┐
            ▼                           ▼                           ▼
  ┌───────────────────┐       ┌───────────────────┐       ┌───────────────────┐
- │   PancakeSwap V2  │       │   Venus Lending   │       │   Any Future DEX  │
+ │   PancakeSwap V3  │       │   Venus Lending   │       │   Any Future DEX  │
  │swapExactTokensFor…│       │    mint/supply    │       │     swap/add      │
  └───────────────────┘       └───────────────────┘       └───────────────────┘
 

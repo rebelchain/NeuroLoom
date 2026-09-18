@@ -57,8 +57,11 @@ Built for the **Indonesia Web3 Hackathon 2026** on the **BNB Chain**.
 8. [Technology Stack](#technology-stack)
 9. [Getting Started](#getting-started)
 10. [Security & Threat Model](#security--threat-model)
-11. [Known Limitations & Production Roadmap](#known-limitations--production-roadmap)
+11. [Deterministic Test Coverage](#deterministic-test-coverage)
+12. [On-Chain Provisioning & Operational Scripts](#on-chain-provisioning--operational-scripts)
+13. [Known Limitations & Production Roadmap](#known-limitations--production-roadmap)
 
+## 
 ---
 
 ## The Problem
@@ -157,7 +160,7 @@ The core primitive of NeuroLoom is the `NeuroLoomVaultV2` contract, adopting the
 | Entity | Address (BscScan) |
 | --- | --- |
 | NeuroLoomProxy (Vault) | `0xe38887648d7272e9Eb3C06628767bb3d84a9FF4E` |
-| Implementation V2 | `0x07e63e62adefd7dc10f5e46e99f28cbbb1b61474` |
+| Implementation V2 | `0x3c699d1a67cc83e6c91770741aeb6f5f79945c32` |
 | Chainlink BNB/USD | `0x2514895c72f50D8bd4B4F9b1110F0D6bD2c97526` |
 | The Graph Subgraph | `https://api.studio.thegraph.com/query/.../neuroloom-bsc-testnet` |
 
@@ -183,6 +186,8 @@ NeuroLoom/
 │       │   ├── executor.ts        # Calldata builder & AI transaction signer
 │       │   └── vault.ts           # Vault state reader and on-chain interaction
 │       └── data/                  # SQLite database for AI memory states
+|       │
+|       └── tests/                 # On-Chain Provisioning & Operational Scripts (due to rate limit API)
 ├── contracts/                     # Hardhat v3 workspace (ERC-4626 Vault, Proxy, Tests)
 │   ├── contracts/                 # NeuroLoomVaultV2.sol, NeuroLoomProxy.sol, MockOracle.sol, MockERC20.sol, MockDex.sol
 │   ├── scripts/                   # Deployment, smoke tests, whitelist protocol, and UUPS upgrades
@@ -314,6 +319,32 @@ $ npx hardhat test
       ✔ Must successfully execute a cross-protocol swap with correct calldata & dynamic decimals (350ms)
 
   7 passing (3s)
+```
+---
+
+## On-Chain Provisioning & Operational Scripts
+
+NeuroLoom includes a suite of specialized backend scripts designed for real-world deployment, security provisioning, and live on-chain demonstrations across the BSC Testnet. These scripts ensure strict role-based access control and seamless integration with decentralized infrastructure.
+
+### 1. Protocol Security Whitelisting
+To prevent the AI from interacting with unverified or malicious smart contracts, the Vault employs a strict `approvedProtocols` whitelist mechanism. Only the Admin (`DEFAULT_ADMIN_ROLE`) can authorize protocols.
+```bash
+# Whitelists the PancakeSwap V3 Router in the Vault's state
+npx tsx backend/src/tests/whitelist-router.ts
+```
+### 2. Chainlink Anti-MEV Oracle Integration
+To protect the Vault's liquidity from Sandwich Attacks and excessive slippage, this script connects the BSC Testnet Chainlink Price Feed (e.g., BNB/USD) directly into the Vault's dynamic decimal oracle system.
+
+```bash
+# Configures the Vault to read from the live Chainlink Aggregator
+npx tsx backend/src/tests/setup-oracle.ts
+```
+### 3. The Graph Synchronization & Demo Trigger
+A deterministic executor script that bypasses the AI processing delays for rapid live-testing. It calculates the exact 2% slippage threshold off-chain, validates it against live Chainlink data, and blasts the payload to the V3 Router—triggering real RebalanceExecuted events indexed instantly by The Graph. `executeTradeOnChain` function.
+
+```bash
+# Fires a micro-transaction (0.0001 USDT) to demonstrate full end-to-end flow
+npx tsx backend/src/tests/rebalance-executed.ts
 ```
 ---
 

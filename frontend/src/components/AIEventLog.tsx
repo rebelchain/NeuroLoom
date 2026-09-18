@@ -9,26 +9,33 @@ const GRAPHQL_URL =
 
 interface GraphRebalanceData {
   id: string;
+  tokenIn: string;
+  tokenOut: string;
   amountIn: string;
-  expectedAmountOutMin: string;
   blockTimestamp: string;
   transactionHash: string;
 }
 
 const mockAILogs = [
-  "[AGENT_SPAWN] Initializing RiskManager & YieldAnalyzer...",
-  "[FETCH] Querying Venus Protocol utilization rates...",
-  "[FETCH] Querying PancakeSwap V3 USDT/WBNB pool liquidity...",
-  "[ANALYSIS] Venus APY: 3.2% | PancakeSwap APY: 12.4%",
-  "[RISK_CHECK] Calculating Impermanent Loss exposure on PancakeSwap...",
-  "[WARNING] Volatility detected on WBNB. IL risk elevated to 4.1%.",
-  "[ROUTING] Proposing multi-hop route: 70% Venus, 30% PancakeSwap.",
-  "[EVALUATOR] Rejecting proposal. Gas fees (0.004 BNB) exceed expected 12hr yield.",
-  "[AGENT_SPAWN] Re-evaluating fallback single-asset staking...",
-  "[ROUTING] Target locked: Radiant Capital (Stablecoin Vault).",
-  "[EVALUATOR] Route approved. Expected slippage < 0.1%.",
-  "[EXECUTION] Generating payload for NeuroLoomVaultV2.rebalance()...",
+  "[SYSTEM] NeuroLoom Autonomous Agent is now ONLINE.",
+  "⚠️ [SCENARIO TEST] Market Stabilized + High Volume -> Safe entry for AMM Yield Pairing.",
+  "[AGENT] Analyzing market conditions and memory state...",
+  "[ORCHESTRATOR] Analyzing AMM liquidity and planning task delegation...",
+  "[ORCHESTRATOR] Delegating 1 specialized approach to minimize API overhead.",
+  "[WORKERS] Generating specialized yield and risk analysis...",
+  " -> [WORKER 1 | YIELD_STRATEGIST] Recommends: BUY_WBNB",
+  "[SYNTHESIZER] Evaluating worker reports and finalizing multi-protocol routing decision...",
+  "[EVALUATOR] Initiating Risk Management Audit Loop...",
+  " -> [ITERATION 1] Auditing proposed decision... Status: PASS",
+  "[FINAL DECISION] Action: BUY_WBNB | Allocation: 20%",
+  "[REASONING] Deploying capital into high-yield pool while market is stable.",
+  "[ON-CHAIN EXECUTION] Preparing V3 Multi-Protocol Routing for BUY_WBNB...",
+  "[NETWORK] Fetching live balance from Vault & Chainlink Oracle...",
+  "[MATH] Minimum WBNB Target (2% Slippage) calculated and verified.",
+  "[NETWORK] Simulating Vault execution and security guardrails...",
+  "[NETWORK] Simulation passed! Strict Oracle and Protocol Whitelist checks cleared.",
   ">>> TRANSACTION BROADCASTED TO BSC TESTNET <<<",
+  "[SYNC] Awaiting subgraph indexation from The Graph...",
 ];
 
 export function AIEventLog() {
@@ -64,7 +71,7 @@ export function AIEventLog() {
           isWaiting = false;
         }, 5000);
       }
-    }, 800);
+    }, 1200);
 
     return () => clearInterval(interval);
   }, []);
@@ -79,8 +86,9 @@ export function AIEventLog() {
           {
             rebalanceExecuteds(first: 5, orderBy: blockTimestamp, orderDirection: desc) {
               id
+              tokenIn
+              tokenOut
               amountIn
-              expectedAmountOutMin
               blockTimestamp
               transactionHash
             }
@@ -232,13 +240,18 @@ export function AIEventLog() {
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-2">
                       <span className="text-error font-medium">
-                        {(Number(event.amountIn) / 1e18).toFixed(4)} WBNB
+                        {(Number(event.amountIn) / 1e18).toFixed(4)}
+                      </span>
+                      <span className="text-gray-400 font-mono text-[10px] bg-white/5 px-2 py-0.5 rounded border border-white/10">
+                        {event.tokenIn.slice(0, 4)}...{event.tokenIn.slice(-4)}
                       </span>
                       <span className="text-gray-600">→</span>
-                      <span className="text-success font-medium">
-                        Min.{" "}
-                        {(Number(event.expectedAmountOutMin) / 1e18).toFixed(4)}{" "}
-                        USDT
+                      <span className="text-gray-400 font-mono text-[10px] bg-white/5 px-2 py-0.5 rounded border border-white/10">
+                        {event.tokenOut.slice(0, 4)}...
+                        {event.tokenOut.slice(-4)}
+                      </span>
+                      <span className="text-success font-medium ml-1">
+                        Swap Executed
                       </span>
                     </div>
                   </td>

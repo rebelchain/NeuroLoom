@@ -17,6 +17,7 @@ import { AITerminalView } from "../components/AITerminalView";
 import { BenefitRow } from "../components/BenefitRow";
 import { DashboardView } from "../components/DashboardView";
 import { FeatureCard } from "../components/FeatureCard";
+import { Footer } from "../components/Footer";
 import { Header } from "../components/Header";
 import { HistoryView } from "../components/HistoryView";
 import { LandingEventLog } from "../components/LandingEventLog";
@@ -606,6 +607,7 @@ export default function NeuroLoomApp() {
                   </div>
                 </div>
               </section>
+            <Footer />
             </main>
           </motion.div>
         ) : (

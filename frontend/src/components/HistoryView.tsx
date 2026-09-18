@@ -7,22 +7,25 @@ import { formatTimeAgo } from "@/lib/utils";
 const GRAPHQL_URL =
   "https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.2";
 
+// 1. Interface disesuaikan dengan The Graph (Menghapus expectedAmountOutMin, menambah tokenIn & tokenOut)
 interface GraphRebalanceData {
   id: string;
+  tokenIn: string;
+  tokenOut: string;
   amountIn: string;
-  expectedAmountOutMin: string;
   blockTimestamp: string;
   transactionHash: string;
 }
 
 export function HistoryView() {
-  // [HACKATHON DEMO MODE]: Injeksi 1 data statis agar tabel History tidak kosong saat demo
+  // [HACKATHON DEMO MODE]: Injeksi data statis disesuaikan dengan skema baru
   const [history, setHistory] = useState<GraphRebalanceData[]>([
     {
       id: "demo-tx-1",
+      tokenIn: "0x337610d27c682E347C9cD60BD4b3b107C9d34dDd", // USDT
+      tokenOut: "0xae13d989daC2f0dEbFf460aC112a837C89BAa7cd", // WBNB
       amountIn: "5000000000000000000",
-      expectedAmountOutMin: "8000000000000000",
-      blockTimestamp: "1789585000", // Waktu statis
+      blockTimestamp: "1789585000",
       transactionHash:
         "0xfcca1bd79e41ce5b9df81b1eff4762cf9fb013c8b3efa56ff33213ab0fac84b4",
     },
@@ -34,12 +37,14 @@ export function HistoryView() {
 
     const fetchHistory = async () => {
       try {
+        // 2. Query disesuaikan agar tidak error (Meminta tokenIn dan tokenOut)
         const query = `
           {
             rebalanceExecuteds(first: 20, orderBy: blockTimestamp, orderDirection: desc) {
               id
+              tokenIn
+              tokenOut
               amountIn
-              expectedAmountOutMin
               blockTimestamp
               transactionHash
             }
@@ -53,7 +58,6 @@ export function HistoryView() {
         const { data } = await res.json();
 
         // HANYA timpa tabel jika data dari The Graph BENAR-BENAR ADA (> 0)
-        // Jika kosong, biarkan data demo tetap mejeng di layar
         if (
           isMounted &&
           data?.rebalanceExecuteds &&
@@ -77,6 +81,12 @@ export function HistoryView() {
     };
   }, []);
 
+  // Fungsi bantuan untuk mempercantik alamat token di tabel
+  const formatRoute = (inAddr: string, outAddr: string) => {
+    const shorten = (addr: string) => `${addr.slice(0, 4)}...${addr.slice(-4)}`;
+    return `${shorten(inAddr)} → ${shorten(outAddr)}`;
+  };
+
   return (
     <div className="space-y-6">
       <div className="-mt-6">
@@ -98,10 +108,11 @@ export function HistoryView() {
                   Action
                 </th>
                 <th scope="col" className="px-6 py-4">
-                  Amount In (WBNB)
+                  Amount In
                 </th>
+                {/* 3. Kolom disesuaikan menjadi Routing */}
                 <th scope="col" className="px-6 py-4">
-                  Min. Expected (USDT)
+                  Routing (In → Out)
                 </th>
                 <th scope="col" className="px-6 py-4">
                   Age
@@ -112,7 +123,6 @@ export function HistoryView() {
               </tr>
             </thead>
             <tbody>
-              {/* Karena kita punya data demo, state awal loading tidak akan membuat tabel kosong */}
               {loading && history.length === 0 ? (
                 <tr>
                   <td
@@ -141,10 +151,10 @@ export function HistoryView() {
                       AI_REBALANCE
                     </td>
                     <td className="px-6 py-4 text-gray-200">
-                      {(Number(tx.amountIn) / 1e18).toFixed(4)} WBNB
+                      {(Number(tx.amountIn) / 1e18).toFixed(4)}
                     </td>
-                    <td className="px-6 py-4 text-gray-200">
-                      {(Number(tx.expectedAmountOutMin) / 1e18).toFixed(4)} USDT
+                    <td className="px-6 py-4 text-gray-200 font-mono text-xs">
+                      {formatRoute(tx.tokenIn, tx.tokenOut)}
                     </td>
                     <td className="px-6 py-4 text-gray-500">
                       {formatTimeAgo(Number(tx.blockTimestamp) * 1000)}

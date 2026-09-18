@@ -93,8 +93,8 @@ contract NeuroLoomVaultV2 is NeuroLoomVault, ReentrancyGuard {
         emit RebalanceExecuted(tokenIn, tokenOut, amountIn, block.timestamp);
     }
 
-   /**
-     * @dev Proteksi MEV OMNICHAIN: Menghitung Fair Value antar pasangan koin dengan desimal dinamis.
+/**
+     * @dev Proteksi MEV OMNICHAIN: Menghitung Fair Value antar pasangan koin dengan arah dinamis.
      */
     function _validateSlippageAgainstOracle(
         address tokenIn, 
@@ -121,13 +121,25 @@ contract NeuroLoomVaultV2 is NeuroLoomVault, ReentrancyGuard {
         uint8 tokenOutDecimals = IERC20Metadata(tokenOut).decimals();
         uint8 feedDecimals = feed.decimals(); 
 
-        uint256 expectedAmountOut = (amountIn * uint256(price) * (10 ** tokenOutDecimals)) / 
-                                    ((10 ** tokenInDecimals) * (10 ** feedDecimals));
+        uint256 expectedAmountOut;
+
+        // [PERBAIKAN MATEMATIKA]: Menentukan arah kali atau bagi berdasarkan tokenOut
+        // Alamat WBNB di BSC Testnet
+        address WBNB_TESTNET = 0xae13d989daC2f0dEbFf460aC112a837C89BAa7cd; 
+
+        if (tokenOut == WBNB_TESTNET) {
+            // Skenario: USDT ➔ WBNB (Membeli koin mahal, harga DIBAGI)
+            expectedAmountOut = (amountIn * (10 ** tokenOutDecimals) * (10 ** feedDecimals)) / 
+                                (uint256(price) * (10 ** tokenInDecimals));
+        } else {
+            // Skenario: WBNB ➔ USDT (Menjual koin mahal, harga DIKALI)
+            expectedAmountOut = (amountIn * uint256(price) * (10 ** tokenOutDecimals)) / 
+                                ((10 ** tokenInDecimals) * (10 ** feedDecimals));
+        }
 
         uint256 minimumAcceptableAmount = (expectedAmountOut * (10000 - MAX_SLIPPAGE_BPS)) / 10000;
 
-        if (amountOutMin < minimumAcceptableAmount) {
-            revert SlippageExceeded(); 
-        }
+        // Validasi Slippage
+        require(amountOutMin >= minimumAcceptableAmount, "Slippage tolerance exceeded Oracle bounds");
     }
 }

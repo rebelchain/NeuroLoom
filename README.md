@@ -16,7 +16,7 @@ Built for the **Indonesia Web3 Hackathon 2026** on the **BNB Chain**.
   <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white&style=for-the-badge" />
   <img alt="LangChain" src="https://img.shields.io/badge/AI-LangChain%20%7C%20Gemma%204%20MoE-10B981?style=for-the-badge" />
   <img alt="BSC Testnet" src="https://img.shields.io/badge/Network-BSC%20Testnet-F3BA2F?logo=binance&logoColor=black&style=for-the-badge" />
-  <img alt="Tests" src="https://img.shields.io/badge/Tests-4%20passing-10B981?style=for-the-badge" />
+  <img alt="Tests" src="https://img.shields.io/badge/Tests-7%20passing-10B981?style=for-the-badge" />
 </p>
 
 ### At a glance
@@ -312,8 +312,9 @@ NeuroLoom was built as a **zero-cost prototype** for the Indonesia Web3 Hackatho
 To transition this architecture into a production-ready Mainnet environment, the following infrastructure upgrades are scoped:
 
 1. **Position Unwind & Withdrawal Path (ERC-4626 Completeness):**
-   * *Current Prototype:* Forward execution flow (deposit → AI rebalance → external protocol) is implemented and fully tested. The reverse flow (tracking external LP/vToken positions and unwinding them for user `withdraw()`) is pending.
-   * *Production Target:* Build an automated position-tracking and unwind module so user withdrawals remain guaranteed even when the Vault's underlying assets are fully deployed across AMMs.
+   * Current Prototype: Forward execution flow (deposit → AI rebalance → external protocol) is implemented and tested. The reverse flow (tracking external LP/vToken positions and unwinding them for user `withdraw()`) is pending.
+  **Note:** if a user attempts `withdraw()` while funds are actively deployed beyond the Vault's idle balance, the transaction will currently revert due to insufficient liquid `asset` balance — this is a known, expected limitation of the one-way prototype flow, not a silent failure.
+   * Production Target: Build an automated position-tracking and unwind module, alongside a liquidity reserve ratio (e.g., cap AI deployment at 70-80% of TVL) so a portion of user withdrawals remain guaranteed even when the majority of assets are deployed across AMMs.
 2. **Impermanent Loss (IL) Modeling:**
    * *Current Prototype:* Worker agents evaluate APY and qualitative risk signals but do not compute Impermanent Loss exposure mathematically.
    * *Production Target:* Add a dedicated IL calculation module (price divergence vs. pool composition) so LP allocation decisions strictly account for IL mitigation, not just headline APY.

@@ -37,7 +37,7 @@ CURRENT DEFI STATE:
       "\n[ORCHESTRATOR] Analyzing AMM liquidity and planning task delegation...",
     );
 
-    // [PERBAIKAN 2]: Batasi Orchestrator untuk HANYA mendelegasikan MAKSIMAL 1 tugas (hemat kuota)
+    // Limit the Orchestrator to delegating ONLY a maximum of 1 task (to save API quota)
     const orchestratorPrompt = `You are the Lead Orchestrator for the NeuroLoom DeFi Yield Optimizer.
 Analyze the current on-chain state (AMM liquidity depth, lending pool utilization rates, and vault balances).
 Delegate EXACTLY ONE (1) analytical task to a specialized worker based on current DeFi yield opportunities, impermanent loss risks, and slippage data.
@@ -65,12 +65,9 @@ Return ONLY a valid JSON object matching this structure without any markdown for
       `[ORCHESTRATOR] Delegating ${plan.tasks.length} specialized approaches to minimize API overhead.`,
     );
 
-    // ==========================================
-    // PHASE 2: WORKERS (PARALLEL EXECUTION)
-    // ==========================================
+    // WORKERS (PARALLEL EXECUTION) NOTE: Uses only one worker due to free API limitations.
     console.log("[WORKERS] Generating specialized yield and risk analysis...");
 
-    // Karena kita sudah paksa 1 task, array ini maksimal berisi 1 promise (sangat hemat)
     const workerPromises = plan.tasks.map(async (task: WorkerTask) => {
       const workerSystemPrompt = `You are a specialized Web3 DeFi AI Worker. 
 Role: ${task.type}. 
@@ -105,15 +102,11 @@ Return ONLY a valid JSON object matching this structure without markdown:
       );
     });
 
-    // ==========================================
-    // PHASE 3: SYNTHESIZER (FINAL DECISION)
-    // ==========================================
+    // SYNTHESIZER (FINAL DECISION)
     console.log(
       "[SYNTHESIZER] Evaluating worker reports and finalizing multi-protocol routing decision...",
     );
 
-    // [PERBAIKAN 3]: Membatasi jumlah alokasi maksimal 30% langsung dari Synthesizer
-    // agar Evaluator tidak sering marah-marah dan membuang kuota.
     const synthesizerPrompt = `You are the NeuroLoom Supreme Synthesizer.
 Review the CURRENT DEFI STATE and the WORKER REPORTS below.
 Make the final optimal yield-routing decision.

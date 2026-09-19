@@ -7,9 +7,7 @@ import { CONFIG } from "../config.js";
 import VaultABI from "../abi/NeuroLoomVaultV2.json" with { type: "json" };
 
 async function whitelistPancakeRouter() {
-  console.log("==========================================");
   console.log("🔐 MENGIRIM TRANSAKSI WHITELIST KE VAULT");
-  console.log("==========================================");
 
 
   const pk = process.env.AI_PRIVATE_KEY;

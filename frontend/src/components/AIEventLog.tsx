@@ -19,27 +19,27 @@ const GRAPHQL_URL =
   transactionHash: string;
 }
 
-const mockAILogs = [
-  "[SYSTEM] NeuroLoom Autonomous Agent is now ONLINE.",
-  "⚠️ [SCENARIO TEST] Market Stabilized + High Volume -> Safe entry for AMM Yield Pairing.",
-  "[AGENT] Analyzing market conditions and memory state...",
-  "[ORCHESTRATOR] Analyzing AMM liquidity and planning task delegation...",
-  "[ORCHESTRATOR] Delegating 1 specialized approach to minimize API overhead.",
-  "[WORKERS] Generating specialized yield and risk analysis...",
-  " -> [WORKER 1 | YIELD_STRATEGIST] Recommends: BUY_WBNB",
-  "[SYNTHESIZER] Evaluating worker reports and finalizing multi-protocol routing decision...",
-  "[EVALUATOR] Initiating Risk Management Audit Loop...",
-  " -> [ITERATION 1] Auditing proposed decision... Status: PASS",
-  "[FINAL DECISION] Action: BUY_WBNB | Allocation: 20%",
-  "[REASONING] Deploying capital into high-yield pool while market is stable.",
-  "[ON-CHAIN EXECUTION] Preparing V3 Multi-Protocol Routing for BUY_WBNB...",
-  "[NETWORK] Fetching live balance from Vault & Chainlink Oracle...",
-  "[MATH] Minimum WBNB Target (2% Slippage) calculated and verified.",
-  "[NETWORK] Simulating Vault execution and security guardrails...",
-  "[NETWORK] Simulation passed! Strict Oracle and Protocol Whitelist checks cleared.",
-  ">>> TRANSACTION BROADCASTED TO BSC TESTNET <<<",
-  "[SYNC] Awaiting subgraph indexation from The Graph...",
-];
+// const mockAILogs = [
+//   "[SYSTEM] NeuroLoom Autonomous Agent is now ONLINE.",
+//   "⚠️ [SCENARIO TEST] Market Stabilized + High Volume -> Safe entry for AMM Yield Pairing.",
+//   "[AGENT] Analyzing market conditions and memory state...",
+//   "[ORCHESTRATOR] Analyzing AMM liquidity and planning task delegation...",
+//   "[ORCHESTRATOR] Delegating 1 specialized approach to minimize API overhead.",
+//   "[WORKERS] Generating specialized yield and risk analysis...",
+//   " -> [WORKER 1 | YIELD_STRATEGIST] Recommends: BUY_WBNB",
+//   "[SYNTHESIZER] Evaluating worker reports and finalizing multi-protocol routing decision...",
+//   "[EVALUATOR] Initiating Risk Management Audit Loop...",
+//   " -> [ITERATION 1] Auditing proposed decision... Status: PASS",
+//   "[FINAL DECISION] Action: BUY_WBNB | Allocation: 20%",
+//   "[REASONING] Deploying capital into high-yield pool while market is stable.",
+//   "[ON-CHAIN EXECUTION] Preparing V3 Multi-Protocol Routing for BUY_WBNB...",
+//   "[NETWORK] Fetching live balance from Vault & Chainlink Oracle...",
+//   "[MATH] Minimum WBNB Target (2% Slippage) calculated and verified.",
+//   "[NETWORK] Simulating Vault execution and security guardrails...",
+//   "[NETWORK] Simulation passed! Strict Oracle and Protocol Whitelist checks cleared.",
+//   ">>> TRANSACTION BROADCASTED TO BSC TESTNET <<<",
+//   "[SYNC] Awaiting subgraph indexation from The Graph...",
+// ];
 
 export function AIEventLog() {
   const [events, setEvents] = useState<GraphRebalanceData[]>([]);
@@ -49,35 +49,70 @@ export function AIEventLog() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // LOGIKA TERMINAL AI
+  // useEffect(() => {
+  //   let currentIndex = 0;
+  //   let isWaiting = false;
+
+  //   const interval = setInterval(() => {
+  //     if (isWaiting) return;
+
+  //     if (currentIndex < mockAILogs.length) {
+  //       const nextLog = mockAILogs[currentIndex];
+  //       if (nextLog) {
+  //         setVisibleLogs((prev) => [...prev, nextLog]);
+  //       }
+  //       currentIndex++;
+
+  //       if (scrollRef.current) {
+  //         scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+  //       }
+  //     } else {
+  //       isWaiting = true;
+  //       setTimeout(() => {
+  //         setVisibleLogs([]);
+  //         currentIndex = 0;
+  //         isWaiting = false;
+  //       }, 5000);
+  //     }
+  //   }, 1200);
+
+  //   return () => clearInterval(interval);
+  // }, []);
+  // 1. Polling Data dari API setiap 1 detik
   useEffect(() => {
-    let currentIndex = 0;
-    let isWaiting = false;
+    const fetchLogs = async () => {
+      try {
+        const response = await fetch("/api/ai-logs");
+        const data = await response.json();
 
-    const interval = setInterval(() => {
-      if (isWaiting) return;
-
-      if (currentIndex < mockAILogs.length) {
-        const nextLog = mockAILogs[currentIndex];
-        if (nextLog) {
-          setVisibleLogs((prev) => [...prev, nextLog]);
+        // Update state HANYA jika ada log baru
+        if (data.logs && data.logs.length !== visibleLogs.length) {
+          setVisibleLogs(data.logs);
         }
-        currentIndex++;
-
-        if (scrollRef.current) {
-          scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-        }
-      } else {
-        isWaiting = true;
-        setTimeout(() => {
-          setVisibleLogs([]);
-          currentIndex = 0;
-          isWaiting = false;
-        }, 5000);
+      } catch (error) {
+        console.error("Gagal mengambil log:", error);
       }
-    }, 1200);
+    };
 
+    const interval = setInterval(fetchLogs, 1000); // Cek tiap 1 detik
     return () => clearInterval(interval);
-  }, []);
+  }, [visibleLogs.length]);
+
+  // 2. Auto-scroll ke bawah saat ada log baru
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [visibleLogs]);
+
+  // Fungsi tambahan untuk membersihkan log secara manual (Berguna saat take ulang video)
+  const clearLogs = async () => {
+    await fetch("/api/ai-logs", {
+      method: "POST",
+      body: JSON.stringify({ action: "clear" }),
+    });
+    setVisibleLogs([]);
+  };
 
   // LOGIKA THE GRAPH OMNICHAIN SETTLEMENT
   useEffect(() => {
@@ -132,8 +167,8 @@ export function AIEventLog() {
 
   return (
     <section className="flex flex-col h-full bg-[#0b1120]/80 rounded-3xl border border-white/[0.05] overflow-hidden backdrop-blur-2xl">
-      {/* 1. TOP PANEL: AI THINKING PROCESS */}
-      <div className="border-b border-white/[0.05] bg-black/40">
+      {/* TOP PANEL: AI THINKING PROCESS */}
+      {/* <div className="border-b border-white/[0.05] bg-black/40">
         <header className="flex justify-between items-center px-5 py-3 border-b border-white/[0.05]">
           <div className="flex items-center gap-2">
             <TerminalSquare className="w-4 h-4 text-primary" />
@@ -184,9 +219,68 @@ export function AIEventLog() {
             <span className="w-2 h-4 bg-primary animate-pulse inline-block"></span>
           </div>
         </div>
+      </div> */}
+      <div className="border-b border-white/[0.05] bg-black/40">
+        <header className="flex justify-between items-center px-5 py-3 border-b border-white/[0.05]">
+          <div className="flex items-center gap-2">
+            <TerminalSquare className="w-4 h-4 text-primary" />
+            <h3 className="text-sm font-semibold text-white">
+              Agent Orchestrator Log
+            </h3>
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={clearLogs}
+              className="text-[9px] text-gray-500 hover:text-white uppercase font-mono"
+            >
+              [Reset]
+            </button>
+            <span className="text-[10px] text-primary font-mono tracking-widest uppercase animate-pulse">
+              Processing
+            </span>
+          </div>
+        </header>
+
+        <div
+          ref={scrollRef}
+          className="h-[180px] p-4 font-mono text-[11px] text-gray-400 overflow-y-auto leading-relaxed scroll-smooth text-left"
+        >
+          {visibleLogs.length === 0 ? (
+            <div className="text-gray-600 italic">
+              Awaiting trigger events...
+            </div>
+          ) : (
+            visibleLogs.map((log, index) => {
+              if (!log) return null;
+              return (
+                <div key={index} className="mb-1 animate-fade-in-up">
+                  <span className="text-gray-600 mr-2">{">"}</span>
+                  <span
+                    className={
+                      log.includes("WARNING") || log.includes("REJECTING")
+                        ? "text-error font-bold" 
+                        : log.includes("SUCCESS") || log.includes("EXECUTION")
+                          ? "text-success font-bold"
+                          : log.includes("NETWORK") || log.includes("ROUTING")
+                            ? "text-info"
+                            : "text-gray-300"
+                    }
+                  >
+                    {log}
+                  </span>
+                </div>
+              );
+            })
+          )}
+          {/* Kursor berkedip */}
+          <div className="mt-1 flex items-center">
+            <span className="text-gray-600 mr-2">{">"}</span>
+            <span className="w-2 h-4 bg-primary animate-pulse inline-block"></span>
+          </div>
+        </div>
       </div>
 
-      {/* 2. BOTTOM PANEL: THE GRAPH EXECUTION LOG */}
+      {/* BOTTOM PANEL: THE GRAPH EXECUTION LOG */}
       <header className="flex justify-between items-center p-5 border-b border-white/[0.05] bg-black/20">
         <div className="flex items-center gap-2">
           <Activity className="w-4 h-4 text-success" />

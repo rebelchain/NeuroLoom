@@ -1,13 +1,11 @@
 import { createPublicClient, http } from "viem";
 import { bscTestnet } from "viem/chains";
 
-// Inisialisasi klien publik (Read-only) untuk membaca data dari blockchain
 export const publicClient = createPublicClient({
   chain: bscTestnet,
   transport: http("https://bsc-testnet.rpc.sentio.xyz"),
 });
 
-// Fungsi tes untuk memastikan koneksi ke node BSC Testnet sehat
 async function testConnection() {
   try {
     console.log("⏳ Menghubungkan ke BSC Testnet...");
@@ -18,5 +16,4 @@ async function testConnection() {
   }
 }
 
-// Jalankan fungsi jika file ini dieksekusi secara langsung
 testConnection();

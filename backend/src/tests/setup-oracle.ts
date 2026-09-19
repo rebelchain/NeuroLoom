@@ -1,9 +1,9 @@
 import * as dotenvx from "@dotenvx/dotenvx";
-dotenvx.config();
-import { createWalletClient, createPublicClient, http } from "viem";
+import { createPublicClient, createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { bscTestnet } from "viem/chains";
 import { CONFIG } from "../config.js";
+dotenvx.config();
 // Pastikan path ke ABI benar
 import VaultABI from "../abi/NeuroLoomVaultV2.json" with { type: "json" };
 
@@ -37,19 +37,28 @@ async function configureOracle() {
       address: CONFIG.VAULT_PROXY as `0x${string}`,
       abi: VaultABI.abi,
       functionName: "setPairPriceFeed",
-      args: [
-        CONFIG.TOKENS.USDT, // Pastikan ini sesuai dengan arah tokenIn di executor.ts
-        CONFIG.TOKENS.WBNB, // tokenOut
-        CHAINLINK_BNB_USD,
-      ],
+      args: [CONFIG.TOKENS.USDT, CONFIG.TOKENS.WBNB, CHAINLINK_BNB_USD],
       account,
     });
-
     const hash = await walletClient.writeContract(request);
     await publicClient.waitForTransactionReceipt({ hash });
+    console.log(
+      `✅ [SUCCESS] USDT -> WBNB terdaftar! Hash: https://testnet.bscscan.com/tx/${hash}`,
+    );
 
-    console.log(`✅ [SUCCESS] Chainlink Oracle Testnet terhubung!`);
-    console.log(`🔗 Hash: https://testnet.bscscan.com/tx/${hash}`);
+    console.log(`Mendaftarkan arah sebaliknya (WBNB -> USDT)...`);
+    const { request: reverseRequest } = await publicClient.simulateContract({
+      address: CONFIG.VAULT_PROXY as `0x${string}`,
+      abi: VaultABI.abi,
+      functionName: "setPairPriceFeed",
+      args: [CONFIG.TOKENS.WBNB, CONFIG.TOKENS.USDT, CHAINLINK_BNB_USD],
+      account,
+    });
+    const reverseHash = await walletClient.writeContract(reverseRequest);
+    await publicClient.waitForTransactionReceipt({ hash: reverseHash });
+    console.log(
+      `✅ [SUCCESS] WBNB -> USDT terdaftar! Hash: https://testnet.bscscan.com/tx/${reverseHash}`,
+    );
   } catch (error: any) {
     console.error(
       "❌ Gagal konfigurasi oracle:",

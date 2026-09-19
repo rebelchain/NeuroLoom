@@ -52,7 +52,7 @@ export async function fetchBinanceData(
           volume: 0,
         };
 
-      default: // "PRODUCTION"
+      default: 
         return {
           symbol,
           price: data.binancecoin.usd,

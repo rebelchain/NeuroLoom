@@ -4,7 +4,6 @@ import { createWalletClient, createPublicClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { bscTestnet } from "viem/chains";
 import { CONFIG } from "../config.js";
-// Pastikan path ke ABI ini benar sesuai struktur foldermu
 import VaultABI from "../abi/NeuroLoomVaultV2.json" with { type: "json" };
 
 async function whitelistPancakeRouter() {
@@ -12,7 +11,7 @@ async function whitelistPancakeRouter() {
   console.log("🔐 MENGIRIM TRANSAKSI WHITELIST KE VAULT");
   console.log("==========================================");
 
-  // ASUMSI: AI_PRIVATE_KEY di .env adalah dompet yang men-deploy Vault (Memiliki DEFAULT_ADMIN_ROLE)
+
   const pk = process.env.AI_PRIVATE_KEY;
   if (!pk) throw new Error("AI_PRIVATE_KEY tidak ditemukan");
 

@@ -24,7 +24,7 @@ export async function getVaultState(): Promise<VaultState> {
       return { wbnbBalance: "15.0", usdtBalance: "0.0" };
     }
 
-    // MODE PRODUKSI (Asli On-Chain)
+    // Production Mode (Real On-Chain)
     const wbnbRaw = await publicClient.readContract({
       address: CONFIG.TOKENS.WBNB as `0x${string}`,
       abi: erc20Abi,

@@ -17,8 +17,6 @@ export async function getAIDecision(
   vaultState: any,
   recentMemories: any[],
 ): Promise<AIDecision> {
-  // [PERBAIKAN 1]: Suhu (Temperature) diturunkan ke 0.0 agar output sangat deterministik
-  // dan meminimalisir format JSON yang aneh dari model Gemma gratisan.
   const llm = new ChatGroq({
     apiKey: process.env.GROQ_API_KEY,
     model: "qwen/qwen3.8-27b",
@@ -34,9 +32,7 @@ CURRENT DEFI STATE:
   `;
 
   try {
-    // ==========================================
-    // PHASE 1: ORCHESTRATOR (ANALYSIS & PLANNING)
-    // ==========================================
+    // ORCHESTRATOR (ANALYSIS & PLANNING)
     console.log(
       "\n[ORCHESTRATOR] Analyzing AMM liquidity and planning task delegation...",
     );

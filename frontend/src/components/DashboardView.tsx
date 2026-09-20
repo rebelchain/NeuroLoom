@@ -74,7 +74,7 @@ export function DashboardView() {
           changeType="positive"
           subtext="Verified via Wagmi"
           delay={0}
-          isLoading={isTvlLoading} // 👈 INJEKSI LOADING WAGMI DI SINI
+          isLoading={isTvlLoading} 
         />
         <KPICard
           title="Current APY"

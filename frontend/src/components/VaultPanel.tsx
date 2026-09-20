@@ -10,8 +10,8 @@ import {
 
 // 1. ALAMAT SMART CONTRACT
 const VAULT_ADDRESS = "0xe38887648d7272e9Eb3C06628767bb3d84a9FF4E";
-// ⚠️ PENTING: Ganti dengan alamat kontrak USDT Testnet yang kamu gunakan!
-const USDT_ADDRESS = "0xFa45Fd644B34606cABFb7c8acc546E770e248b83"; // (Ini sekadar contoh alamat USDT BSC Testnet standar)
+
+const USDT_ADDRESS = "0xFa45Fd644B34606cABFb7c8acc546E770e248b83";
 
 // 2. ABI KONTRAK
 const vaultABI = [
@@ -235,7 +235,9 @@ export function VaultPanel() {
               isApprovePending ||
               isApproveConfirming ||
               isDepositPending ||
-              isDepositConfirming
+              isDepositConfirming ||
+              isWithdrawPending ||
+              isWithdrawConfirming
             }
             className="bg-transparent text-2xl text-white outline-none w-full font-mono placeholder:text-gray-700 disabled:opacity-50"
           />
@@ -265,7 +267,9 @@ export function VaultPanel() {
           isApprovePending ||
           isApproveConfirming ||
           isDepositPending ||
-          isDepositConfirming
+          isDepositConfirming ||
+          isWithdrawPending ||
+          isWithdrawConfirming
         }
         className={`w-full py-4 rounded-xl font-bold tracking-wide transition-all relative z-10
           ${
@@ -282,7 +286,9 @@ export function VaultPanel() {
         {isApprovePending ||
         isApproveConfirming ||
         isDepositPending ||
-        isDepositConfirming ? (
+        isDepositConfirming ||
+        isWithdrawPending ||
+        isWithdrawConfirming ? (
           <span className="flex items-center justify-center gap-2">
             <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
             {buttonText}

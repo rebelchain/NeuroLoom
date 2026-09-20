@@ -346,6 +346,31 @@ A deterministic executor script that bypasses the AI processing delays for rapid
 # Fires a micro-transaction (0.0001 USDT) to demonstrate full end-to-end flow
 npx tsx backend/src/tests/rebalance-executed.ts
 ```
+### 4. Smart Contract Logic Upgrade (UUPS)
+Leveraging the UUPS (Universal Upgradeable Proxy Standard) pattern, this script performs a seamless implementation swap to `NeuroLoomVaultV2`. It enables true omnichain routing, reentrancy guards, and multi-oracle support without migrating liquidity or resetting the original proxy state.
+```bash
+# Deploys V2 logic and upgrades the Proxy seamlessly via Hardhat
+npx hardhat run contracts/scripts/upgradeToV2.ts --network bscTestnet
+```
+### 5. On-Chain Target Authorization
+Executed directly from the Hardhat environment, this administrative script interacts with the upgraded V2 Vault to permanently whitelist the target DEX Router (e.g., PancakeSwap V3). This guarantees the executeOmnichain function only interacts with audited and approved protocols.
+```bash
+# Grants execution clearance for the V3 Router at the contract level
+npx hardhat run contracts/scripts/whitelist-protocol.ts --network bscTestnet
+```
+### 6. Liquidity Unwinding & Capital Restoration
+The deterministic counterpart to the rebalance script. It simulates the AI Orchestrator's decision to exit a volatile AMM position (SELL_WBNB) and route the capital back into the Vault's idle reserves (USDT). This operational flow is crucial for fulfilling pending user withdrawal requests.
+
+```bash
+# Reverts deployed capital back to stablecoins via V3 Router
+npx tsx backend/src/tests/unwind-position.ts
+```
+### 7. Vault State & TVL Diagnostics
+A specialized read-only diagnostic utility that queries the blockchain to fetch the Vault's real-time state. It tracks idle USDT balances, active WBNB positions, and validates the exact balance mutations before and after AI-driven rebalancing events.
+```bash
+# Audits the on-chain balances and overall Vault health
+npx tsx backend/src/tests/debug-vault.ts
+```
 ---
 
 ## Known Limitations & Production Roadmap
@@ -383,4 +408,5 @@ To transition this architecture into a production-ready Mainnet environment, the
 
 ---
 
-*NeuroLoom — AI that routes, Blockchain that verifies.*
+*NeuroLoom — AI that routes, Blockchain that verifies.* 
+Building for Indonesia Web3 Hackathon. BNB Chain.

@@ -215,80 +215,57 @@ NeuroLoom/
 
 ---
 
-## Getting Started
+## Production Deployment
 
-**Prerequisites:** Node.js 18+ and npm/yarn.
-*Note: NeuroLoom enforces Separation of Duties. You must use two distinct wallets for Admin & AI.*
+The NeuroLoom frontend is built with Next.js and optimized for zero-config deployment on Vercel. Vercel automatically provisions the serverless environments required for the UI and API routes.
 
-### 1. Smart Contracts
-
-```bash
-cd contracts
-npm install
-
-```
-
-Create a `.env` file in `/contracts` for the **Admin Wallet**:
-
-```env
-PRIVATE_KEY=your_admin_deployer_wallet_private_key
-
-```
-
-Run the deterministic security tests:
-
-```bash
-npx hardhat test test/E2ESlippage.test.ts nodejs
-
-```
-
-### 2. AI Backend Engine
-
-```bash
-cd backend
-npm install
-
-```
-
-Create a `.env` file in `/backend` for the **AI Node Wallet**:
-
-```env
-GROQ_API_KEY=your_groq_api_key
-AI_PRIVATE_KEY=your_ai_executor_wallet_private_key
-CYCLE_INTERVAL_MINUTES=1
-
-# DEMO SCENARIO CONTROL 
-# SCEANRIO CHOICHES: 
-# "HIGH_YIELD_ENTRY"   -> Trigger AI to Buy/Enter the LP 
-# "IL_MITIGATION_EXIT" -> Triggering AI to Sell/Exit LP (Fund Rescue Simulation)
-# "LIQUIDITY_VACUUM"   -> Triggering AI to HOLD (Simulation: Rejecting a Dangerous Route)
-# "PRODUCTION"         -> Reading On-Chain Data & Real-Time Prices (For Mainnet)
-
-MOCK_SCENARIO="LIQUIDITY_VACUUM"
-
-```
-
-Run the Autonomous Harness:
-
-```bash
-npx tsx src/index.ts
-
-```
-
-### 3. Frontend Dashboard
-
-```bash
-cd frontend
-npm install
-npm run dev
-
-```
+1. Import the repository into your Vercel dashboard.
+2. Set the **Root Directory** to `frontend` (Vercel will auto-detect Next.js).
+3. Leave the build command as the default (`npm run build`).
+4. **No environment variables required.** All network configurations, including the BSC Testnet RPC URLs and Proxy Contract addresses, are hardcoded constants within the component files.
 
 ---
 
+## Getting Started
+
+**Prerequisites:** Node.js 18+ and npm/yarn.
+*Note: NeuroLoom enforces Separation of Duties. You must use two distinct wallets for Admin & AI (or use the same wallet strictly for local Testnet demonstration).*
+
+### 1. Installation
+```bash
+git clone <repo-url>
+cd NeuroLoom
+
+# Install dependencies across all workspaces
+cd contracts && npm install
+cd backend && npm install
+cd frontend && npm install
+```
+
+### 2. Environment Variables
+
+Create a `.env` file in both `/contracts` and `/backend` directories.
+
+| **Variable** | **Location** | **Required** | **Purpose** |
+| --- | --- | --- | --- |
+| `PRIVATE_KEY` | `/contracts/.env` | Yes | Admin Deployer Wallet for proxy upgrades & whitelisting. |
+| `AI_PRIVATE_KEY` | `/backend/.env` | Yes | AI Executor Wallet for signing live omnichain trades. |
+| `GROQ_API_KEY` | `/backend/.env` | Yes | LLM Engine inference capability. |
+| `MOCK_SCENARIO` | `/backend/.env` | No | Set to `"DEMO"` for micro-transactions (0.0001 USDT) during live pitches. |
+
+### 3. Quick Start Commands
+
+Run these core services from their respective directories:
+
+| **Service** | **Command** | **Description** |
+| --- | --- | --- |
+| **Smart Contracts** | `npx hardhat test test/E2ESlippage.test.ts` | Runs deterministic security & MEV attack simulations. |
+| **AI Engine** | `npx tsx src/index.ts` | Boots the Autonomous Harness (requires Groq key). |
+| **Frontend** | `npm run dev` | Launches the Next.js Dashboard at `http://localhost:3000`. |
+
 ## Security & Threat Model
 
-| Threat | Applied Mitigation | Status |
+| **Threat** | **Applied Mitigation** | **Status** |
 | --- | --- | --- |
 | Unauthorized Execution | Strict `AccessControl` (`onlyRole(AI_EXECUTOR_ROLE)`) | ✅ On-chain |
 | AI Arbitrary Execution | Strict On-Chain Protocol Allowlist (`approvedProtocols`) | ✅ On-chain |
@@ -302,7 +279,7 @@ npm run dev
 
 NeuroLoom's core security mechanisms and upgradeable proxy architecture are strictly validated using Hardhat v3, testing both aggressive MEV simulated attacks and multi-protocol happy paths with dynamic decimal mapping.
 
-```console
+```
 $ npx hardhat test
 
   Deployment & Proxy Upgradeability (smoke-test.ts)
@@ -315,37 +292,26 @@ $ npx hardhat test
       ✔ Must revert if called by a non-AI role (Access Control) (295ms)
       ✔ Must revert if AI targets an unapproved protocol (Protocol Whitelist) (120ms)
       ✔ Must revert if AI sends an expectedAmountOutMin below the 2% slippage limit (Anti-MEV) (158ms)
-    ⚡ True Multi-Protocol Routing (Happy Path)
+     ⚡ True Multi-Protocol Routing (Happy Path)
       ✔ Must successfully execute a cross-protocol swap with correct calldata & dynamic decimals (350ms)
 
   7 passing (3s)
 ```
----
 
 ## On-Chain Provisioning & Operational Scripts
 
-NeuroLoom includes a suite of specialized backend scripts designed for real-world deployment, security provisioning, and live on-chain demonstrations across the BSC Testnet. These scripts ensure strict role-based access control and seamless integration with decentralized infrastructure.
+Targeted network scripts for real-world deployment, security provisioning, and live BSC Testnet demonstrations. These enforce role-based access control and integrate the Vault with decentralized infrastructure.
 
-### 1. Protocol Security Whitelisting
-To prevent the AI from interacting with unverified or malicious smart contracts, the Vault employs a strict `approvedProtocols` whitelist mechanism. Only the Admin (`DEFAULT_ADMIN_ROLE`) can authorize protocols.
-```bash
-# Whitelists the PancakeSwap V3 Router in the Vault's state
-npx tsx backend/src/tests/whitelist-router.ts
-```
-### 2. Chainlink Anti-MEV Oracle Integration
-To protect the Vault's liquidity from Sandwich Attacks and excessive slippage, this script connects the BSC Testnet Chainlink Price Feed (e.g., BNB/USD) directly into the Vault's dynamic decimal oracle system.
+**Run these commands from their designated workspace directories:**
 
-```bash
-# Configures the Vault to read from the live Chainlink Aggregator
-npx tsx backend/src/tests/setup-oracle.ts
-```
-### 3. The Graph Synchronization & Demo Trigger
-A deterministic executor script that bypasses the AI processing delays for rapid live-testing. It calculates the exact 2% slippage threshold off-chain, validates it against live Chainlink data, and blasts the payload to the V3 Router—triggering real RebalanceExecuted events indexed instantly by The Graph. `executeTradeOnChain` function.
-
-```bash
-# Fires a micro-transaction (0.0001 USDT) to demonstrate full end-to-end flow
-npx tsx backend/src/tests/rebalance-executed.ts
-```
+| **Phase** | **Command** | **Directory** | **Purpose** |
+| --- | --- | --- | --- |
+| **1. Upgrade Logic** | `npx hardhat run scripts/upgradeToV2.ts --network bscTestnet` | `/contracts` | Seamless UUPS implementation swap to `NeuroLoomVaultV2`. |
+| **2. Whitelist Target** | `npx hardhat run scripts/whitelist-protocol.ts --network bscTestnet` | `/contracts` | Admin authorization for the V3 Router at the contract level. |
+| **3. Oracle Setup** | `npx tsx src/tests/setup-oracle.ts` | `/backend` | Connects Chainlink BNB/USD to the dynamic oracle system. |
+| **4. Demo Rebalance** | `npx tsx src/tests/rebalance-executed.ts` | `/backend` | Bypasses LLM delay to blast a deterministic entry payload (`BUY_WBNB`). |
+| **5. Demo Unwind** | `npx tsx src/tests/unwind-position.ts` | `/backend` | Simulates an AI exiting a volatile AMM position (`SELL_WBNB`). |
+| **6. Audit Vault** | `npx tsx src/tests/debug-vault.ts` | `/backend` | Read-only diagnostic utility fetching real-time idle and active TVL. |
 ---
 
 ## Known Limitations & Production Roadmap
@@ -383,4 +349,5 @@ To transition this architecture into a production-ready Mainnet environment, the
 
 ---
 
-*NeuroLoom — AI that routes, Blockchain that verifies.*
+*NeuroLoom — AI that routes, Blockchain that verifies.* 
+Building for Indonesia Web3 Hackathon. BNB Chain.

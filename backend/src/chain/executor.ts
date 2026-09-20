@@ -14,7 +14,6 @@ import VaultABI from "../abi/NeuroLoomVaultV2.json" with { type: "json" };
 import { CONFIG } from "../config.js";
 import { pushLog } from "../utils/push-log.js";
 
-
 const PANCAKE_V3_ROUTER_ABI = [
   {
     type: "function",
@@ -39,7 +38,6 @@ const PANCAKE_V3_ROUTER_ABI = [
     outputs: [{ type: "uint256", name: "amountOut" }],
   },
 ];
-
 
 const ERC20_ABI = [
   {
@@ -123,14 +121,14 @@ export async function executeTradeOnChain(
       args: [CONFIG.VAULT_PROXY as `0x${string}`],
     })) as bigint;
 
-   await pushLog(`[NETWORK] Fetching live price from Chainlink Oracle...`);
+    await pushLog(`[NETWORK] Fetching live price from Chainlink Oracle...`);
     const roundData = await publicClient.readContract({
       address: CHAINLINK_BNB_USD as `0x${string}`,
       abi: AGGREGATOR_ABI,
       functionName: "latestRoundData",
     });
 
-    const currentPrice = BigInt(roundData[1]); 
+    const currentPrice = BigInt(roundData[1]);
 
     let amountIn: bigint;
     let amountOutMin: bigint;
@@ -139,15 +137,14 @@ export async function executeTradeOnChain(
       await pushLog(
         `⚠️ [MOCK MODE] Micro-transactions to trigger The Graph events.`,
       );
-      amountIn = parseUnits("0.0001", 18); 
+      amountIn = parseUnits("0.0001", 18);
     } else {
       amountIn = (vaultBalance * BigInt(Math.floor(amountPercentage))) / 100n;
       if (amountIn === 0n) {
-       await pushLog("❌ [EXECUTOR] Vault balance 0. Aborting.");
+        await pushLog("❌ [EXECUTOR] Vault balance 0. Aborting.");
         return;
       }
     }
-
 
     // KALKULASI SLIPPAGE OFF-CHAIN
     if (action === "BUY_WBNB") {
@@ -155,11 +152,11 @@ export async function executeTradeOnChain(
 
       amountOutMin = (expectedAmountOut * 9800n) / 10000n;
 
-     await pushLog(
-       `[MATH] Minimum WBNB Target (2% Slippage): ${amountOutMin} wei`,
-     );
+      await pushLog(
+        `[MATH] Minimum WBNB Target (2% Slippage): ${amountOutMin} wei`,
+      );
     } else {
-      // Skenario: WBNB ➔ USDT 
+      // Skenario: WBNB ➔ USDT
       const expectedAmountOut = (amountIn * currentPrice) / 100000000n;
       amountOutMin = (expectedAmountOut * 9800n) / 10000n;
       await pushLog(
@@ -168,12 +165,12 @@ export async function executeTradeOnChain(
     }
 
     // MERAKIT PAYLOAD PROTOKOL TARGET (V3)
-    const DEX_ROUTER = "0x1b81D678ffb9C0263b24A97847620C99d213eB14"; 
-    const deadline = BigInt(Math.floor(Date.now() / 1000) + 600); 
+    const DEX_ROUTER = "0x1b81D678ffb9C0263b24A97847620C99d213eB14";
+    const deadline = BigInt(Math.floor(Date.now() / 1000) + 600);
 
-     await pushLog(
-       `[NETWORK] Encoding dynamic calldata for target protocol: PancakeSwap SwapRouter v3...`,
-     );
+    await pushLog(
+      `[NETWORK] Encoding dynamic calldata for target protocol: PancakeSwap SwapRouter v3...`,
+    );
     const dexCalldata = encodeFunctionData({
       abi: PANCAKE_V3_ROUTER_ABI,
       functionName: "exactInputSingle",
@@ -190,7 +187,6 @@ export async function executeTradeOnChain(
         },
       ],
     });
-
 
     // Vault Execution
     await pushLog(
@@ -212,18 +208,36 @@ export async function executeTradeOnChain(
       account,
     });
 
-   await pushLog(
-     `[NETWORK] Simulation passed! Strict Oracle and Protocol Whitelist checks cleared.`,
-   );
-    const hash = await walletClient.writeContract(request);
-
     await pushLog(
-      `SUCCESS ✅ -> Transaction broadcasted! Hash: https://testnet.bscscan.com/tx/${hash}`,
+      `[NETWORK] Simulation passed! Strict Oracle and Protocol Whitelist checks cleared.`,
     );
+    const hash = await walletClient.writeContract(request);
+    await pushLog(
+      `[NETWORK] ⏳ Transaction broadcasted to Mempool. Waiting for block confirmation...`,
+    );
+
+    // 2. INI KUNCI UTAMANYA: Tunggu sampai di-mining oleh validator BSC!
+    const receipt = await publicClient.waitForTransactionReceipt({
+      hash,
+      confirmations: 1, // Tunggu minimal 1 blok
+    });
+
+    // 3. Cek status akhir transaksi di dalam blok
+    if (receipt.status === "success") {
+      await pushLog(
+        `SUCCESS ✅ -> Rebalance Confirmed in Block ${receipt.blockNumber}!`,
+      );
+      await pushLog(`🔗 Link: https://testnet.bscscan.com/tx/${hash}`);
+    } else {
+      // Jika masuk ke sini, berarti transaksi GAGAL (Reverted) saat dieksekusi on-chain!
+      await pushLog(`❌ ERROR -> Transaction REVERTED on-chain!`);
+      await pushLog(
+        `🔗 Check the revert reason at: https://testnet.bscscan.com/tx/${hash}`,
+      );
+      throw new Error("On-chain execution reverted");
+    }
   } catch (error: any) {
-    console.error(
-      "\nERROR: Failed to execute on-chain transaction. Reason:",
-    );
+    console.error("\nERROR: Failed to execute on-chain transaction. Reason:");
     if (error instanceof ContractFunctionExecutionError) {
       console.error("   [SMART CONTRACT REVERT]:", error.shortMessage);
     } else if (error instanceof BaseError) {
@@ -231,5 +245,6 @@ export async function executeTradeOnChain(
     } else {
       console.error("   [SYSTEM ERROR]:", error.message);
     }
+    throw error;
   }
 }

@@ -1,10 +1,13 @@
 import * as dotenvx from "@dotenvx/dotenvx";
-dotenvx.config();
-import { pushLog } from "../utils/push-log.js";
 import { executeTradeOnChain } from "../chain/executor.js";
+import { pushLog } from "../utils/push-log.js";
+dotenvx.config();
 
 async function runUnwind() {
   await pushLog("MANUAL UNWIND: Convert WBNB position back to USDT");
+
+  const currentScenario = process.env.MOCK_SCENARIO || "PRODUCTION";
+  await pushLog(`[SYSTEM] -> Current Scenario Config: ${currentScenario}`);
 
   try {
     await pushLog(

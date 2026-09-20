@@ -1,14 +1,13 @@
 import * as dotenvx from "@dotenvx/dotenvx";
-dotenvx.config();
-import { createWalletClient, createPublicClient, http } from "viem";
+import { createPublicClient, createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { bscTestnet } from "viem/chains";
-import { CONFIG } from "../config.js";
 import VaultABI from "../abi/NeuroLoomVaultV2.json" with { type: "json" };
+import { CONFIG } from "../config.js";
+dotenvx.config();
 
 async function whitelistPancakeRouter() {
   console.log("🔐 MENGIRIM TRANSAKSI WHITELIST KE VAULT");
-
 
   const pk = process.env.AI_PRIVATE_KEY;
   if (!pk) throw new Error("AI_PRIVATE_KEY tidak ditemukan");

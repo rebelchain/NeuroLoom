@@ -11,9 +11,9 @@ async function runManualTrigger() {
 
   try {
     await pushLog(
-      "[SYSTEM] -> Injecting manual parameters: Action = BUY_WBNB, Amount = 20%",
+      "[SYSTEM] -> Injecting manual parameters: Action = BUY_WBNB, Amount = 80%",
     );
-    await executeTradeOnChain("BUY_WBNB", 20);
+    await executeTradeOnChain("BUY_WBNB", 0.5);
 
     await pushLog("\nSUCCESS ✅ -> Manual trigger completed!");
   } catch (error) {

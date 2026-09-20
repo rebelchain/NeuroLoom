@@ -324,7 +324,7 @@ $ npx hardhat test
 
 ## On-Chain Provisioning & Operational Scripts
 
-NeuroLoom includes a suite of specialized backend scripts designed for real-world deployment, security provisioning, and live on-chain demonstrations across the BSC Testnet. These scripts ensure strict role-based access control and seamless integration with decentralized infrastructure.
+NeuroLoom includes a suite of specialized scripts designed for real-world deployment, security provisioning, and live on-chain demonstrations across the BSC Testnet. These scripts ensure strict role-based access control and seamless integration with decentralized infrastructure.
 
 ### 1. Protocol Security Whitelisting
 To prevent the AI from interacting with unverified or malicious smart contracts, the Vault employs a strict `approvedProtocols` whitelist mechanism. Only the Admin (`DEFAULT_ADMIN_ROLE`) can authorize protocols.

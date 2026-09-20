@@ -6,7 +6,7 @@ async function main() {
   console.log(`\n🚀 Memulai Proses Upgrade UUPS Proxy di BSC Testnet...`);
   console.log(`🎯 Target Proxy: ${proxyAddress}\n`);
 
-  // [DOKUMENTASI v3]: "Everything below hangs off the connection returned by network.create()"
+  //  "Everything below hangs off the connection returned by network.create()"
   const { viem } = await network.create();
 
   // Mengambil Public Client untuk menunggu transaksi

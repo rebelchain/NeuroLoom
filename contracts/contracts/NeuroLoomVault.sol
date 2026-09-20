@@ -45,7 +45,7 @@ contract NeuroLoomVault is
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
 
     IPancakeRouter02 public dexRouter;
-    IChainlinkAggregator public priceFeed; // Legacy: Akan digantikan oleh sistem Multi-Oracle di V2
+    IChainlinkAggregator public priceFeed; // Legacy: Will be replaced by Multi-Oracle System on V2
 
     error SlippageExceeded();
     error UnauthorizedAI();
@@ -76,7 +76,7 @@ contract NeuroLoomVault is
         priceFeed = IChainlinkAggregator(_priceFeed);
     }
 
-    // [PERBAIKAN V1]: Ditambahkan kata kunci `virtual` agar bisa dimatikan di V2
+
     function executeRebalance(
         uint256 amountIn,
         uint256 amountOutMin,

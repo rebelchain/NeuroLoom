@@ -215,6 +215,16 @@ NeuroLoom/
 
 ---
 
+## Production Deployment
+
+The NeuroLoom frontend is built with Next.js and optimized for zero-config deployment on Vercel. Vercel automatically provisions the serverless environments required for the UI and API routes.
+
+1. Import the repository into your Vercel dashboard.
+2. Set the **Root Directory** to `frontend` (Vercel will auto-detect Next.js).
+3. Leave the build command as the default (`npm run build`).
+4. **No environment variables required.** All network configurations, including the BSC Testnet RPC URLs and Proxy Contract addresses, are hardcoded constants within the component files.
+
+---
 
 ## Getting Started
 

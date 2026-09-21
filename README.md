@@ -316,36 +316,44 @@ Targeted network scripts for real-world deployment, security provisioning, and l
 
 ## Known Limitations & Production Roadmap
 
-NeuroLoom was built as a **zero-cost prototype** for the Indonesia Web3 Hackathon. The current architecture prioritizes secure forward-execution, on-chain safety guards, and lean deployment over global scalability. 
+NeuroLoom was built as a **zero-cost prototype** for the Indonesia Web3 Hackathon. The current architecture prioritizes secure forward-execution, on-chain safety guards, and lean deployment over global scalability.
 
 To transition this architecture into a production-ready Mainnet environment, the following infrastructure upgrades are scoped:
 
 1. **Position Unwind & Withdrawal Path (ERC-4626 Completeness):**
-   * Current Prototype: Forward execution flow (deposit → AI rebalance → external protocol) is implemented and tested. The reverse flow (tracking external LP/vToken positions and unwinding them for user `withdraw()`) is pending.
-  **Note:** if a user attempts `withdraw()` while funds are actively deployed beyond the Vault's idle balance, the transaction will currently revert due to insufficient liquid `asset` balance — this is a known, expected limitation of the one-way prototype flow, not a silent failure.
-   * Production Target: Build an automated position-tracking and unwind module, alongside a liquidity reserve ratio (e.g., cap AI deployment at 70-80% of TVL) so a portion of user withdrawals remain guaranteed even when the majority of assets are deployed across AMMs.
+    - *Current Prototype:* Forward execution flow (deposit → AI rebalance → external protocol) is implemented and tested. The reverse flow (tracking external LP/vToken positions and unwinding them for user `withdraw()`) is pending.
+        
+        *(Note: If a user attempts `withdraw()` while funds are actively deployed beyond the Vault's idle balance, the transaction will currently revert due to insufficient liquid `asset` balance — this is a known, expected limitation of the one-way prototype flow, not a silent failure).*
+        
+    - *Production Target:* Build an automated position-tracking and unwind module, alongside a liquidity reserve ratio (e.g., cap AI deployment at 70-80% of TVL) so a portion of user withdrawals remain guaranteed even when the majority of assets are deployed across AMMs.
 2. **Impermanent Loss (IL) Modeling:**
-   * *Current Prototype:* Worker agents evaluate APY and qualitative risk signals but do not compute Impermanent Loss exposure mathematically.
-   * *Production Target:* Add a dedicated IL calculation module (price divergence vs. pool composition) so LP allocation decisions strictly account for IL mitigation, not just headline APY.
+    - *Current Prototype:* Worker agents evaluate APY and qualitative risk signals but do not compute Impermanent Loss exposure mathematically.
+    - *Production Target:* Add a dedicated IL calculation module (price divergence vs. pool composition) so LP allocation decisions strictly account for IL mitigation, not just headline APY.
 3. **AI Executor Key Management:**
-   * *Current Prototype:* `AI_PRIVATE_KEY` is loaded from a local `.env` file for rapid hackathon iteration.
-   * *Production Target:* Migrate to KMS-backed signing (AWS KMS / HashiCorp Vault) so the raw private key never exists in plaintext or process memory.
-4. **AI Framework Transition:**
-   * *Current Prototype:* Relies on `@langchain/core` and Groq for zero-cost rapid iteration.
-   * *Production Target:* Migration to the native **Claude Agent SDK**. Anthropic's tooling is fundamentally designed to handle the exact Orchestrator-Workers loops we mapped out, offering vastly superior mathematical reasoning for financial logic.
-5. **AI Memory & Database Scaling:**
-   * *Current Prototype:* Uses local `SQLite` for isolated, high-speed AI memory logging.
-   * *Production Target:* Migration to a distributed **PostgreSQL** architecture coupled with **Redis** caching to safely handle concurrent state-sharing across hundreds of AI workers.
-6. **Closed-Loop Execution Memory:**
-   * *Current Prototype:* The AI agents log their intended decisions (action, amount, reasoning) to the local database prior to on-chain execution, but the final on-chain settlement status (success/revert) is not written back.
-   * *Production Target:* Upgrade the database schema to capture `txHash`, `status`, and `errorReason`. This creates a closed feedback loop, allowing the AI to retrieve past failed transactions and dynamically learn from on-chain rejections (e.g., adjusting slippage tolerance after a revert).
-7. **Deterministic LLM Outputs & Tool Calling:**
-   * *Current Prototype:* The system relies on prompt-engineered JSON formatting and regex parsing for AI outputs, injecting all required market context directly into the prompt state as text.
-   * *Production Target:* Transition to the native `withStructuredOutput()` paradigm (via Zod schemas) to guarantee type-safe AI responses and eliminate JSON hallucination. Additionally, equip agents with explicit tool-calling capabilities (e.g., calling a deterministic `calculate_impermanent_loss()` function) rather than relying solely on LLM text reasoning for strict financial math.
-8. **Oracle Feed Diversity:**
-   * *Current Prototype:* The slippage guardrail intercepts data from a single Chainlink aggregator per pair.
-   * *Production Target:* Integration of multi-asset Time-Weighted Average Price (TWAP) and redundant decentralized oracle networks (DONs) to neutralize isolated flash-crash vulnerabilities.
-
+    - *Current Prototype:* `AI_PRIVATE_KEY` is loaded from a local `.env` file for rapid hackathon iteration.
+    - *Production Target:* Migrate to KMS-backed signing (AWS KMS / HashiCorp Vault) so the raw private key never exists in plaintext or process memory.
+4. **AI Memory & Database Scaling:**
+    - *Current Prototype:* Uses local `SQLite` for isolated, high-speed AI memory logging.
+    - *Production Target:* Migration to a distributed **PostgreSQL** architecture coupled with **Redis** caching to safely handle concurrent state-sharing across hundreds of AI workers.
+5. **Closed-Loop Execution Memory:**
+    - *Current Prototype:* The AI agents log their intended decisions (action, amount, reasoning) to the local database prior to on-chain execution, but the final on-chain settlement status (success/revert) is not written back.
+    - *Production Target:* Upgrade the database schema to capture `txHash`, `status`, and `errorReason`. This creates a closed feedback loop, allowing the AI to retrieve past failed transactions and dynamically learn from on-chain rejections (e.g., adjusting slippage tolerance after a revert).
+6. **Oracle Feed Diversity:**
+    - *Current Prototype:* The slippage guardrail intercepts data from a single Chainlink aggregator per pair.
+    - *Production Target:* Integration of multi-asset Time-Weighted Average Price (TWAP) and redundant decentralized oracle networks (DONs) to neutralize isolated flash-crash vulnerabilities.
+7. **AI Evaluation Framework & Harness Engineering:**
+    - *Architectural Clarity:* NeuroLoom's AI system is an Orchestrator-Workers Workflow with an Evaluator-Optimizer cycle — not a traditional autonomous agent. Orchestration flow is controlled by deterministic code; LLMs are called through predefined paths, not self-directed tool loops. This limits blast radius and keeps the smart contract as the ultimate source of truth.
+    - *Current Prototype:* Relies on prompt-engineered JSON formatting via Groq without formal evaluation. AI decisions are logged but not evaluated against financial ground truth. Worker outputs are accepted if they pass JSON parsing; there is no automated check that the reasoning is financially sound.
+    - *Production Target — Evaluation Stack:*
+        - **Single-turn evals:** Given a market data snapshot, assert that each Worker produces a directionally correct decision against a curated ground-truth dataset. Runnable deterministically on every prompt/model change.
+        - **End-state evals:** After each on-chain execution, compare vault's actual token balances against the expected post-trade state. On-chain truth is the ground truth.
+        - **Regression suite:** A frozen snapshot of `(market_input, expected_action)` pairs that must pass before any prompt or model version is promoted.
+        - **LLM-as-judge (optional):** Evaluate Evaluator-Optimizer reasoning quality for open-ended financial justifications.
+    - *Production Target — Observability & Harness Stack:*
+        - **Framework Migration:** Migrate to the native **Claude Agent SDK**. Utilize the `withStructuredOutput()` paradigm (via Zod schemas) to guarantee type-safe AI responses and eliminate JSON hallucination.
+        - **Tool Calling:** Equip agents with explicit deterministic tool-calling (e.g., calling a strict `calculate_impermanent_loss()` function) rather than relying on LLM text reasoning for math.
+        - **State & Tracing:** Integrate **LangGraph** as a state manager for the Evaluator-Optimizer cycle (replacing the imperative MAX_ITERATIONS loop), and use **LangSmith** for per-node tracing, latency, and cost monitoring.
+        - **Cost & Drift Control:** Enforce per-cycle cost budgets (aborting if LLM cost > projected yield) and run the regression suite on a weekly schedule to detect upstream model drift.
 
 ---
 

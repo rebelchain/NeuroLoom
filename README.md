@@ -331,7 +331,7 @@ To transition this architecture into a production-ready Mainnet environment, the
    * *Current Prototype:* `AI_PRIVATE_KEY` is loaded from a local `.env` file for rapid hackathon iteration.
    * *Production Target:* Migrate to KMS-backed signing (AWS KMS / HashiCorp Vault) so the raw private key never exists in plaintext or process memory.
 4. **AI Framework Transition:**
-   * *Current Prototype:* Relies on `@langchain/core` and OpenRouter for zero-cost rapid iteration.
+   * *Current Prototype:* Relies on `@langchain/core` and Groq for zero-cost rapid iteration.
    * *Production Target:* Migration to the native **Claude Agent SDK**. Anthropic's tooling is fundamentally designed to handle the exact Orchestrator-Workers loops we mapped out, offering vastly superior mathematical reasoning for financial logic.
 5. **AI Memory & Database Scaling:**
    * *Current Prototype:* Uses local `SQLite` for isolated, high-speed AI memory logging.

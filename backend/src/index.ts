@@ -19,17 +19,14 @@ async function neuroLoomCycle() {
   console.log(`======================================================`);
 
   try {
-    // 1. Data Ingestion (Sensors)
     const market = await fetchBinanceData("BNBUSDT");
     const vault = await getVaultState();
     const memories = await getRecentMemories(3);
 
     console.log("[AGENT] Analyzing market conditions and memory state...");
 
-    // 2. AI Processing (Brain)
     const draftDecision = await getAIDecision(market, vault, memories);
 
-    // 3. Risk Management (Security Guard)
     const finalDecision = await runEvaluatorLoop(draftDecision, market, vault);
 
     console.log(
@@ -37,16 +34,12 @@ async function neuroLoomCycle() {
     );
     console.log(`[REASONING] ${finalDecision.reasoning}`);
 
-    // [PERBAIKAN 1]: Catat memori SEBELUM eksekusi.
-    // Sekalipun blockchain error, AI tetap ingat "niat" dan keputusannya di siklus ini.
     await logAIDecision(
       finalDecision.action,
       finalDecision.amountPercentage,
       finalDecision.reasoning,
     );
 
-    // 4. Web3 Execution (Muscle)
-    // Dibungkus try-catch mandiri agar kegagalan on-chain tidak mematikan fungsi cycle utama
     try {
       await executeTradeOnChain(
         finalDecision.action,
@@ -59,7 +52,6 @@ async function neuroLoomCycle() {
       );
     }
   } catch (error) {
-    // Menangkap error di level Data Ingestion atau AI Processing
     console.error(
       `[CRITICAL ERROR] AI Cycle aborted due to internal failure:`,
       error,
@@ -77,7 +69,6 @@ async function startAutonomousLoop() {
 
     await neuroLoomCycle();
 
-    // Kalkulasi sisa waktu tunggu secara dinamis (mengurangi waktu yang terpakai saat eksekusi)
     const cycleDuration = Date.now() - cycleStartTime;
     const timeToWait = Math.max(0, CYCLE_INTERVAL_MS - cycleDuration);
 
@@ -94,12 +85,11 @@ async function startAutonomousLoop() {
   process.exit(0);
 }
 
-// [PERBAIKAN 2]: Graceful Shutdown (Anti-Corrupt DB & Hanging TX)
 process.on("SIGINT", () => {
   console.log(
     "\n⚠️ [SYSTEM] Interruption signal received (Ctrl+C). Preparing to shutdown safely after current cycle...",
   );
-  isRunning = false; // Mencegah loop berlanjut setelah siklus saat ini selesai
+  isRunning = false; 
 });
 
 process.on("SIGTERM", () => {
@@ -109,5 +99,4 @@ process.on("SIGTERM", () => {
   isRunning = false;
 });
 
-// Nyalakan Mesinnya!
 startAutonomousLoop();

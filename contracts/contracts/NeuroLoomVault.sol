@@ -28,7 +28,6 @@ interface IChainlinkAggregator {
         uint256 updatedAt,
         uint80 answeredInRound
     );
-    // Tambahan interface untuk mengambil desimal Oracle
     function decimals() external view returns (uint8); 
 }
 
@@ -45,7 +44,7 @@ contract NeuroLoomVault is
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
 
     IPancakeRouter02 public dexRouter;
-    IChainlinkAggregator public priceFeed; // Legacy: Will be replaced by Multi-Oracle System on V2
+    IChainlinkAggregator public priceFeed; 
 
     error SlippageExceeded();
     error UnauthorizedAI();

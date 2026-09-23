@@ -5,16 +5,13 @@ import { strict as assert } from "node:assert";
 import { describe, it } from "node:test";
 import { encodeFunctionData, parseUnits } from "viem";
 
-// Di Hardhat 3, koneksi jaringan dan helper diekstrak secara top-level menggunakan await
 const { networkHelpers, viem } = await network.create();
 
 describe("E2E Mainnet Fork: Anti-Sandwich Attack & Omnichain (Hardhat v3)", () => {
-  // Fixture wajib berupa named function dan menerima objek NetworkConnection
   async function deployVaultFixture({ viem }: NetworkConnection) {
     const publicClient = await viem.getPublicClient();
     const [admin, aiAgent, unauthorizedUser] = await viem.getWalletClients();
 
-    // 1. Deploy Token Palsu dengan desimal berbeda
     const mockWBNB = await viem.deployContract("MockERC20", [
       "Mock WBNB",
       "WBNB",
@@ -26,11 +23,9 @@ describe("E2E Mainnet Fork: Anti-Sandwich Attack & Omnichain (Hardhat v3)", () =
       6,
     ]);
 
-    // 2. Deploy Mock Oracle & DEX
     const mockOracle = await viem.deployContract("MockOracle", [60000000000n]); // $600
     const mockDex = await viem.deployContract("MockDex");
 
-    // 3. Deploy Logic V2 dan Proxy
     const vaultLogic = await viem.deployContract("NeuroLoomVaultV2");
     const initData = encodeFunctionData({
       abi: vaultLogic.abi,
@@ -50,7 +45,6 @@ describe("E2E Mainnet Fork: Anti-Sandwich Attack & Omnichain (Hardhat v3)", () =
     ]);
     const vault = await viem.getContractAt("NeuroLoomVaultV2", proxy.address);
 
-    // 4. Setup V2: Aktifkan Whitelist DEX dan Multi-Oracle per-pasangan!
     await vault.write.setApprovedProtocol([mockDex.address, true], {
       account: admin.account,
     });
@@ -59,7 +53,6 @@ describe("E2E Mainnet Fork: Anti-Sandwich Attack & Omnichain (Hardhat v3)", () =
       { account: admin.account },
     );
 
-    // 5. Beri Modal Awal (Vault = 10 WBNB, DEX = 100,000 USDT)
     const amountIn = parseUnits("10", 18);
     await mockWBNB.write.mint([vault.address, amountIn]);
 
@@ -81,11 +74,9 @@ describe("E2E Mainnet Fork: Anti-Sandwich Attack & Omnichain (Hardhat v3)", () =
 
   describe("🛡️ Security Guards (Negative Paths)", () => {
     it("Must revert if called by a non-AI role (Access Control)", async () => {
-      // Memanggil fixture menggunakan networkHelpers standar Hardhat 3
       const { vault, mockWBNB, mockUSDT, mockDex, unauthorizedUser } =
         await networkHelpers.loadFixture(deployVaultFixture);
 
-      // Menggunakan node:assert bawaan untuk menangkap pesan error
       await assert.rejects(
         vault.write.executeOmnichain(
           [mockDex.address, "0x", mockWBNB.address, mockUSDT.address, 1n, 1n],
@@ -117,7 +108,6 @@ describe("E2E Mainnet Fork: Anti-Sandwich Attack & Omnichain (Hardhat v3)", () =
       const amountIn = parseUnits("1", 18);
       const manipulatedAmountOutMin = parseUnits("100", 6);
 
-      // Menggunakan viem.assertions.revertWithCustomError dari objek koneksi jaringan
       await viem.assertions.revertWithCustomError(
         vault.write.executeOmnichain(
           [

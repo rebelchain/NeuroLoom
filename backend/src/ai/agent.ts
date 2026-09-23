@@ -32,7 +32,6 @@ CURRENT DEFI STATE:
   `;
 
   try {
-    // ORCHESTRATOR (ANALYSIS & PLANNING)
     console.log(
       "\n[ORCHESTRATOR] Analyzing AMM liquidity and planning task delegation...",
     );
@@ -65,7 +64,7 @@ Return ONLY a valid JSON object matching this structure without any markdown for
       `[ORCHESTRATOR] Delegating ${plan.tasks.length} specialized approaches to minimize API overhead.`,
     );
 
-    // WORKERS (PARALLEL EXECUTION) NOTE: Uses only one worker due to free API limitations.
+   
     console.log("[WORKERS] Generating specialized yield and risk analysis...");
 
     const workerPromises = plan.tasks.map(async (task: WorkerTask) => {
@@ -102,7 +101,6 @@ Return ONLY a valid JSON object matching this structure without markdown:
       );
     });
 
-    // SYNTHESIZER (FINAL DECISION)
     console.log(
       "[SYNTHESIZER] Evaluating worker reports and finalizing multi-protocol routing decision...",
     );

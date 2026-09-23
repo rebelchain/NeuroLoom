@@ -4,16 +4,14 @@ import { privateKeyToAccount } from "viem/accounts";
 import { bscTestnet } from "viem/chains";
 import { CONFIG } from "../config.js";
 dotenvx.config();
-// Pastikan path ke ABI benar
+
 import VaultABI from "../abi/NeuroLoomVaultV2.json" with { type: "json" };
 
 async function configureOracle() {
-  console.log("==========================================");
-  console.log("🔗 MENGHUBUNGKAN CHAINLINK ORACLE KE VAULT");
-  console.log("==========================================");
+  console.log("Connecting Chainlink Oracke to Vault");
 
   const pk = process.env.AI_PRIVATE_KEY;
-  if (!pk) throw new Error("AI_PRIVATE_KEY tidak ditemukan");
+  if (!pk) throw new Error("AI_PRIVATE_KEY not found");
 
   const account = privateKeyToAccount(
     (pk.startsWith("0x") ? pk : `0x${pk}`) as `0x${string}`,
@@ -28,11 +26,13 @@ async function configureOracle() {
     transport: http(CONFIG.RPC_URL),
   });
 
-  // Alamat resmi Chainlink BNB/USD di BSC Testnet
+  
   const CHAINLINK_BNB_USD = "0x2514895c72f50D8bd4B4F9b1110F0D6bD2c97526";
 ``
   try {
-    console.log(`Mendaftarkan Oracle untuk keamanan transaksi (Anti-MEV)...`);
+    console.log(
+      `Registering an Oracle for transaction security (Anti-MEV)....`,
+    );
     const { request } = await publicClient.simulateContract({
       address: CONFIG.VAULT_PROXY as `0x${string}`,
       abi: VaultABI.abi,
@@ -43,10 +43,10 @@ async function configureOracle() {
     const hash = await walletClient.writeContract(request);
     await publicClient.waitForTransactionReceipt({ hash });
     console.log(
-      `✅ [SUCCESS] USDT -> WBNB terdaftar! Hash: https://testnet.bscscan.com/tx/${hash}`,
+      ` SUCCESS ✅ USDT -> WBNB is registered! Hash: https://testnet.bscscan.com/tx/${hash}`,
     );
 
-    console.log(`Mendaftarkan arah sebaliknya (WBNB -> USDT)...`);
+    console.log(`Registering the reverse direction (WBNB -> USDT)...`);
     const { request: reverseRequest } = await publicClient.simulateContract({
       address: CONFIG.VAULT_PROXY as `0x${string}`,
       abi: VaultABI.abi,
@@ -57,11 +57,11 @@ async function configureOracle() {
     const reverseHash = await walletClient.writeContract(reverseRequest);
     await publicClient.waitForTransactionReceipt({ hash: reverseHash });
     console.log(
-      `✅ [SUCCESS] WBNB -> USDT terdaftar! Hash: https://testnet.bscscan.com/tx/${reverseHash}`,
+      ` SUCCESS ✅ WBNB -> USDT is registered! Hash: https://testnet.bscscan.com/tx/${reverseHash}`,
     );
   } catch (error: any) {
     console.error(
-      "❌ Gagal konfigurasi oracle:",
+      " Oracle configuration failed:",
       error.shortMessage || error.message,
     );
   }

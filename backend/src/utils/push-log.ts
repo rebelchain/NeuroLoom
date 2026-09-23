@@ -9,6 +9,5 @@ export async function pushLog(message: string) {
       body: JSON.stringify({ log: message }),
     });
   } catch (e) {
-    // Abaikan error
   }
 }

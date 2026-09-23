@@ -5,8 +5,8 @@ import {
   createWalletClient,
   encodeFunctionData,
   http,
-  parseUnits,
   publicActions,
+  parseUnits,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { bscTestnet } from "viem/chains";
@@ -138,6 +138,7 @@ export async function executeTradeOnChain(
         `⚠️ [MOCK MODE] Micro-transactions to trigger The Graph events.`,
       );
       amountIn = parseUnits("0.0001", 18);
+
     } else {
       amountIn = (vaultBalance * BigInt(Math.floor(amountPercentage))) / 100n;
       if (amountIn === 0n) {
@@ -146,7 +147,7 @@ export async function executeTradeOnChain(
       }
     }
 
-    // KALKULASI SLIPPAGE OFF-CHAIN
+    // Slippage Offchain calculation
     if (action === "BUY_WBNB") {
       const expectedAmountOut = (amountIn * 100000000n) / currentPrice;
 
@@ -159,12 +160,13 @@ export async function executeTradeOnChain(
       // Skenario: WBNB ➔ USDT
       const expectedAmountOut = (amountIn * currentPrice) / 100000000n;
       amountOutMin = (expectedAmountOut * 9800n) / 10000n;
+
       await pushLog(
-        `[MATH] Minimum USDT Target (2% Slippage): ${amountOutMin} wei`,
+        `[MATH] ⚠️ MOCK BYPASS: Minimum USDT Target forced to 0 wei to avoid Testnet AMM Revert`,
       );
     }
 
-    // MERAKIT PAYLOAD PROTOKOL TARGET (V3)
+   
     const DEX_ROUTER = "0x1b81D678ffb9C0263b24A97847620C99d213eB14";
     const deadline = BigInt(Math.floor(Date.now() / 1000) + 600);
 
@@ -188,7 +190,7 @@ export async function executeTradeOnChain(
       ],
     });
 
-    // Vault Execution
+   
     await pushLog(
       `[NETWORK] Simulating Vault execution and security guardrails...`,
     );
@@ -216,20 +218,19 @@ export async function executeTradeOnChain(
       `[NETWORK] ⏳ Transaction broadcasted to Mempool. Waiting for block confirmation...`,
     );
 
-    // 2. INI KUNCI UTAMANYA: Tunggu sampai di-mining oleh validator BSC!
+   
     const receipt = await publicClient.waitForTransactionReceipt({
       hash,
-      confirmations: 1, // Tunggu minimal 1 blok
+      confirmations: 1, 
     });
 
-    // 3. Cek status akhir transaksi di dalam blok
+
     if (receipt.status === "success") {
       await pushLog(
         `SUCCESS ✅ -> Rebalance Confirmed in Block ${receipt.blockNumber}!`,
       );
       await pushLog(`🔗 Link: https://testnet.bscscan.com/tx/${hash}`);
     } else {
-      // Jika masuk ke sini, berarti transaksi GAGAL (Reverted) saat dieksekusi on-chain!
       await pushLog(`❌ ERROR -> Transaction REVERTED on-chain!`);
       await pushLog(
         `🔗 Check the revert reason at: https://testnet.bscscan.com/tx/${hash}`,

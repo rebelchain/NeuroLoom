@@ -1,44 +1,40 @@
 import hre from "hardhat";
 
 async function main() {
-  // [PERBAIKAN]: Ubah "Audit Keamanan" menjadi "Smoke Test"
-  console.log("🔍 Memulai Smoke Test Infrastruktur: NeuroLoomVaultV2...\n");
+  console.log("Initiating Infrastructure Smoke Test\n");
 
-  // Karena ini berjalan di main thread Hardhat, hre.viem PASTI terinjeksi dengan aman
   const viem = (hre as any).viem;
 
   if (!viem) {
     throw new Error(
-      "❌ Plugin Viem tidak terdeteksi! Pastikan import '@nomicfoundation/hardhat-toolbox-viem' ada di baris pertama hardhat.config.ts",
+      "❌ View plugin not detected! import '@nomicfoundation/hardhat-toolbox-view'",
     );
   }
 
-  // 1. Uji Deployment ke Local Node
-  console.log("⏳ Mendeploy V2 ke memori lokal...");
+  console.log("Deploying V2 to local memory...");
   const vault = await viem.deployContract("NeuroLoomVaultV2");
   console.log(
-    "✅ [LULUS] Kontrak V2 berhasil di-deploy ke alamat:",
+    "PASSED. V2 contract successfully deployed to address:",
     vault.address,
   );
 
-  // 2. Uji Determinisme Role AI
-  console.log("⏳ Memvalidasi akses Role-Based Access Control (RBAC)...");
+  console.log("Validating Role-Based Access Control (RBAC) access...");
   const aiRole = await vault.read.AI_EXECUTOR_ROLE();
   const expectedRole =
     "0x0c821e1b44f170b6d24f8a571604a3ff6cf1c5732d7f3ef80e53eee98cf3fc56";
 
   if (aiRole === expectedRole) {
     console.log(
-      "✅ [LULUS] RBAC Check: Hash AI_EXECUTOR_ROLE terverifikasi sempurna.",
+      "PASS. RBAC Check: Perfectly verified AI_EXECUTOR_ROLE hash.",
     );
   } else {
     throw new Error(
-      "❌ [GAGAL] Hash Role AI tidak cocok dengan standar keamanan!",
+      "Failed. The AI ​​role hash does not meet security standards!",
     );
   }
 
   console.log(
-    "\n🏁 Smoke Test Passed: V2 Proxy deployed and AI_EXECUTOR_ROLE bound successfully.",
+    "\n Smoke Test Passed: V2 Proxy deployed and AI_EXECUTOR_ROLE bound successfully.",
   );
 }
 

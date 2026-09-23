@@ -6,7 +6,6 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
-// [PERBAIKAN OPENZEPPELIN V5]: Menggunakan ReentrancyGuard standar yang sudah mendukung ERC-7201 Upgradeable
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 interface ISwapRouterV3 {
@@ -30,9 +29,9 @@ interface ISwapRouterV3 {
 contract NeuroLoomVaultV2 is NeuroLoomVault, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
-    uint256 public constant MAX_SLIPPAGE_BPS = 200; // 2% maksimal slippage
+    uint256 public constant MAX_SLIPPAGE_BPS = 200; 
 
-    // Storage untuk Whitelist & Multi-Oracle 
+    // Whitelist & Multi-Oracle 
     mapping(address => bool) public approvedProtocols;
     mapping(address => mapping(address => address)) public pairPriceFeeds;
 
@@ -44,7 +43,6 @@ contract NeuroLoomVaultV2 is NeuroLoomVault, ReentrancyGuard {
     );
 
   event ProtocolApproved(address indexed protocol, bool status);
-    // --- ADMIN CONFIGURATIONS ---
     function setApprovedProtocol(address protocol, bool status) external onlyRole(DEFAULT_ADMIN_ROLE) {
         require(protocol != address(0), "Invalid address");
         approvedProtocols[protocol] = status;
@@ -55,8 +53,6 @@ contract NeuroLoomVaultV2 is NeuroLoomVault, ReentrancyGuard {
         require(feed != address(0), "Invalid feed address");
         pairPriceFeeds[tokenIn][tokenOut] = feed;
     }
-
-    // --- DEPRECATE LEGACY FUNCTION ---
     function executeRebalance(
         uint256,
         uint256,
@@ -66,8 +62,8 @@ contract NeuroLoomVaultV2 is NeuroLoomVault, ReentrancyGuard {
     }
 
     /**
-     * @dev Fungsi Eksekusi TRUE OMNICHAIN
-     * Dilindungi oleh nonReentrant dari OZ v5 dan Protocol Whitelist.
+     * @dev TRUE OMNICHAIN ​​Execution Function
+     * Protected by OZ v5's nonReentrant and the Protocol Whitelist.
      */
     function executeOmnichain(
         address targetProtocol,
@@ -96,7 +92,7 @@ contract NeuroLoomVaultV2 is NeuroLoomVault, ReentrancyGuard {
     }
 
 /**
-     * @dev Proteksi MEV OMNICHAIN: Menghitung Fair Value antar pasangan koin dengan arah dinamis.
+     * @dev Omnichain MEV Protection: Calculating fair value between coin pairs with dynamic directionality.
      */
     function _validateSlippageAgainstOracle(
         address tokenIn, 
@@ -125,23 +121,18 @@ contract NeuroLoomVaultV2 is NeuroLoomVault, ReentrancyGuard {
 
         uint256 expectedAmountOut;
 
-        // [PERBAIKAN MATEMATIKA]: Menentukan arah kali atau bagi berdasarkan tokenOut
-        // Alamat WBNB di BSC Testnet
         address WBNB_TESTNET = 0xae13d989daC2f0dEbFf460aC112a837C89BAa7cd; 
 
         if (tokenOut == WBNB_TESTNET) {
-            // Skenario: USDT ➔ WBNB (Membeli koin mahal, harga DIBAGI)
             expectedAmountOut = (amountIn * (10 ** tokenOutDecimals) * (10 ** feedDecimals)) / 
                                 (uint256(price) * (10 ** tokenInDecimals));
         } else {
-            // Skenario: WBNB ➔ USDT (Menjual koin mahal, harga DIKALI)
             expectedAmountOut = (amountIn * uint256(price) * (10 ** tokenOutDecimals)) / 
                                 ((10 ** tokenInDecimals) * (10 ** feedDecimals));
         }
 
         uint256 minimumAcceptableAmount = (expectedAmountOut * (10000 - MAX_SLIPPAGE_BPS)) / 10000;
 
-        // Validasi Slippage
         require(amountOutMin >= minimumAcceptableAmount, "Slippage tolerance exceeded Oracle bounds");
     }
 }

@@ -5,8 +5,8 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 /**
- * @title MockDex
- * @dev Mensimulasikan DEX untuk pengujian Omnichain 
+ * @title 
+ * @dev Simulating a DEX for Omnichain testing
  */
 contract MockDex {
     using SafeERC20 for IERC20;

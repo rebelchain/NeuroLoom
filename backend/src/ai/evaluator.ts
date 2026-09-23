@@ -61,8 +61,6 @@ export async function runEvaluatorLoop(
 ): Promise<AIDecision> {
   console.log("\n[EVALUATOR] Initiating Risk Management Audit Loop...");
 
-  // [SECURITY GUARDRAIL]: Hard-coded limit (Disarankan oleh Auditor/Claude)
-  // Mencegah AI menguras likuiditas lebih dari 30% sebelum LLM mulai mengevaluasi
   if (initialDecision.amountPercentage > 30) {
     console.log(
       `[EVALUATOR] Guardrail triggered: Requested amount (${initialDecision.amountPercentage}%) exceeds 30% safety limit.`,

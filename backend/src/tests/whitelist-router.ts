@@ -7,10 +7,10 @@ import { CONFIG } from "../config.js";
 dotenvx.config();
 
 async function whitelistPancakeRouter() {
-  console.log("🔐 MENGIRIM TRANSAKSI WHITELIST KE VAULT");
+  console.log("Sending Whitelist Transactions to the Vault");
 
   const pk = process.env.AI_PRIVATE_KEY;
-  if (!pk) throw new Error("AI_PRIVATE_KEY tidak ditemukan");
+  if (!pk) throw new Error("AI PRIVATE KEY not found");
 
   const account = privateKeyToAccount(
     (pk.startsWith("0x") ? pk : `0x${pk}`) as `0x${string}`,
@@ -30,7 +30,7 @@ async function whitelistPancakeRouter() {
 
   try {
     console.log(
-      `[1] Memeriksa status Whitelist untuk Router: ${DEX_ROUTER}...`,
+      `Checking Whitelist status for the router: ${DEX_ROUTER}...`,
     );
     const isApproved = await publicClient.readContract({
       address: CONFIG.VAULT_PROXY as `0x${string}`,
@@ -41,12 +41,12 @@ async function whitelistPancakeRouter() {
 
     if (isApproved) {
       console.log(
-        "✅ Router SUDAH masuk dalam Whitelist. Tidak perlu aksi tambahan.",
+        "router is ALREADY whitelisted.",
       );
       return;
     }
 
-    console.log(`[2] Menambahkan Router ke Whitelist (Membutuhkan Gas BNB)...`);
+    console.log(`Adding Router to Whitelist (Requires BNB Gas)...`);
     const { request } = await publicClient.simulateContract({
       address: CONFIG.VAULT_PROXY as `0x${string}`,
       abi: VaultABI.abi,
@@ -57,16 +57,16 @@ async function whitelistPancakeRouter() {
 
     const hash = await walletClient.writeContract(request);
     console.log(
-      `⏳ Transaksi dikirim! Hash: https://testnet.bscscan.com/tx/${hash}`,
+      `Transaction sent! Hash: https://testnet.bscscan.com/tx/${hash}`,
     );
 
     await publicClient.waitForTransactionReceipt({ hash });
     console.log(
-      "✅ [SUCCESS] Router PancakeSwap V3 berhasil di-whitelist di Vault!",
+      " SUCCESS ✅ PancakeSwap V3 router successfully whitelisted in the Vault!",
     );
   } catch (error: any) {
     console.error(
-      "❌ Gagal melakukan whitelist:",
+      "❌ Failed to whitelist:",
       error.shortMessage || error.message,
     );
   }

@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="frontend/public/neuroloom-banner.png" width="100%" alt="NEUROLOOM — Autonomous AI-Driven DeFi Yield Optimizer" />
+  <img src="frontend/public/banner.png" width="100%" alt="NEUROLOOM — Autonomous AI-Driven DeFi Yield Optimizer" />
 </div>
 
 # NEUROLOOM

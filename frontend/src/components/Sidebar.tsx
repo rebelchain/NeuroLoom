@@ -19,7 +19,6 @@ interface SidebarProps {
   onBackToLanding?: () => void;
 }
 
-// ATM: Kita ganti menu bawaan Hypotecha dengan menu NeuroLoom
 const navItems: { id: PageId; label: string; icon: ElementType }[] = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
   { id: "vaults", label: "Smart Vaults", icon: Wallet },

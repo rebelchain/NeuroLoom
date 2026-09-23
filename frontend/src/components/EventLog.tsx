@@ -4,7 +4,6 @@ import { cn, formatTimeAgo } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { formatUnits } from "viem"; 
 
-// [TWEAK 1]: Gunakan version/latest
 const GRAPHQL_URL =
   "https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/version/latest";
 
@@ -90,7 +89,6 @@ export function EventLog({
         const { data } = await response.json();
 
         if (isMounted && data) {
-          // [TWEAK 4]: Gunakan const dan push untuk menghindari peringatan linter
           const combinedEvents: AIEventRow[] = [];
 
           if (data.deposits && data.deposits.length > 0) {
@@ -197,9 +195,7 @@ export function EventLog({
                     ›
                   </span>
 
-                  {/* KONTINER UTAMA: Membagi kiri dan kanan */}
                   <div className="flex flex-col md:flex-row justify-between min-w-0 w-full gap-2 md:gap-4">
-                    {/* BAGIAN KIRI: Aksi, Protokol, dan Aset */}
                     <div className="flex flex-col gap-1.5">
                       <div className="flex items-center gap-2">
                         <span
@@ -216,17 +212,15 @@ export function EventLog({
                         </span>
                       </div>
 
-                      {/* Teks detail sekarang ada di bawah tipe aksi */}
+                  
                       {event.detail && (
                         <div className="text-info text-[11px] truncate max-w-[250px] sm:max-w-xs">
                           {event.detail}
                         </div>
                       )}
                     </div>
-
-                    {/* BAGIAN KANAN: Nominal, Waktu, & Hash */}
+                
                     <div className="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-center gap-x-4 gap-y-1 w-full md:w-auto">
-                      {/* Nominal diperbesar dan ditebalkan sedikit */}
                       <span
                         className={cn(
                           meta.text,
@@ -237,7 +231,6 @@ export function EventLog({
                         {event.amount.toFixed(2)} USDT
                       </span>
 
-                      {/* Waktu dan Hash Transaksi */}
                       <div className="flex items-center gap-2 text-[10px] text-gray-500 font-mono">
                         <span className="whitespace-nowrap">
                           {formatTimeAgo(event.timestamp)}

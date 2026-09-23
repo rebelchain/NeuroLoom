@@ -57,7 +57,6 @@ export function IdentityGateModal({
         </div>
 
         {isConnected ? (
-          /* TAMPILAN JIKA DOMPET SUDAH TERKONEKSI */
           <div className="flex flex-col items-center text-center animate-fade-in-up">
             <div className="w-16 h-16 bg-success/10 border border-success/20 rounded-2xl flex items-center justify-center mb-5 shadow-[0_0_20px_rgba(34,197,94,0.15)]">
               <ShieldCheck className="w-8 h-8 text-success" />
@@ -71,7 +70,6 @@ export function IdentityGateModal({
               the dashboard.
             </p>
 
-            {/* Kotak Detail Akun */}
             <div className="w-full bg-black/40 border border-white/[0.05] rounded-2xl p-4 font-mono text-xs mb-6">
               <div className="flex justify-between items-center mb-3">
                 <span className="text-gray-500">account</span>
@@ -89,7 +87,6 @@ export function IdentityGateModal({
               </div>
             </div>
 
-            {/* Tombol Aksi */}
             <button
               onClick={onContinue}
               className="w-full bg-primary hover:bg-primary-light text-white font-semibold py-3.5 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 mb-4 shadow-[0_0_15px_rgba(139,92,246,0.4)]"
@@ -105,7 +102,7 @@ export function IdentityGateModal({
             </button>
           </div>
         ) : (
-          /* TAMPILAN JIKA DOMPET BELUM TERKONEKSI */
+
           <div className="flex flex-col items-center text-center animate-fade-in-up">
             <div className="w-16 h-16 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center mb-5">
               <Wallet className="w-8 h-8 text-gray-400" />

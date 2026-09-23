@@ -6,12 +6,10 @@ export function Footer() {
 
   return (
     <footer className="border-t border-white/[0.05] bg-[#050814] pt-16 pb-8 relative overflow-hidden">
-      {/* Background Glow */}
       <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-32 bg-primary/10 blur-[100px] rounded-full pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 mb-16">
-          {/* 1. Brand Anchor */}
           <div className="lg:col-span-2">
             <div className="flex items-center gap-2 mb-4">
               <div className="w-10 h-10 bg-primary/10 border border-primary/20 rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(139,92,246,0.3)] overflow-hidden p-0">
@@ -43,13 +41,11 @@ export function Footer() {
             </div>
           </div>
 
-          {/* 2. Navigation Columns */}
           <div>
             <h4 className="text-white font-semibold mb-4 text-sm tracking-wider uppercase">
               Navigation
             </h4>
             <ul className="space-y-3">
-              {/* Diubah menjadi ScrollLink agar seragam dengan Navbar */}
               <ScrollLink targetId="features">The Problem</ScrollLink>
               <ScrollLink targetId="how-it-works">
                 How NeuroLoom Works
@@ -91,7 +87,7 @@ export function Footer() {
           </div>
         </div>
 
-        {/* 3. Bottom Bar & Trust Signals */}
+        {/* Bottom Bar & Trust Signals */}
         <div className="pt-8 border-t border-white/[0.05] flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="text-gray-500 text-xs font-mono">
             &copy; {currentYear} NeuroLoom. Built for Indonesia Web3 Hackathon.
@@ -115,9 +111,6 @@ export function Footer() {
   );
 }
 
-// ==========================================
-// BANTUAN KOMPONEN & SVG KUSTOM
-// ==========================================
 
 function ScrollLink({
   targetId,

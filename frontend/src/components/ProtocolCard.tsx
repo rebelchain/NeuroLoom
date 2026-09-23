@@ -20,13 +20,11 @@ export function ProtocolCard({
   onClick,
 }: ProtocolCardProps) {
   return (
-    // [PERBAIKAN]: Mengganti <button> menjadi <div> yang memiliki properti aksesibilitas tombol
     <div
       onClick={onClick}
       role="button"
       tabIndex={0}
       onKeyDown={(e) => {
-        // Memastikan tombol bisa ditekan menggunakan keyboard (Enter / Spasi)
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
           onClick();

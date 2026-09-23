@@ -8,12 +8,10 @@ import {
   useWriteContract,
 } from "wagmi";
 
-// 1. ALAMAT SMART CONTRACT
 const VAULT_ADDRESS = "0xe38887648d7272e9Eb3C06628767bb3d84a9FF4E";
 
 const USDT_ADDRESS = "0xFa45Fd644B34606cABFb7c8acc546E770e248b83";
 
-// 2. ABI KONTRAK
 const vaultABI = [
   {
     inputs: [
@@ -67,22 +65,18 @@ export function VaultPanel() {
 
   const { address, isConnected } = useAccount();
 
-  // ==========================================
-  // WEB3 HOOKS: READ & WRITE
-  // ==========================================
 
-  // A. Membaca status Allowance (Surat Kuasa) dari Token USDT
+
   const { data: allowance, refetch: refetchAllowance } = useReadContract({
     address: USDT_ADDRESS,
     abi: erc20ABI,
     functionName: "allowance",
     args: address ? [address, VAULT_ADDRESS] : undefined,
     query: {
-      enabled: !!address, // Hanya jalan jika dompet terhubung
+      enabled: !!address,
     },
   });
 
-  // B. Hook untuk transaksi APPROVE
   const {
     data: approveHash,
     isPending: isApprovePending,
@@ -91,7 +85,6 @@ export function VaultPanel() {
   const { isLoading: isApproveConfirming, isSuccess: isApproveSuccess } =
     useWaitForTransactionReceipt({ hash: approveHash });
 
-  // C. Hook untuk transaksi DEPOSIT
   const {
     data: depositHash,
     isPending: isDepositPending,
@@ -100,7 +93,6 @@ export function VaultPanel() {
   const { isLoading: isDepositConfirming, isSuccess: isDepositSuccess } =
     useWaitForTransactionReceipt({ hash: depositHash });
 
-  // D. Hook untuk transaksi WITHDRAW (TAMBAHKAN INI)
   const {
     data: withdrawHash,
     isPending: isWithdrawPending,
@@ -109,32 +101,24 @@ export function VaultPanel() {
   const { isLoading: isWithdrawConfirming, isSuccess: isWithdrawSuccess } =
     useWaitForTransactionReceipt({ hash: withdrawHash });
 
-  // ==========================================
-  // LOGIKA STATUS UI
-  // ==========================================
 
-  // Konversi input string ke format Wei (BigInt)
   const parsedAmount =
     amount && !isNaN(Number(amount)) ? parseUnits(amount, 18) : BigInt(0);
 
-  // Mengecek apakah kita butuh Approval (Allowance < jumlah yang mau dideposit)
   const needsApproval =
     allowance !== undefined && (allowance as bigint) < parsedAmount;
 
-  // Polling otomatis untuk memperbarui allowance setelah approve sukses
   useEffect(() => {
     if (isApproveSuccess) {
       refetchAllowance();
     }
   }, [isApproveSuccess, refetchAllowance]);
 
-  // Fungsi saat tombol diklik
   const handleExecute = () => {
     if (!amount || parsedAmount === BigInt(0)) return;
 
     if (action === "deposit") {
       if (needsApproval) {
-        // Eksekusi Approve (Unlimited / maxUint256 agar user tidak perlu approve berkali-kali)
         writeApprove({
           address: USDT_ADDRESS,
           abi: erc20ABI,
@@ -142,21 +126,19 @@ export function VaultPanel() {
           args: [VAULT_ADDRESS, maxUint256],
         });
       } else {
-        // Eksekusi Deposit (2 parameter: jumlah dan penerima)
+
         writeDeposit({
           address: VAULT_ADDRESS,
           abi: vaultABI,
           functionName: "deposit",
-          args: [parsedAmount, address as `0x${string}`], // <--- Tambahkan address di sini!
+          args: [parsedAmount, address as `0x${string}`], 
         });
       }
     } else {
-      // TAMBAHKAN LOGIKA WITHDRAW INI:
       writeWithdraw({
         address: VAULT_ADDRESS,
         abi: vaultABI,
         functionName: "withdraw",
-        // 3 parameter: jumlah ditarik, penerima (kita), pemilik share (kita)
         args: [
           parsedAmount,
           address as `0x${string}`,
@@ -166,7 +148,6 @@ export function VaultPanel() {
     }
   };
 
-  // Logika Cerdas Teks Tombol
   let buttonText = "Enter Amount";
   let isButtonDisabled = true;
 
@@ -197,7 +178,6 @@ export function VaultPanel() {
     }
   }
 
-  // Tentukan Hash aktif yang akan ditampilkan di layar
   const activeHash = depositHash || approveHash;
 
   return (
@@ -220,7 +200,7 @@ export function VaultPanel() {
         </button>
       </div>
 
-      {/* Input Form */}
+      {/* Form*/}
       <div className="flex flex-col gap-2 relative z-10">
         <label className="text-[10px] font-mono text-gray-400 uppercase tracking-wider">
           Amount
@@ -247,7 +227,7 @@ export function VaultPanel() {
         </div>
       </div>
 
-      {/* Route Info */}
+      {/* Route */}
       <div className="flex flex-col gap-3 p-4 bg-white/[0.02] rounded-xl border border-white/[0.05] relative z-10">
         <div className="flex justify-between text-xs">
           <span className="text-gray-400">AI Strategy Pool</span>
@@ -259,7 +239,6 @@ export function VaultPanel() {
         </div>
       </div>
 
-      {/* Tombol Eksekusi Cerdas */}
       <button
         onClick={handleExecute}
         disabled={
@@ -298,7 +277,7 @@ export function VaultPanel() {
         )}
       </button>
 
-      {/* Link BscScan jika transaksi berhasil dikirim */}
+
       {activeHash && (
         <a
           href={`https://testnet.bscscan.com/tx/${activeHash}`}

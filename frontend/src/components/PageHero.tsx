@@ -15,7 +15,6 @@ export function PageHero({ badge, title, accent, subtitle, media, actions }: Pag
   return (
     <div className="relative -mx-6 rounded-b-3xl overflow-hidden liquid-glass-strong animate-fade-in-up mb-8">
       
-      {/* Menggunakan Video Background dari Referensi */}
       <SectionBackground
         kind={media.kind}
         src={media.src}

@@ -36,7 +36,6 @@ function VaultCard({
 }) {
   const { ref, visible } = useSectionReveal<HTMLDivElement>(0.2);
 
-  // DEFENSE: Mencegah NaN crash jika totalBalance 0
   const totalAllocated = vault.totalBalance - vault.availableBalance;
   const allocatedPct =
     vault.totalBalance > 0 ? (totalAllocated / vault.totalBalance) * 100 : 0;
@@ -124,7 +123,6 @@ function VaultCard({
 }
 
 export function SmartVaultsView() {
-  // 1. Ambil Data sekaligus status isLoading dari Wagmi
   const { data: totalAssetsData, isLoading: isVaultLoading } = useReadContract({
     address: VAULT_ADDRESS,
     abi: vaultABI,
@@ -132,9 +130,7 @@ export function SmartVaultsView() {
     query: { refetchInterval: 10000 },
   });
 
-  // 2. Gabungkan Data
   const hybridVaults = useMemo<VaultData[]>(() => {
-    // Pertahankan angka 0 murni jika memang saldonya 0, agar akurat dengan Blockchain
     const realTVL = totalAssetsData ? Number(totalAssetsData) / 1e18 : 0;
 
     return [
@@ -142,8 +138,8 @@ export function SmartVaultsView() {
         id: "1",
         name: "Stablecoin Alpha Vault",
         symbol: "USDT",
-        totalBalance: realTVL, // 100% Akurat On-Chain
-        availableBalance: realTVL * 0.2, // Simulasi AI memegang 20%
+        totalBalance: realTVL, 
+        availableBalance: realTVL * 0.2, 
         apy: 18.5,
         allocations: [
           { protocolName: "Venus Protocol", amount: realTVL * 0.5 },
@@ -154,7 +150,7 @@ export function SmartVaultsView() {
         id: "2",
         name: "BNB Yield Optimizer",
         symbol: "WBNB",
-        totalBalance: 339988, // Visi Produk Ekosistem (Statik)
+        totalBalance: 339988, 
         availableBalance: 39988,
         apy: 24.2,
         allocations: [
@@ -182,7 +178,6 @@ export function SmartVaultsView() {
           <VaultCard
             key={vault.id}
             vault={vault}
-            // Hanya aplikasikan efek loading ke Vault 1 (karena Vault 2 statis)
             isLoading={vault.id === "1" ? isVaultLoading : false}
           />
         ))}

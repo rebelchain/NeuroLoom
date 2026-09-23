@@ -12,7 +12,7 @@ interface KPICardProps {
   icon: ElementType;
   subtext?: string;
   delay?: number;
-  isLoading?: boolean; // Taktis: Wajib untuk transisi RPC Wagmi
+  isLoading?: boolean; 
 }
 
 export function KPICard({
@@ -27,10 +27,8 @@ export function KPICard({
   delay = 0,
   isLoading = false,
 }: KPICardProps) {
-  // DEFENSE LAYER: Cegah NaN atau nilai null menghancurkan UI React
   const safeValue = typeof value === "number" && !isNaN(value) ? value : 0;
 
-  // FORMATTING SAFEGUARD: Jika formatCurrency di util bermasalah, aplikasi tidak akan crash
   let formatted = safeValue.toString();
   try {
     formatted =
@@ -78,7 +76,6 @@ export function KPICard({
           )}
         </div>
 
-        {/* RENDER LOGIC: Loading vs Data */}
         <div className="h-9 flex items-center">
           {isLoading ? (
             <div className="flex items-center gap-2 text-gray-400 animate-pulse">

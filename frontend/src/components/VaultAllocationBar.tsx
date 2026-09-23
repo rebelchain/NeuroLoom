@@ -4,7 +4,6 @@ import { formatCurrency, cn } from "@/lib/utils";
 import { useSectionReveal } from "@/lib/useSectionReveal";
 import Link from "next/link";
 
-// Tipe Data Khusus AI Vault
 export interface AIAllocation {
   protocolName: string;
   amount: number;
@@ -48,7 +47,6 @@ export function VaultAllocationBar({ vault }: { vault: VaultData }) {
     return () => clearTimeout(t);
   }, []);
 
-  // DEFENSE: Proteksi terhadap nilai negatif (jika the graph glitch) dan pembagian nol (jika TVL = 0)
   const safeTotalBalance = Math.max(0, vault.totalBalance);
   const safeAvailableBalance = Math.max(
     0,
@@ -57,15 +55,12 @@ export function VaultAllocationBar({ vault }: { vault: VaultData }) {
 
   const totalAllocated = safeTotalBalance - safeAvailableBalance;
 
-  // Kalkulasi persentase yang aman dari NaN
   const allocatedPercent =
     safeTotalBalance > 0 ? (totalAllocated / safeTotalBalance) * 100 : 0;
 
-  // Fungsi width yang aman dari NaN
   const width = (amount: number) => {
     if (!mounted || !visible || safeTotalBalance === 0) return "0%";
     const percentage = (amount / safeTotalBalance) * 100;
-    // Pastikan angka valid dan tidak melebihi 100%
     return `${Math.min(Math.max(percentage, 0), 100)}%`;
   };
 
@@ -123,10 +118,8 @@ export function VaultAllocationBar({ vault }: { vault: VaultData }) {
           </div>
         </div>
 
-        {/* Bar */}
         <div className="relative h-11 rounded-xl overflow-hidden flex bg-black/30 border border-white/10 mb-3">
           {safeTotalBalance === 0 ? (
-            // Empty State yang Elegan jika TVL 0
             <div className="w-full h-full flex items-center justify-center bg-white/[0.02]">
               <span className="text-[10px] uppercase tracking-widest text-gray-600 font-mono">
                 Vault Empty · Awaiting Deposit

@@ -12,9 +12,6 @@ import {
 import { useEffect, useState } from "react";
 import { formatUnits } from "viem";
 
-// ==========================================
-// 1. TYPES & DATA NORMALIZATION
-// ==========================================
 type EventType =
   | "AI_REBALANCE"
   | "USER_DEPOSIT"
@@ -70,9 +67,7 @@ export function HistoryView() {
   const GRAPHQL_ENDPOINT =
     "https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/version/latest";
 
-  // ==========================================
-  // 2. THE OMNISCIENT QUERY (Di dalam useEffect)
-  // ==========================================
+
   useEffect(() => {
     async function fetchMasterLedger() {
       try {
@@ -96,9 +91,6 @@ export function HistoryView() {
 
         const { data } = await res.json();
 
-        // ==========================================
-        // 3. DATA NORMALIZATION
-        // ==========================================
         const normalizedData: VaultEvent[] = [];
 
         if (data) {
@@ -174,11 +166,9 @@ export function HistoryView() {
     }
 
     fetchMasterLedger();
-  }, []); // Dependensi kosong, hanya berjalan 1x saat komponen di-mount
+  }, []); 
 
-  // ==========================================
-  // 4. FILTER & EXPORT LOGIC
-  // ==========================================
+
   const filteredEvents = events.filter((e) => {
     const matchesSearch = e.txHash
       .toLowerCase()
@@ -238,7 +228,6 @@ export function HistoryView() {
           <div className="relative">
             <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 z-10 pointer-events-none" />
 
-            {/* Tombol Pemicu Custom Dropdown */}
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               className="flex items-center justify-between w-full md:w-48 bg-black/40 border border-white/10 rounded-lg py-2 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-primary/50 transition-colors cursor-pointer"
@@ -265,7 +254,6 @@ export function HistoryView() {
               </svg>
             </button>
 
-            {/* Backdrop transparan untuk menutup menu saat area luar diklik */}
             {isDropdownOpen && (
               <div
                 className="fixed inset-0 z-40"

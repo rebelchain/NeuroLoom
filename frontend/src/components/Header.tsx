@@ -50,18 +50,18 @@ export function Header({
           <span className="text-xs md:text-sm font-medium text-gray-400 truncate">
             {pageTitle}
           </span>
-          <span className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-success/10 border border-success/25 text-[10px] text-success font-medium">
+          {/* <span className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-success/10 border border-success/25 text-[10px] text-success font-medium">
             <span className="w-1 h-1 rounded-full bg-success animate-pulse" />
             LIVE
-          </span>
+          </span> */}
         </div>
       </div>
 
       <div className="flex items-center gap-3 shrink-0">
-        <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full liquid-glass text-[11px]">
+        {/* <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full liquid-glass text-[11px]">
           <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
           <span className="text-gray-400 font-mono">BSC Testnet</span>
-        </div>
+        </div> */}
 
         {/* JURUS RAHASIA: Custom RainbowKit Button */}
         <ConnectButton.Custom>

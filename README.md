@@ -122,34 +122,9 @@ The core primitive of NeuroLoom is the `NeuroLoomVaultV2` contract, adopting the
 
 ## System Flow
 
-```text
-                ┌─────────────────────────────────────────────────────────────┐
-                │             AGENTIC HARNESS (Node.js Backend)               │
-                │ 1. ORCHESTRATOR: Analyzes DeFi state & delegates tasks      │
-                │ 2. WORKERS: Parallel processing via LangChain (qwen3.8-27b) │
-                │ 3. EVALUATOR: Refines strategy in a strict feedback loop    │
-                │ 4. EXECUTOR: Builds 'calldata' & signs Viem Transaction     │
-                └──────────────────────┬──────────────────────────────────────┘
-                                       │ RPC (https://data-seed-prebsc-2-s2.bnbchain.org:8545/)
-                        ┌──────────────▼─────────────┐
-                        │  NeuroLoomProxy (ERC1967)  │ <── Holds TVL (Tokens)
-                        │  deployed 0xe388…FF4E      │ <── Upgradable Storage
-                        └──────────────┬─────────────┘
-                                       │ delegates calls to
-                        ┌──────────────▼─────────────┐   ┌──────────────────────┐
-                        │  NeuroLoomVaultV2 (Logic)  │───▶   Chainlink Oracle   │
-                        │  1. onlyApprovedProtocol   │   │  latestRoundData()   │
-                        │  2. executeOmnichain()     │   └──────────────────────┘
-                        └──────────────┬─────────────┘
-                                       │ If safe, injects raw calldata
-           ┌───────────────────────────┼───────────────────────────┐
-           ▼                           ▼                           ▼
- ┌───────────────────┐       ┌───────────────────┐       ┌───────────────────┐
- │   PancakeSwap V3  │       │   Venus Lending   │       │   Any Future DEX  │
- │swapExactTokensFor…│       │    mint/supply    │       │     swap/add      │
- └───────────────────┘       └───────────────────┘       └───────────────────┘
-
-```
+<div align="center">
+  <img src="frontend/public/system-flow.png" width="100%" alt="NEUROLOOM — System Flow" />
+</div>
 
 ---
 

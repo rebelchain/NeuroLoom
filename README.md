@@ -12,7 +12,7 @@ Built for the **Indonesia Web3 Hackathon 2026**. **BNB Chain**.
 
 <p align="center">
   <img alt="Solidity 0.8.28" src="https://img.shields.io/badge/Solidity-0.8.28-363636?logo=solidity&logoColor=white&style=for-the-badge" />
-  <img alt="Next.js" src="https://img.shields.io/badge/Next.js-14-000000?logo=next.js&logoColor=white&style=for-the-badge" />
+  <img alt="Next.js" src="https://img.shields.io/badge/Next.js-16-000000?logo=next.js&logoColor=white&style=for-the-badge" />
   <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white&style=for-the-badge" />
   <img alt="LangChain" src="https://img.shields.io/badge/AI-LangChain%20%7C%20Qwen%203.8%2027b-10B981?style=for-the-badge" />
   <img alt="BSC Testnet" src="https://img.shields.io/badge/Network-BSC%20Testnet-F3BA2F?logo=binance&logoColor=black&style=for-the-badge" />
@@ -122,34 +122,9 @@ The core primitive of NeuroLoom is the `NeuroLoomVaultV2` contract, adopting the
 
 ## System Flow
 
-```text
-                ┌─────────────────────────────────────────────────────────────┐
-                │             AGENTIC HARNESS (Node.js Backend)               │
-                │ 1. ORCHESTRATOR: Analyzes DeFi state & delegates tasks      │
-                │ 2. WORKERS: Parallel processing via LangChain (qwen3.8-27b) │
-                │ 3. EVALUATOR: Refines strategy in a strict feedback loop    │
-                │ 4. EXECUTOR: Builds 'calldata' & signs Viem Transaction     │
-                └──────────────────────┬──────────────────────────────────────┘
-                                       │ RPC (https://data-seed-prebsc-2-s2.bnbchain.org:8545/)
-                        ┌──────────────▼─────────────┐
-                        │  NeuroLoomProxy (ERC1967)  │ <── Holds TVL (Tokens)
-                        │  deployed 0xe388…FF4E      │ <── Upgradable Storage
-                        └──────────────┬─────────────┘
-                                       │ delegates calls to
-                        ┌──────────────▼─────────────┐   ┌──────────────────────┐
-                        │  NeuroLoomVaultV2 (Logic)  │───▶   Chainlink Oracle   │
-                        │  1. onlyApprovedProtocol   │   │  latestRoundData()   │
-                        │  2. executeOmnichain()     │   └──────────────────────┘
-                        └──────────────┬─────────────┘
-                                       │ If safe, injects raw calldata
-           ┌───────────────────────────┼───────────────────────────┐
-           ▼                           ▼                           ▼
- ┌───────────────────┐       ┌───────────────────┐       ┌───────────────────┐
- │   PancakeSwap V3  │       │   Venus Lending   │       │   Any Future DEX  │
- │swapExactTokensFor…│       │    mint/supply    │       │     swap/add      │
- └───────────────────┘       └───────────────────┘       └───────────────────┘
-
-```
+<div align="center">
+  <img src="frontend/public/system-flow.png" width="100%" alt="NEUROLOOM — System Flow" />
+</div>
 
 ---
 

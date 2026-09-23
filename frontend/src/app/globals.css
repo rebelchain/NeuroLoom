@@ -1,10 +1,9 @@
 @import "tailwindcss";
 @plugin "daisyui";
 
-/* =========================================
+/* 
    TAILWIND V4 THEME CONFIGURATION
-   Warna disesuaikan khusus untuk NeuroLoom
-========================================= */
+ */
 @theme {
   --color-background: #04060d;
   --color-surface: #0b1120;
@@ -18,13 +17,13 @@
   --color-info-light: #22d3ee;
   --color-success: #10b981;
   --color-warning: #f59e0b;
-  --color-error: #ef4444; /* Sesuai dengan tailwind standar */
+  --color-error: #ef4444; 
 
   --color-text: #ffffff;
   --color-text-secondary: #aeb9cf;
   --color-text-muted: #6b7891;
 
-  /* Animasi Kustom dari Referensi & NeuroLoom */
+ 
   --animate-fade-in-up: fade-in-up 0.6s ease-out both;
   --animate-float: float 6s ease-in-out infinite;
   --animate-pulse-slow: pulse-slow 4s ease-in-out infinite;
@@ -35,9 +34,9 @@
   --animate-spin-slow: spin-slow 20s linear infinite;
 }
 
-/* =========================================
+/* 
    KEYFRAMES 
-========================================= */
+ */
 @keyframes fade-in-up {
   from {
     opacity: 0;
@@ -118,9 +117,9 @@
   }
 }
 
-/* =========================================
+/* 
    BASE STYLES & SCROLLBAR
-========================================= */
+ */
 html {
   scroll-behavior: smooth;
 }
@@ -132,7 +131,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Dukungan untuk Firefox */
+/*  Firefox */
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--color-border) var(--color-background);
@@ -153,11 +152,11 @@ body {
   background: var(--color-primary) !important;
 }
 
-/* =========================================
+/* 
    UTILITIES KUSTOM NEUROLOOM
-========================================= */
+ */
 
-/* Grid background - Garis-garis presisi ala terminal AI */
+
 .grid-bg {
   background-image:
     linear-gradient(rgba(139, 92, 246, 0.15) 1px, transparent 1px),
@@ -171,7 +170,7 @@ body {
   );
 }
 
-/* Teks Gradien Shimmer Khusus NeuroLoom */
+
 .gradient-text-shimmer {
   background: linear-gradient(
     90deg,
@@ -188,7 +187,7 @@ body {
   animation: shimmer 8s linear infinite;
 }
 
-/* Mesh background animasi yang lebih Cyberpunk */
+
 .mesh-gradient {
   background:
     radial-gradient(at 20% 30%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
@@ -198,9 +197,9 @@ body {
   animation: mesh 12s ease-in-out infinite;
 }
 
-/* =========================================
-   ULTIMATE LIQUID GLASS EFFECTS (Adapted from Reference)
-========================================= */
+/* 
+   ULTIMATE LIQUID GLASS EFFECTS 
+ */
 
 /* Base Liquid Glass */
 .liquid-glass {
@@ -213,14 +212,14 @@ body {
   );
   -webkit-backdrop-filter: blur(28px) saturate(150%);
   backdrop-filter: blur(28px) saturate(150%);
-  border: 1px solid rgba(139, 92, 246, 0.15); /* Purple hint */
+  border: 1px solid rgba(139, 92, 246, 0.15); 
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.1),
     0 20px 50px -20px rgba(0, 0, 0, 0.5);
   transition: all 0.35s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
-/* Refractive Edge Magic */
+
 .liquid-glass::before {
   content: "";
   position: absolute;
@@ -246,7 +245,7 @@ body {
   z-index: 1;
 }
 
-/* Sheen Sweep Animation */
+
 .liquid-glass::after {
   content: "";
   position: absolute;
@@ -280,7 +279,6 @@ body {
   opacity: 1;
 }
 
-/* Pressable variant for buttons */
 .liquid-glass-button {
   cursor: pointer;
 }
@@ -288,7 +286,7 @@ body {
   transform: translateY(0) scale(0.98);
 }
 
-/* Liquid Glass Strong (Untuk Panel yang Butuh Kontras Tinggi) */
+
 .liquid-glass-strong {
   position: relative;
   isolation: isolate;
@@ -307,7 +305,6 @@ body {
     0 40px 90px -30px rgba(0, 0, 0, 0.7);
 }
 
-/* Liquid Glass Nav (Transparan & Nge-blend dengan background) */
 .liquid-glass-nav {
   background: linear-gradient(
     180deg,
@@ -322,7 +319,6 @@ body {
     0 16px 40px -20px rgba(0, 0, 0, 0.6);
 }
 
-/* Tombol CTA Utama (Cyan & Purple Mix) */
 .liquid-cta {
   background: linear-gradient(
     145deg,
@@ -349,7 +345,6 @@ body {
     0 20px 48px -14px rgba(139, 92, 246, 0.9);
 }
 
-/* Tekstur Noise halus agar tidak terlihat seperti template plastik */
 .noise-overlay::after {
   content: "";
   position: absolute;

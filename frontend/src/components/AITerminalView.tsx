@@ -14,7 +14,6 @@ export function AITerminalView() {
         />
       </div>
 
-      {/* Nanti EventLog raksasanya kita taruh di sini */}
       <div className="p-12 text-center text-gray-500 mt-4 border border-white/5 rounded-3xl bg-white/[0.02] shadow-inner">
         <AIEventLog />
       </div>

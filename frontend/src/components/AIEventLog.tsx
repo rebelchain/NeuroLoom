@@ -19,27 +19,7 @@ const GRAPHQL_URL =
   transactionHash: string;
 }
 
-// const mockAILogs = [
-//   "[SYSTEM] NeuroLoom Autonomous Agent is now ONLINE.",
-//   "⚠️ [SCENARIO TEST] Market Stabilized + High Volume -> Safe entry for AMM Yield Pairing.",
-//   "[AGENT] Analyzing market conditions and memory state...",
-//   "[ORCHESTRATOR] Analyzing AMM liquidity and planning task delegation...",
-//   "[ORCHESTRATOR] Delegating 1 specialized approach to minimize API overhead.",
-//   "[WORKERS] Generating specialized yield and risk analysis...",
-//   " -> [WORKER 1 | YIELD_STRATEGIST] Recommends: BUY_WBNB",
-//   "[SYNTHESIZER] Evaluating worker reports and finalizing multi-protocol routing decision...",
-//   "[EVALUATOR] Initiating Risk Management Audit Loop...",
-//   " -> [ITERATION 1] Auditing proposed decision... Status: PASS",
-//   "[FINAL DECISION] Action: BUY_WBNB | Allocation: 20%",
-//   "[REASONING] Deploying capital into high-yield pool while market is stable.",
-//   "[ON-CHAIN EXECUTION] Preparing V3 Multi-Protocol Routing for BUY_WBNB...",
-//   "[NETWORK] Fetching live balance from Vault & Chainlink Oracle...",
-//   "[MATH] Minimum WBNB Target (2% Slippage) calculated and verified.",
-//   "[NETWORK] Simulating Vault execution and security guardrails...",
-//   "[NETWORK] Simulation passed! Strict Oracle and Protocol Whitelist checks cleared.",
-//   ">>> TRANSACTION BROADCASTED TO BSC TESTNET <<<",
-//   "[SYNC] Awaiting subgraph indexation from The Graph...",
-// ];
+
 
 export function AIEventLog() {
   const [events, setEvents] = useState<GraphRebalanceData[]>([]);
@@ -48,7 +28,6 @@ export function AIEventLog() {
   const [visibleLogs, setVisibleLogs] = useState<string[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // LOGIKA TERMINAL AI
   // useEffect(() => {
   //   let currentIndex = 0;
   //   let isWaiting = false;
@@ -78,7 +57,6 @@ export function AIEventLog() {
 
   //   return () => clearInterval(interval);
   // }, []);
-  // 1. Polling Data dari API setiap 1 detik
   useEffect(() => {
     const fetchLogs = async () => {
       try {
@@ -94,18 +72,17 @@ export function AIEventLog() {
       }
     };
 
-    const interval = setInterval(fetchLogs, 1000); // Cek tiap 1 detik
+    const interval = setInterval(fetchLogs, 1000); 
     return () => clearInterval(interval);
   }, [visibleLogs.length]);
 
-  // 2. Auto-scroll ke bawah saat ada log baru
+
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [visibleLogs]);
 
-  // Fungsi tambahan untuk membersihkan log secara manual (Berguna saat take ulang video)
   const clearLogs = async () => {
     await fetch("/api/ai-logs", {
       method: "POST",
@@ -114,7 +91,7 @@ export function AIEventLog() {
     setVisibleLogs([]);
   };
 
-  // LOGIKA THE GRAPH OMNICHAIN SETTLEMENT
+
   useEffect(() => {
     let isMounted = true;
 
@@ -156,7 +133,6 @@ export function AIEventLog() {
     };
 
     void fetchGraphData();
-    // Memanggil API setiap 10 detik agar terlihat live di background saat presentasi
     const interval = setInterval(fetchGraphData, 10000);
 
     return () => {
@@ -272,7 +248,6 @@ export function AIEventLog() {
               );
             })
           )}
-          {/* Kursor berkedip */}
           <div className="mt-1 flex items-center">
             <span className="text-gray-600 mr-2">{">"}</span>
             <span className="w-2 h-4 bg-primary animate-pulse inline-block"></span>
@@ -280,7 +255,6 @@ export function AIEventLog() {
         </div>
       </div>
 
-      {/* BOTTOM PANEL: THE GRAPH EXECUTION LOG */}
       <header className="flex justify-between items-center p-5 border-b border-white/[0.05] bg-black/20">
         <div className="flex items-center gap-2">
           <Activity className="w-4 h-4 text-success" />
@@ -336,7 +310,6 @@ export function AIEventLog() {
                   </td>
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-2">
-                      {/* [TWEAK 2 & 3]: Ubah warna ke putih netral dan gunakan formatUnits */}
                       <span className="text-gray-200 font-medium">
                         {Number(
                           formatUnits(BigInt(event.amountIn), 18),

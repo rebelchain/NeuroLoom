@@ -7,10 +7,8 @@ import { KPICard } from "./KPICard";
 import { PageHero } from "./PageHero";
 import { VaultPanel } from "./VaultPanel";
 
-// Alamat Smart Contract Proxy V2 milikmu
 const VAULT_ADDRESS = "0xe38887648d7272e9Eb3C06628767bb3d84a9FF4E";
 
-// Minimal ABI untuk membaca TVL
 const vaultABI = [
   {
     inputs: [],
@@ -22,24 +20,20 @@ const vaultABI = [
 ] as const;
 
 export function DashboardView() {
-  // 🔗 WAGMI HOOK: Membaca totalAssets dari BSC Testnet secara real-time
   const { data: totalAssetsData, isLoading: isTvlLoading } = useReadContract({
     address: VAULT_ADDRESS,
     abi: vaultABI,
     functionName: "totalAssets",
     query: {
-      refetchInterval: 10000, // Auto-refresh data setiap 10 detik!
+      refetchInterval: 10000,
     },
   });
 
-  // Mengonversi saldo dari Wei (18 desimal) ke format desimal biasa
-  // Jika saldo kosong atau error, fallback ke 0
   const realTVL = totalAssetsData ? Number(totalAssetsData) / 1e18 : 0;
-
 
   return (
     <div className="space-y-6">
-      {/* 1. HERO BANNER */}
+      {/* HERO BANNER */}
       <div className="-mt-6">
         <PageHero
           badge="Overview · Autonomous Vault"
@@ -63,7 +57,7 @@ export function DashboardView() {
         />
       </div>
 
-      {/* 2. KPI METRICS */}
+      {/* KPI METRICS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         <KPICard
           title="Total Value Locked"
@@ -74,7 +68,7 @@ export function DashboardView() {
           changeType="positive"
           subtext="Verified via Wagmi"
           delay={0}
-          isLoading={isTvlLoading} 
+          isLoading={isTvlLoading}
         />
         <KPICard
           title="Current APY"
@@ -96,7 +90,7 @@ export function DashboardView() {
           changeType="neutral"
           subtext="Awaiting new routes"
           delay={160}
-          isLoading={isTvlLoading} 
+          isLoading={isTvlLoading}
         />
         <KPICard
           title="AI Rebalances"
@@ -111,7 +105,7 @@ export function DashboardView() {
         />
       </div>
 
-      {/* 3. TERMINAL UI GRID */}
+      {/* TERMINAL UI GRID */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start mt-8">
         <div id="vault-panel-section" className="lg:col-span-1 h-full">
           <VaultPanel />

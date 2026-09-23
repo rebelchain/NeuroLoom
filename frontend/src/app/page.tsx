@@ -30,9 +30,7 @@ import { SmartVaultsView } from "../components/SmartVaultsView";
 import { StepCard } from "../components/StepCard";
 import { useTyping } from "../lib/useTyping";
 
-// ==========================================
-// KONFIGURASI ANIMASI & TEMA (ATM dari Referensi)
-// ==========================================
+
 const ease = [0.4, 0, 0.2, 1] as const;
 
 const pageVariants = {
@@ -54,7 +52,6 @@ const PAGE_TITLES: Record<PageId, string> = {
   history: "History",
 };
 
-// Pendaran cahaya dinamis yang berubah saat pindah menu
 const SECTION_ACCENTS: Record<PageId, string> = {
   overview:
     "radial-gradient(at 15% 20%, rgba(139,92,246,0.16) 0%, transparent 55%), radial-gradient(at 85% 88%, rgba(6,182,212,0.12) 0%, transparent 50%)",
@@ -88,7 +85,7 @@ export default function NeuroLoomApp() {
       window.removeEventListener("app-navigate", handleCustomNavigate);
   }, []);
 
-  // Kunci scroll body saat menu mobile terbuka
+
   useEffect(() => {
     if (mobileOpen) {
       document.body.style.overflow = "hidden";
@@ -110,7 +107,7 @@ export default function NeuroLoomApp() {
     setMobileOpen(false);
   };
 
-  // Saklar Halaman (Router Manual)
+
   const renderPage = () => {
     switch (activePage) {
       case "overview":
@@ -128,9 +125,8 @@ export default function NeuroLoomApp() {
 
   return (
     <>
-      {/* =========================================
-          MODAL GERBANG IDENTITAS
-      ========================================= */}
+      {/* 
+          MODAL GERBANG IDENTITAS */}
       <IdentityGateModal
         isOpen={showGate}
         onClose={() => setShowGate(false)}
@@ -141,9 +137,7 @@ export default function NeuroLoomApp() {
       />
       <AnimatePresence mode="wait">
         {view === "landing" ? (
-          /* =========================================
-             VIEW 1: LANDING PAGE
-          ========================================= */
+          /* VIEW 1: LANDING PAGE */
           <motion.div
             key="landing"
             initial={{ opacity: 0 }}
@@ -151,11 +145,8 @@ export default function NeuroLoomApp() {
             exit={{ opacity: 0, transition: { duration: 0.3 } }}
             className="min-h-screen bg-[#04060d] text-white relative flex flex-col overflow-x-hidden font-sans"
           >
-            {/* Latar Belakang Interaktif Baru */}
             <ParticlesBackground />
-            {/* <FloatingCoins /> */}
 
-            {/* Latar Belakang Statis (Di bawah partikel) */}
             <div
               className="fixed inset-0 pointer-events-none opacity-20 z-0"
               style={{
@@ -166,7 +157,6 @@ export default function NeuroLoomApp() {
 
             <nav className="fixed top-0 left-0 right-0 w-full z-50 border-b border-white/[0.05] bg-[#04060d]/80 backdrop-blur-xl">
               <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-                {/* Logo: Bisa diklik untuk otomatis scroll mulus ke paling atas */}
                 <div
                   className="flex items-center gap-3 cursor-pointer"
                   onClick={() =>
@@ -188,7 +178,6 @@ export default function NeuroLoomApp() {
                   </span>
                 </div>
 
-                {/* UBAHAN 2: Routing antar Section & Tambahan link Github */}
                 <div className="hidden md:flex items-center gap-8 font-semibold text-xs uppercase tracking-[0.1em]">
                   <button
                     onClick={() =>
@@ -221,7 +210,6 @@ export default function NeuroLoomApp() {
                     Ecosystem
                   </button>
 
-                  {/* Link Github */}
                   <a
                     href="https://github.com/r3belchain/NeuroLoom"
                     target="_blank"
@@ -239,7 +227,6 @@ export default function NeuroLoomApp() {
                   </a>
                 </div>
 
-                {/* UBAHAN 3: Sembunyikan Launch Dashboard di Mobile (tambah class 'hidden md:flex') */}
                 <button
                   onClick={() => setShowGate(true)}
                   className="hidden md:flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/[0.05] border border-white/[0.1] hover:bg-white/[0.1] transition-colors text-sm font-semibold"
@@ -282,9 +269,8 @@ export default function NeuroLoomApp() {
               </section>
 
               <LiveTicker />
-              {/* =========================================
-                  SEKSI: THE PROBLEM & FEATURES
-              ========================================= */}
+              {/* 
+                  SEKSI: THE PROBLEM & FEATURES */}
               <section
                 id="features"
                 className="py-24 px-6 relative border-t border-white/[0.02] mt-12 bg-gradient-to-b from-transparent to-[#04060d]"
@@ -306,7 +292,6 @@ export default function NeuroLoomApp() {
                   </div>
 
                   <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-stretch">
-                    {/* Problem Narrative (Kiri) */}
                     <div className="lg:col-span-3 flex flex-col gap-6">
                       <div className="liquid-glass rounded-2xl p-6 md:p-8 flex-1 border border-white/[0.05]">
                         <div className="text-[10px] uppercase tracking-[0.2em] text-gray-500 mb-5">
@@ -352,7 +337,7 @@ export default function NeuroLoomApp() {
                       </figure>
                     </div>
 
-                    {/* The Answer / Features (Kanan) */}
+
                     <div className="lg:col-span-2 flex flex-col gap-6">
                       <FeatureCard
                         featured
@@ -393,9 +378,8 @@ export default function NeuroLoomApp() {
                   </div>
                 </div>
               </section>
-              {/* =========================================
-                  SEKSI: HOW IT WORKS
-              ========================================= */}
+              {/*
+                  SEKSI: HOW IT WORKS */}
               <section
                 id="how-it-works"
                 className="py-24 px-6 relative border-t border-white/[0.02]"
@@ -414,7 +398,6 @@ export default function NeuroLoomApp() {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative mb-10">
-                    {/* Garis Penghubung (Desktop) */}
                     <div className="hidden md:block absolute top-8 left-[18%] right-[18%] h-px">
                       <div className="w-full h-full bg-gradient-to-r from-primary/20 via-primary/40 to-primary/20" />
                       <div
@@ -446,7 +429,6 @@ export default function NeuroLoomApp() {
                     />
                   </div>
 
-                  {/* Panel Detail Terminal UI */}
                   <div className="max-w-4xl mx-auto liquid-glass rounded-2xl p-6 md:p-10 relative overflow-hidden border border-white/5">
                     {activeStep === 0 && (
                       <div className="text-center animate-fade-in-up">
@@ -547,9 +529,6 @@ export default function NeuroLoomApp() {
                 </div>
               </section>
 
-              {/* =========================================
-                  SEKSI: SUPPORTED PROTOCOLS
-              ========================================= */}
               <section
                 id="protocols"
                 className="py-24 px-6 relative border-t border-white/[0.02]"
@@ -611,9 +590,8 @@ export default function NeuroLoomApp() {
             </main>
           </motion.div>
         ) : (
-          /* =========================================
-             VIEW 2: DASHBOARD APPLICATION
-          ========================================= */
+          /* 
+             VIEW 2: DASHBOARD APPLICATION */
           <motion.div
             key="app"
             variants={shellVariants}
@@ -622,7 +600,6 @@ export default function NeuroLoomApp() {
             exit="exit"
             className="relative flex h-screen bg-[#04060d] text-white overflow-hidden font-sans"
           >
-            {/* Latar Belakang Ambient (Termasuk Grid CSS kita) */}
             <div
               className="fixed inset-0 mesh-gradient pointer-events-none"
               aria-hidden
@@ -632,7 +609,6 @@ export default function NeuroLoomApp() {
               aria-hidden
             />
 
-            {/* Aksen Pendaran Warna Berdasarkan Halaman Aktif */}
             <AnimatePresence>
               <motion.div
                 key={activePage}

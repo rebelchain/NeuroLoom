@@ -164,7 +164,7 @@ NeuroLoom/
 |       │
 |       └── tests/                 # On-Chain Provisioning & Operational Scripts (due to rate limit API)
 ├── contracts/                     # Hardhat v3 workspace (ERC-4626 Vault, Proxy, Tests)
-│   ├── contracts/                 # NeuroLoomVaultV2.sol, NeuroLoomProxy.sol, MockOracle.sol, MockERC20.sol, MockDex.sol
+│   ├── contracts/                 # NeuroLoomVault.sol, NeuroLoomFactory.sol, NeuroLoomProxy.sol, MockOracle.sol, MockERC20.sol, MockDex.sol
 │   ├── scripts/                   # Deployment, smoke tests, whitelist protocol, and UUPS upgrades
 │   └── test/                      # E2E Slippage & Security Guard MEV tests
 └── neuroloom-bsc-testnet/         # The Graph Subgraph (Event Indexing)

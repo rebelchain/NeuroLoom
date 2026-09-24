@@ -1,5 +1,5 @@
 import * as dotenvx from "@dotenvx/dotenvx";
-import { executeTradeOnChain } from "../chain/executor.js";
+// import { executeTradeOnChain } from "../chain/executor.js";
 import { pushLog } from "../utils/push-log.js";
 dotenvx.config();
 
@@ -13,7 +13,7 @@ async function runUnwind() {
     await pushLog(
       "[SYSTEM] Injecting manual parameters: Action = SELL_WBNB, Amount = 100%",
     );
-    await executeTradeOnChain("SELL_WBNB", 100);
+    // await executeTradeOnChain("SELL_WBNB", 100);
 
     await pushLog(
       "\nSUCCESS ✅  Unwind complete — funds returned to USDT in the vault!",

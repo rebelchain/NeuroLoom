@@ -1,9 +1,8 @@
 export const CONFIG = {
-  // Samakan dengan Hardhat agar 100% tersinkronisasi
   RPC_URL: "https://data-seed-prebsc-2-s2.bnbchain.org:8545/",
-  VAULT_PROXY: "0xe38887648d7272e9Eb3C06628767bb3d84a9FF4E",
+  VAULT_PROXY: "0xf94bF05960FE6E072B7dD6e3f4702063790a4640",
   TOKENS: {
     WBNB: "0xae13d989daC2f0dEbFf460aC112a837C89BAa7cd",
-    USDT: "0xFa45Fd644B34606cABFb7c8acc546E770e248b83",
+    USDT: "0xA11c8D9DC9b66E209Ef60F0C8D969D3CD988782c",
   },
 } as const;

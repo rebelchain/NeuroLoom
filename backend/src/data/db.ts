@@ -1,41 +1,53 @@
-import { Database, open } from "sqlite";
-import sqlite3 from "sqlite3";
+import fs from "fs";
+import path from "path";
 
-export async function getDb(): Promise<Database> {
-  const db = await open({
-    filename: "./neuro_memory.sqlite",
-    driver: sqlite3.Database,
-  });
+const DB_PATH = path.resolve(process.cwd(), "trade_journal.json");
 
-  await db.exec(`
-    CREATE TABLE IF NOT EXISTS trade_history (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      action TEXT NOT NULL,
-      amountPercentage INTEGER NOT NULL,
-      reasoning TEXT,
-      timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-
-  return db;
+export interface TradeRecord {
+  timestamp: string;
+  vaultStrategy: string;
+  action: string;
+  executedPrice: number;
+  rsiAtExecution: number;
+  reasoning: string;
+  status: string;
 }
 
+// Inisialisasi DB JSON jika belum ada
+if (!fs.existsSync(DB_PATH)) {
+  fs.writeFileSync(DB_PATH, JSON.stringify([]));
+}
+
+// Menerima 5 atau 6 argumen sesuai dengan yang dipanggil di index.ts
 export async function logAIDecision(
+  vaultStrategy: string,
   action: string,
-  amountPercentage: number,
+  executedPrice: number,
+  rsiAtExecution: number,
   reasoning: string,
-) {
-  const db = await getDb();
-  await db.run(
-    "INSERT INTO trade_history (action, amountPercentage, reasoning) VALUES (?, ?, ?)",
-    [action, amountPercentage, reasoning],
-  );
+  status: string = "SUCCESS", 
+): Promise<void> {
+  const data = fs.readFileSync(DB_PATH, "utf-8");
+  const records: TradeRecord[] = JSON.parse(data);
+
+  const newRecord: TradeRecord = {
+    timestamp: new Date().toISOString(),
+    vaultStrategy,
+    action,
+    executedPrice,
+    rsiAtExecution,
+    reasoning,
+    status,
+  };
+
+  records.push(newRecord);
+  fs.writeFileSync(DB_PATH, JSON.stringify(records, null, 2));
 }
 
-export async function getRecentMemories(limit: number = 3) {
-  const db = await getDb();
-  return await db.all(
-    "SELECT action, amountPercentage, reasoning, timestamp FROM trade_history ORDER BY id DESC LIMIT ?",
-    [limit],
-  );
+export async function getRecentMemories(
+  limit: number = 5,
+): Promise<TradeRecord[]> {
+  const data = fs.readFileSync(DB_PATH, "utf-8");
+  const records: TradeRecord[] = JSON.parse(data);
+  return records.slice(-limit);
 }

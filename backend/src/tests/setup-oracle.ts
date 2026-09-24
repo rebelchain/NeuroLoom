@@ -5,7 +5,7 @@ import { bscTestnet } from "viem/chains";
 import { CONFIG } from "../config.js";
 dotenvx.config();
 
-import VaultABI from "../abi/NeuroLoomVaultV2.json" with { type: "json" };
+import VaultABI from "../abi/NeuroLoomVault.json" with { type: "json" };
 
 async function configureOracle() {
   console.log("Connecting Chainlink Oracke to Vault");

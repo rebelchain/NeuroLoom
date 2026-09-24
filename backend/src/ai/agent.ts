@@ -1,152 +1,87 @@
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { ChatGroq } from "@langchain/groq";
+import { CONFIG } from "../config.js";
 
-export interface AIDecision {
-  action: "BUY_WBNB" | "SELL_WBNB" | "HOLD";
-  reasoning: string;
-  amountPercentage: number;
+// regex xml tags
+export function extractXML(text: string, tag: string): string {
+  const regex = new RegExp(`<${tag}>([\\s\\S]*?)</${tag}>`, "i");
+  const match = text.match(regex);
+  return match ? match[1].trim() : "";
 }
 
-interface WorkerTask {
-  type: string;
-  description: string;
+export interface ToolDraft {
+  toolName: string;
+  args: any;
 }
 
-export async function getAIDecision(
+export async function generateDecision(
   marketData: any,
   vaultState: any,
   recentMemories: any[],
-): Promise<AIDecision> {
+  feedbackContext: string = "",
+): Promise<{ thoughts: string; draft: ToolDraft | null }> {
   const llm = new ChatGroq({
     apiKey: process.env.GROQ_API_KEY,
     model: "qwen/qwen3.8-27b",
-    temperature: 0.0,
-    maxTokens: 2048,
+    temperature: 0.1,
   });
 
-  const stateContext = `
-CURRENT DEFI STATE:
-- Protocol Data (AMM Depth & Lending Rates): ${JSON.stringify(marketData)}
-- Vault Balances: ${JSON.stringify(vaultState)}
-- Recent Memories (Last Routing Decisions): ${JSON.stringify(recentMemories)}
-  `;
+const VAULT_STRATEGIES = `
+1. "The Yield Farm": execute_venus_deposit. Rule: Max 80% allocation (leave 20% buffer).
+2. "Bluechip Momentum": execute_pancake_swap (BUY_WBNB / SELL_WBNB). Rule: Requires clear reversal Market Structure.
+3. "Degen Accumulator": execute_pancake_swap (BUY_BTCB / SELL_BTCB). Rule: High volatility strategy.
+
+CRITICAL RULE FOR amountInWei: 
+amountInWei represents the amount of INPUT tokens you are spending, NOT the output you want. 
+If action is BUY_WBNB, you are spending USDT. Therefore, if you want to spend 4,000 USDT, amountInWei MUST be "4000000000000000000000" (4000 * 10^18). Do NOT convert it to WBNB amounts!
+`;
+
+  const systemPrompt = `You are the NeuroLoom Quant Agent. 
+Your goal is to complete the execution task based on the DEFI STATE. 
+If there is feedback from your previous generations, you must reflect on it to improve your solution.
+
+AVAILABLE STRATEGIES:
+${VAULT_STRATEGIES}
+
+Output strictly in this XML format:
+<thoughts>
+[Your understanding of the TAAPI market structure, Risk/Reward calculation, and how you plan to improve if there is feedback]
+</thoughts>
+
+<response>
+[A valid JSON object representing your execution plan. Example: {"toolName": "execute_pancake_swap", "args": {"vaultAddress": "${CONFIG.VAULT_PROXY}", "action": "BUY_WBNB", "amountInWei": "5000000000000000000", "currentPriceStr": "590"}}]
+</response>
+`;
+
+  const replacer = (key: string, value: any) =>
+    typeof value === "bigint" ? value.toString() : value;
+  let userContext = `DEFI STATE: ${JSON.stringify(marketData)}\nVAULT BALANCE: ${JSON.stringify(vaultState, replacer)}\nMEMORIES: ${JSON.stringify(recentMemories)}`;
+
+  if (feedbackContext) {
+    userContext += `\n\nFEEDBACK FROM RISK OFFICER:\n${feedbackContext}\nYou MUST fix your previous draft based on this feedback.`;
+  }
 
   try {
-    console.log(
-      "\n[ORCHESTRATOR] Analyzing AMM liquidity and planning task delegation...",
-    );
-
-    // Limit the Orchestrator to delegating ONLY a maximum of 1 task (to save API quota)
-    const orchestratorPrompt = `You are the Lead Orchestrator for the NeuroLoom DeFi Yield Optimizer.
-Analyze the current on-chain state (AMM liquidity depth, lending pool utilization rates, and vault balances).
-Delegate EXACTLY ONE (1) analytical task to a specialized worker based on current DeFi yield opportunities, impermanent loss risks, and slippage data.
-
-Return ONLY a valid JSON object matching this structure without any markdown formatting:
-{
-  "analysis": "Brief explanation of what yield strategies or risk checks are needed.",
-  "tasks": [
-    { "type": "YIELD_STRATEGIST", "description": "Specific instruction for this worker" }
-  ]
-}`;
-
-    const orchestratorResponse = await llm.invoke([
-      new SystemMessage(orchestratorPrompt),
-      new HumanMessage(stateContext),
+    const response = await llm.invoke([
+      new SystemMessage(systemPrompt),
+      new HumanMessage(userContext),
     ]);
 
-    const plan = JSON.parse(
-      orchestratorResponse.content
-        .toString()
-        .replace(/```json|```/g, "")
-        .trim(),
-    );
-    console.log(
-      `[ORCHESTRATOR] Delegating ${plan.tasks.length} specialized approaches to minimize API overhead.`,
-    );
+    const rawContent = response.content.toString();
+    const thoughts = extractXML(rawContent, "thoughts");
+    const responseJsonString = extractXML(rawContent, "response");
 
-   
-    console.log("[WORKERS] Generating specialized yield and risk analysis...");
+    if (!responseJsonString) return { thoughts, draft: null };
 
-    const workerPromises = plan.tasks.map(async (task: WorkerTask) => {
-      const workerSystemPrompt = `You are a specialized Web3 DeFi AI Worker. 
-Role: ${task.type}. 
-Your Assignment: ${task.description}.
+    const cleanJson = responseJsonString.replace(/```json|```/g, "").trim();
+    const draft: ToolDraft = JSON.parse(cleanJson);
 
-Analyze the provided DeFi state strictly from your role's perspective. Focus on AMM mechanics, APY, utilization rates, and on-chain liquidity (NOT order books or CEX momentum).
-Return ONLY a valid JSON object matching this structure without markdown:
-{
-  "perspective": "${task.type}",
-  "findings": "Your specific on-chain analysis and yield calculation",
-  "recommendation": "BUY_WBNB" | "SELL_WBNB" | "HOLD"
-}`;
-
-      const response = await llm.invoke([
-        new SystemMessage(workerSystemPrompt),
-        new HumanMessage(stateContext),
-      ]);
-
-      return JSON.parse(
-        response.content
-          .toString()
-          .replace(/```json|```/g, "")
-          .trim(),
-      );
-    });
-
-    const workerResults = await Promise.all(workerPromises);
-
-    workerResults.forEach((res: any, idx: number) => {
-      console.log(
-        `  -> [WORKER ${idx + 1} | ${res.perspective}] Recommends: ${res.recommendation}`,
-      );
-    });
-
-    console.log(
-      "[SYNTHESIZER] Evaluating worker reports and finalizing multi-protocol routing decision...",
-    );
-
-    const synthesizerPrompt = `You are the NeuroLoom Supreme Synthesizer.
-Review the CURRENT DEFI STATE and the WORKER REPORTS below.
-Make the final optimal yield-routing decision.
-
-STRICT RULES:
-1. Output ONLY a valid JSON object without markdown formatting.
-2. CRITICAL PROTOCOL DATA: The PancakeSwap USDT/WBNB liquidity pool is currently offering a verified 145% APY due to high volume. 
-3. Because idle USDT earns 0%, you MUST output action "BUY_WBNB" to deploy capital into this high-yield pool. DO NOT output HOLD.
-4. amountPercentage MUST BE exactly 20.
-
-WORKER REPORTS:
-${JSON.stringify(workerResults)}
-
-JSON FORMAT EXPECTED:
-{
-  "action": "BUY_WBNB" | "SELL_WBNB" | "HOLD",
-  "reasoning": "One clear sentence explaining the DeFi yield or risk-management rationale.",
-  "amountPercentage": 20
-}`;
-
-    const finalResponse = await llm.invoke([
-      new SystemMessage(synthesizerPrompt),
-      new HumanMessage(stateContext),
-    ]);
-
-    const decision: AIDecision = JSON.parse(
-      finalResponse.content
-        .toString()
-        .replace(/```json|```/g, "")
-        .trim(),
-    );
-    return decision;
+    return { thoughts, draft };
   } catch (error) {
     console.error(
-      "[CRITICAL] AI Workflow failed (Likely JSON Parsing Error or API Rate Limit):",
+      "[AGENT ERROR] Failed to assemble the XML/JSON structure:",
       error,
     );
-    return {
-      action: "HOLD",
-      reasoning:
-        "System error or API failure, defaulting to safe hold to protect TVL from unverified routing.",
-      amountPercentage: 0,
-    };
+    return { thoughts: "Internal API Error", draft: null };
   }
 }

@@ -8,11 +8,11 @@ export const publicClient = createPublicClient({
 
 async function testConnection() {
   try {
-    console.log("⏳ Menghubungkan ke BSC Testnet...");
+    console.log("Connected to BSC Tesnet");
     const blockNumber = await publicClient.getBlockNumber();
-    console.log(`✅ Berhasil! Node aktif pada Blok Saat Ini: ${blockNumber}`);
+    console.log(`Success: ${blockNumber}`);
   } catch (error) {
-    console.error("❌ Gagal terhubung ke RPC:", error);
+    console.error("❌ Failed to connect RPC:", error);
   }
 }
 

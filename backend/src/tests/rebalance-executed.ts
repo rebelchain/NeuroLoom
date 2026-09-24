@@ -1,5 +1,5 @@
 import * as dotenvx from "@dotenvx/dotenvx";
-import { executeTradeOnChain } from "../chain/executor.js";
+// import { executeTradeOnChain } from "../chain/executor.js";
 import {pushLog} from "../utils/push-log.js"
 dotenvx.config();
 
@@ -13,7 +13,7 @@ async function runManualTrigger() {
     await pushLog(
       "[SYSTEM] -> Injecting manual parameters: Action = BUY_WBNB, Amount = 80%",
     );
-    await executeTradeOnChain("BUY_WBNB", 0.5);
+    // await executeTradeOnChain("BUY_WBNB", 0.5);
 
     await pushLog("\nSUCCESS ✅ -> Manual trigger completed!");
   } catch (error) {

@@ -1,132 +1,58 @@
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { ChatGroq } from "@langchain/groq";
-import { AIDecision } from "./agent.js";
+import { ToolDraft, extractXML } from "./agent.js";
+import { formatEther } from "viem";
 
-function extractJSON(rawText: string): any {
-  const jsonMatch = rawText.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
-  if (!jsonMatch) throw new Error("No JSON structure found in response.");
-  return JSON.parse(jsonMatch[0]);
-}
-
-async function evaluateDecision(
+export async function evaluateDecision(
   llm: ChatGroq,
-  draft: AIDecision,
+  draft: ToolDraft,
   marketData: any,
-  vaultState: any,
+  vaultBalanceWei: bigint,
 ): Promise<{
   status: "PASS" | "NEEDS_IMPROVEMENT" | "FAIL";
   feedback: string;
 }> {
-  const evaluatorPrompt = `You are the Chief Risk Officer for the NeuroLoom DeFi Vault.
-Evaluate the proposed yield routing decision based on the following strict rules:
-1. Risk Limit: amountPercentage MUST NOT exceed 30% per cycle to prevent catastrophic slippage.
-2. Liquidity Check: If AMM liquidity depth is 0 or lending utilization is suspiciously low, routing is unsafe.
-3. Rationality: The reasoning must logically support the action based on APY opportunities or impermanent loss mitigation.
+  const evaluatorPrompt = `You are the Chief Risk Officer for NeuroLoom.
+Evaluate the proposed Tool Call draft based on the DEFI STATE.
 
-Output ONLY a valid JSON object:
-{
-  "status": "PASS" | "NEEDS_IMPROVEMENT" | "FAIL",
-  "feedback": "Reasoning here."
-}`;
+STRICT RULES:
+1. "execute_venus_deposit": MUST NOT deposit 100%. Maximum allowed is 80% to leave a 20% liquidity buffer.
+2. "execute_pancake_swap": The action (BUY/SELL) MUST logically align with the TAAPI market structure (e.g., don't BUY_WBNB if EMA200 is bearish and RSI is overbought).
+3. The amountInWei MUST NOT exceed the available vault balance.
 
-  const context = `DEFI STATE: ${JSON.stringify(marketData)}\nVAULT BALANCES: ${JSON.stringify(vaultState)}\nPROPOSED DECISION: ${JSON.stringify(draft)}`;
-  const response = await llm.invoke([
-    new SystemMessage(evaluatorPrompt),
-    new HumanMessage(context),
-  ]);
-  return extractJSON(response.content.toString());
-}
+Output your evaluation concisely in the following XML format:
+<evaluation>PASS, NEEDS_IMPROVEMENT, or FAIL</evaluation>
+<feedback>
+What needs improvement and why. If PASS, briefly state why it is safe.
+</feedback>`;
 
-async function optimizeDecision(
-  llm: ChatGroq,
-  previousDraft: AIDecision,
-  feedback: string,
-  marketData: any,
-): Promise<AIDecision> {
-  const optimizerPrompt = `You are the NeuroLoom Strategy Optimizer. Fix the rejected routing decision based on the Risk Officer's feedback.
-Output ONLY valid JSON: {"action": "BUY_WBNB"|"SELL_WBNB"|"HOLD", "reasoning": "fix logic", "amountPercentage": <number>}`;
 
-  const context = `DEFI STATE: ${JSON.stringify(marketData)}\nPREVIOUS: ${JSON.stringify(previousDraft)}\nFEEDBACK: ${feedback}`;
-  const response = await llm.invoke([
-    new SystemMessage(optimizerPrompt),
-    new HumanMessage(context),
-  ]);
-  return extractJSON(response.content.toString());
-}
-
-export async function runEvaluatorLoop(
-  initialDecision: AIDecision,
-  marketData: any,
-  vaultState: any,
-): Promise<AIDecision> {
-  console.log("\n[EVALUATOR] Initiating Risk Management Audit Loop...");
-
-  if (initialDecision.amountPercentage > 30) {
-    console.log(
-      `[EVALUATOR] Guardrail triggered: Requested amount (${initialDecision.amountPercentage}%) exceeds 30% safety limit.`,
-    );
-    return {
-      action: "HOLD",
-      amountPercentage: 0,
-      reasoning: `CRITICAL: Hard-coded safety bypass. The requested amount of ${initialDecision.amountPercentage}% exceeds the absolute protocol limit of 30%. Action aborted to protect liquidity.`,
-    };
-  }
+  const balanceEther = formatEther(vaultBalanceWei);
+  const context = `DEFI STATE: ${JSON.stringify(marketData)}\nAVAILABLE BALANCE (USDT): ${balanceEther}\nPROPOSED TOOL CALL: ${JSON.stringify(draft)}`;
 
   try {
-    const llm = new ChatGroq({
-      apiKey: process.env.GROQ_API_KEY,
-      model: "qwen/qwen3.8-27b",
-      temperature: 0.0,
-      maxTokens: 1024,
-    });
+    const response = await llm.invoke([
+      new SystemMessage(evaluatorPrompt),
+      new HumanMessage(context),
+    ]);
 
-    let currentDecision = initialDecision;
-    const MAX_ITERATIONS = 3;
+    const rawContent = response.content.toString();
+    const evaluation = extractXML(rawContent, "evaluation").toUpperCase();
+    const feedback = extractXML(rawContent, "feedback");
 
-    for (let i = 1; i <= MAX_ITERATIONS; i++) {
-      console.log(`   -> [ITERATION ${i}] Auditing proposed decision...`);
-      const evaluation = await evaluateDecision(
-        llm,
-        currentDecision,
-        marketData,
-        vaultState,
-      );
-      console.log(`      Status: ${evaluation.status}`);
-
-      if (evaluation.status === "PASS") return currentDecision;
-      if (evaluation.status === "FAIL")
-        return {
-          action: "HOLD",
-          amountPercentage: 0,
-          reasoning: `Safety override: ${evaluation.feedback}`,
-        };
-
-      if (i < MAX_ITERATIONS) {
-        console.log(`   -> [OPTIMIZER] Correcting decision...`);
-        currentDecision = await optimizeDecision(
-          llm,
-          currentDecision,
-          evaluation.feedback,
-          marketData,
-        );
-      }
+    if (["PASS", "NEEDS_IMPROVEMENT", "FAIL"].includes(evaluation)) {
+      return { status: evaluation as any, feedback };
     }
+
     return {
-      action: "HOLD",
-      amountPercentage: 0,
-      reasoning: "Max iterations reached without passing risk audit.",
+      status: "FAIL",
+      feedback: "Evaluator returned invalid status format.",
     };
-  } catch (error: any) {
-    console.error(
-      "[EVALUATOR ERROR] AI API failed (Rate Limit/Network):",
-      error.message,
-    );
-    console.log("[SYSTEM] Activating Emergency Circuit Breaker (HOLD)...");
+  } catch (error) {
+    console.error("[EVALUATOR ERROR]", error);
     return {
-      action: "HOLD",
-      amountPercentage: 0,
-      reasoning:
-        "Emergency Bypass AI triggered due to API failure. Halting execution to protect TVL.",
+      status: "FAIL",
+      feedback: "Internal LLM Error during evaluation.",
     };
   }
 }

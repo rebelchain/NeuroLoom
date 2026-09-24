@@ -14,6 +14,7 @@ import VaultABI from "../abi/NeuroLoomVaultV2.json" with { type: "json" };
 import { CONFIG } from "../config.js";
 import { pushLog } from "../utils/push-log.js";
 
+
 const PANCAKE_V3_ROUTER_ABI = [
   {
     type: "function",
@@ -36,6 +37,27 @@ const PANCAKE_V3_ROUTER_ABI = [
       },
     ],
     outputs: [{ type: "uint256", name: "amountOut" }],
+  },
+];
+
+const VENUS_VUSDT_ABI = [
+  {
+    constant: false,
+    inputs: [{ name: "mintAmount", type: "uint256" }],
+    name: "mint",
+    outputs: [{ name: "", type: "uint256" }],
+    payable: false,
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    constant: false,
+    inputs: [{ name: "redeemAmount", type: "uint256" }],
+    name: "redeemUnderlying",
+    outputs: [{ name: "", type: "uint256" }],
+    payable: false,
+    stateMutability: "nonpayable",
+    type: "function",
   },
 ];
 

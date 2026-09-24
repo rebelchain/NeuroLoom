@@ -212,6 +212,22 @@ export async function executeTradeOnChain(
       ],
     });
 
+    // VENUS DEPOSIT
+    // const amountToInvest = 1000000000000000000n; 
+
+    // const mintCalldata = encodeFunctionData({
+    //   abi: VENUS_VUSDT_ABI,
+    //   functionName: "mint",
+    //   args: [amountToInvest],
+    // });
+
+    // VENUS WITHDRAW
+    // const redeemCalldata = encodeFunctionData({
+    //   abi: VENUS_VUSDT_ABI,
+    //   functionName: "redeemUnderlying",
+    //   args: [amountToInvest],
+    // });
+
    
     await pushLog(
       `[NETWORK] Simulating Vault execution and security guardrails...`,

@@ -1,57 +1,46 @@
-# Sample Hardhat 3 Project (`node:test` and `viem`)
+# NeuroLoom Smart Contract Infrastructure
 
-This project showcases a Hardhat 3 project using the native Node.js test runner (`node:test`) and the `viem` library for Ethereum interactions.
+This directory contains the core on-chain components of the NeuroLoom protocol. The architecture has undergone a fundamental redesign, transitioning from a single-pool prototype to a multi-strategy `Factory` model.
 
-To learn more about Hardhat 3, please visit the [Getting Started guide](https://hardhat.org/docs/getting-started#getting-started-with-hardhat-3). To share your feedback, join our [Hardhat 3](https://hardhat.org/hardhat3-telegram-group) Telegram group or [open an issue](https://github.com/NomicFoundation/hardhat/issues/new) in our GitHub issue tracker.
+This repository relies on OpenZeppelin v5 standards and utilizes the EIP-1167 Minimal Proxy (Clones) and EIP-1967 Proxy patterns for gas efficiency and upgradeability.
 
-## Project Overview
+## Architectural Overhaul (V2 Refactoring)
 
-This example project includes:
+The contracts have been completely refactored. We have eliminated legacy code, mitigated tight coupling, and established a foundation for infinite horizontal scaling of yield strategies.
 
-- A simple Hardhat configuration file.
-- Foundry-compatible Solidity unit tests.
-- TypeScript integration tests using [`node:test`](nodejs.org/api/test.html), the new Node.js native test runner, and [`viem`](https://viem.sh/).
-- Examples demonstrating how to connect to different types of networks, including locally simulating OP mainnet.
+### From Static to Factory Pattern
 
-## Usage
+- **Previous State:** A single `NeuroLoomVaultV2.sol` instance was manually deployed, limiting the protocol to a single base asset and a single strategy route.
+- **Current Architecture:** We introduced `NeuroLoomVaultFactory.sol`. This contract acts as the deployment engine, utilizing `ERC1967Proxy` to mint fully upgradeable, independent Vaults on demand.
+- **Why:** This allows the protocol to concurrently run multiple strategies (e.g., USDT Stable Yield, WBNB Momentum) without requiring discrete smart contract deployments for each.
 
-### Running Tests
+### Upgraded Master Logic (`NeuroLoomVault.sol`)
 
-To run all the tests in the project, execute the following command:
+- **Consolidation:** The deprecated `NeuroLoomVault.sol` (V1) and `NeuroLoomVaultV2.sol` have been merged into a single, clean `NeuroLoomVault.sol`. This serves as the master implementation logic for all proxies spawned by the Factory.
+- **Dynamic Initialization:** The `initialize()` function now accepts dynamic `_name` and `_symbol` parameters. Previously hardcoded to `nlUSDT`, the Vault shares are now fully reflective of their underlying asset and strategy.
+- **OpenZeppelin v5 Alignment:** Upgraded security modules. Removed deprecated `__ReentrancyGuard_init()` in favor of OZ v5's Namespaced Storage (ERC-7201) standard, directly importing `ReentrancyGuard.sol`.
+- **Type-Safe Factory Deployment:** The Factory now employs `abi.encodeCall` instead of raw signature strings for initialization, preventing `FailedCall()` runtime reverts and enforcing compile-time type safety.
 
-```shell
-npx hardhat test
-```
+### True Omnichain Execution
 
-You can also selectively run the Solidity or `node:test` tests:
+- **Deprecated Legacy Routing:** Removed legacy function `executeRebalance`. All execution now flows through `executeOmnichain`.
+- **Protocol Agnostic:** The execution function relies on a dynamic `targetProtocol` and `calldata`. It forces approval to the target and executes the raw bytes, allowing interaction with _any_ whitelisted protocol (DEXs, Lending markets, etc.) without altering the Vault logic.
 
-```shell
-npx hardhat test solidity
-npx hardhat test nodejs
-```
+### Security Constraints & Guardrails
 
-### Make a deployment to Sepolia
+- **Dynamic Whitelisting:** Execution is restricted via `approvedProtocols`. The AI executor cannot interact with arbitrary smart contracts.
+- **Oracle-Backed MEV Protection:** Integrated `IChainlinkAggregator` for multi-pair price feeds. The Vault natively computes the acceptable exchange rate before execution, reverting if post-execution balances reflect slippage exceeding `MAX_SLIPPAGE_BPS` (200 BPS / 2%).
 
-This project includes an example Ignition module to deploy the contract. You can deploy this module to a locally simulated chain or to Sepolia.
+## Deployment Sequence
 
-To run the deployment to a local chain:
+Deployment utilizes `viem` (`hardhat-toolbox-viem`) for absolute type safety. The sequence MUST be executed in this exact order:
 
-```shell
-npx hardhat ignition deploy ignition/modules/Counter.ts
-```
+1.  **Deploy Master Implementation:** Deploy `NeuroLoomVault` (Logic only).
+2.  **Deploy Factory:** Deploy `NeuroLoomVaultFactory`, passing the Master Implementation address into the constructor.
+3.  **Spawn Vaults:** Execute `createStrategyVault()` on the Factory to mint strategy-specific proxies.
 
-To run the deployment to Sepolia, you need an account with funds to send the transaction. The provided Hardhat configuration includes a Configuration Variable called `SEPOLIA_PRIVATE_KEY`, which you can use to set the private key of the account you want to use.
+## Toolchain
 
-You can set the `SEPOLIA_PRIVATE_KEY` variable using the `hardhat-keystore` plugin or by setting it as an environment variable.
-
-To set the `SEPOLIA_PRIVATE_KEY` config variable using `hardhat-keystore`:
-
-```shell
-npx hardhat keystore set SEPOLIA_PRIVATE_KEY
-```
-
-After setting the variable, you can run the deployment with the Sepolia network:
-
-```shell
-npx hardhat ignition deploy --network sepolia ignition/modules/Counter.ts
-```
+- Solidity `0.8.28`
+- Hardhat + `hardhat-toolbox-viem`
+- OpenZeppelin Contracts & Contracts Upgradeable (v5.x)

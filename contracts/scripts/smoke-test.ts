@@ -24,9 +24,7 @@ async function main() {
     "0x0c821e1b44f170b6d24f8a571604a3ff6cf1c5732d7f3ef80e53eee98cf3fc56";
 
   if (aiRole === expectedRole) {
-    console.log(
-      "PASS. RBAC Check: Perfectly verified AI_EXECUTOR_ROLE hash.",
-    );
+    console.log("PASS. RBAC Check: Perfectly verified AI_EXECUTOR_ROLE hash.");
   } else {
     throw new Error(
       "Failed. The AI ​​role hash does not meet security standards!",

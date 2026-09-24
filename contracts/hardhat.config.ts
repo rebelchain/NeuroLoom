@@ -1,7 +1,7 @@
 import hardhatToolboxViem from "@nomicfoundation/hardhat-toolbox-viem";
 import { defineConfig } from "hardhat/config";
-// Plugin legacy OpenZeppelin tetap di-import secara side-effect karena belum update ke v3
 import "@openzeppelin/hardhat-upgrades";
+import "@nomicfoundation/hardhat-verify";
 import * as dotenv from "dotenv";
 
 dotenv.config();

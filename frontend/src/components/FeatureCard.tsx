@@ -1,11 +1,10 @@
 import type { ReactNode } from "react";
-import { useSectionReveal } from "../lib/useSectionReveal";
 
 interface FeatureCardProps {
   icon: ReactNode;
   title: string;
   desc: string;
-  accent: string;
+  accent?: string;
   delay: string;
   featured?: boolean;
   bars?: number[];
@@ -15,36 +14,35 @@ export function FeatureCard({
   icon,
   title,
   desc,
-  accent,
   delay,
   featured,
   bars,
 }: FeatureCardProps) {
-  const { ref, visible } = useSectionReveal();
   return (
     <div
-      ref={ref}
-      className={`group relative liquid-glass rounded-2xl p-8 transition-all duration-500 overflow-hidden ${featured ? "md:row-span-2 md:flex md:flex-col md:justify-center" : ""} ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}
+      className={`group relative border border-[#1f1f1f] bg-[#121212] p-8 transition-all duration-500 overflow-hidden hover:border-primary/50 ${
+        featured ? "md:row-span-2 md:flex md:flex-col md:justify-center" : ""
+      }`}
       style={{ transitionDelay: delay }}
     >
-      <div
-        className={`absolute inset-0 bg-gradient-to-br ${accent} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
-      />
       <div className="relative z-10">
-        <div className="w-14 h-14 rounded-2xl bg-white/[0.02] border border-white/10 flex items-center justify-center text-2xl mb-6 group-hover:scale-110 group-hover:border-primary/30 transition-all duration-300 shadow-inner">
+        <div className="w-14 h-14 border border-[#1f1f1f] bg-[#0a0a0a] flex items-center justify-center text-2xl mb-6 group-hover:border-primary transition-all duration-300">
           {icon}
         </div>
+
         {featured && (
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/25 text-primary text-[11px] font-medium mb-4">
-            <span className="w-1 h-1 rounded-full bg-primary animate-pulse" />{" "}
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#1a1a1a] border border-[#1f1f1f] text-primary text-[10px] uppercase font-mono tracking-widest mb-4 tick-frame">
+            <span className="w-1.5 h-1.5 bg-primary animate-pulse" />
             Agentic Workflow
           </div>
         )}
-        <h3 className="text-lg font-semibold text-white mb-3">{title}</h3>
-        <p className="text-sm text-gray-400 leading-relaxed">{desc}</p>
+
+        <h3 className="text-lg font-semibold text-[#f5f5f5] mb-3">{title}</h3>
+        <p className="text-sm text-[#8a8a8a] leading-relaxed">{desc}</p>
+
         {featured ? (
-          <div className="mt-6 h-2 rounded-full bg-white/5 overflow-hidden">
-            <div className="h-full w-4/5 bg-gradient-to-r from-primary to-info rounded-full" />
+          <div className="mt-6 h-1 w-full bg-[#1f1f1f] overflow-hidden">
+            <div className="h-full w-4/5 bg-primary" />
           </div>
         ) : (
           bars && (
@@ -52,7 +50,7 @@ export function FeatureCard({
               {bars.map((h, i) => (
                 <div
                   key={i}
-                  className="w-2 mx-auto rounded-t-md bg-gradient-to-t from-primary/30 to-primary/70 transition-all duration-500 group-hover:from-primary/60 group-hover:to-info"
+                  className="w-2 mx-auto bg-[#1f1f1f] transition-all duration-500 group-hover:bg-primary"
                   style={{ height: `${h}%` }}
                 />
               ))}

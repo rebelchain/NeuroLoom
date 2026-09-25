@@ -2,10 +2,20 @@
 
 import { cn, formatTimeAgo } from "@/lib/utils";
 import { useEffect, useState } from "react";
-import { formatUnits } from "viem"; 
+import { formatUnits } from "viem";
+// IMPOR ALAMAT VAULT AKTIF DARI CONFIG
+import { ACTIVE_VAULTS } from "../config/addresses";
 
+// SESUAIKAN DENGAN VERSI DEPLOY TERBARUMU (v0.0.6)
 const GRAPHQL_URL =
-  "https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/version/latest";
+  "https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.6";
+
+// KAMUS PEMETAAN ALAMAT KE NAMA VAULT
+const VAULT_MAP: Record<string, string> = {
+  [ACTIVE_VAULTS[0].toLowerCase()]: "Yield Farm",
+  [ACTIVE_VAULTS[1].toLowerCase()]: "Bluechip Momentum",
+  [ACTIVE_VAULTS[2].toLowerCase()]: "Degen Accumulator",
+};
 
 export type EventOp =
   | "ROUTE_OPTIMIZED"
@@ -29,25 +39,24 @@ export interface AIEventRow {
 interface GraphEvent {
   id: string;
   assets: string;
+  address?: string; 
   blockTimestamp: string;
   transactionHash: string;
 }
 
 const eventMeta: Record<EventOp, { glyph: string; text: string }> = {
-  ROUTE_OPTIMIZED: { glyph: "⟳", text: "text-info-light" },
-  REBALANCE_EXECUTED: { glyph: "→", text: "text-primary-light" },
-  YIELD_HARVESTED: { glyph: "↑", text: "text-success" },
-  SLIPPAGE_REJECTED: { glyph: "✕", text: "text-danger" },
-  VAULT_DEPOSITED: { glyph: "▲", text: "text-emerald-300" },
-  VAULT_WITHDRAWN: { glyph: "▼", text: "text-warning" },
+  ROUTE_OPTIMIZED: { glyph: "[⟳]", text: "text-[#c5c5c5]" },
+  REBALANCE_EXECUTED: { glyph: "[→]", text: "text-primary" },
+  YIELD_HARVESTED: { glyph: "[↑]", text: "text-primary" },
+  SLIPPAGE_REJECTED: { glyph: "[✕]", text: "text-[#ff5f5f]" },
+  VAULT_DEPOSITED: { glyph: "[+]", text: "text-[#f5f5f5]" },
+  VAULT_WITHDRAWN: { glyph: "[-]", text: "text-[#ff5f5f]" },
 };
 
-function ProtocolTag({ id }: { id: string }) {
-  return (
-    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-surface-raised border border-white/10 text-[9px] font-mono tracking-wider text-gray-400 whitespace-nowrap">
-      {id.toUpperCase()}
-    </span>
-  );
+// Fungsi pembantu untuk menerjemahkan alamat menjadi nama
+function getVaultName(address?: string) {
+  if (!address) return "NeuroLoom Vault";
+  return VAULT_MAP[address.toLowerCase()] || "NeuroLoom Vault";
 }
 
 export function EventLog({
@@ -60,85 +69,72 @@ export function EventLog({
 
   useEffect(() => {
     let isMounted = true;
-
     const fetchGraphData = async () => {
       try {
-        const query = `
-          {
-            deposits(first: 5, orderBy: blockTimestamp, orderDirection: desc) {
-              id
-              assets
-              blockTimestamp
-              transactionHash
-            }
-            withdraws(first: 5, orderBy: blockTimestamp, orderDirection: desc) {
-              id
-              assets
-              blockTimestamp
-              transactionHash
-            }
-          }
-        `;
+
+        const query = `{ 
+          deposits(first: 5, orderBy: blockTimestamp, orderDirection: desc) { id assets address blockTimestamp transactionHash } 
+          withdraws(first: 5, orderBy: blockTimestamp, orderDirection: desc) { id assets address blockTimestamp transactionHash } 
+        }`;
 
         const response = await fetch(GRAPHQL_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ query }),
         });
-
         const { data } = await response.json();
 
         if (isMounted && data) {
           const combinedEvents: AIEventRow[] = [];
 
-          if (data.deposits && data.deposits.length > 0) {
+          if (data.deposits) {
             combinedEvents.push(
-              ...data.deposits.map((item: GraphEvent) => ({
-                id: item.id,
-                type: "VAULT_DEPOSITED" as EventOp,
-                protocol: "NeuroLoom Vault",
-                asset: "USDT",
-                amount: Number(formatUnits(BigInt(item.assets), 18)),
-                detail: "User Deposited Liquidity",
-                timestamp: Number(item.blockTimestamp) * 1000,
-                txHash: item.transactionHash,
-              })),
+              ...data.deposits.map((item: GraphEvent) => {
+                const vaultName = getVaultName(item.address);
+                return {
+                  id: item.id,
+                  type: "VAULT_DEPOSITED" as EventOp,
+                  protocol: vaultName, 
+                  asset: "USDT",
+                  amount: Number(formatUnits(BigInt(item.assets), 6)),
+                  detail: `To ${vaultName}`, 
+                  timestamp: Number(item.blockTimestamp) * 1000,
+                  txHash: item.transactionHash,
+                };
+              }),
             );
           }
 
-          if (data.withdraws && data.withdraws.length > 0) {
+          if (data.withdraws) {
             combinedEvents.push(
-              ...data.withdraws.map((item: GraphEvent) => ({
-                id: item.id,
-                type: "VAULT_WITHDRAWN" as EventOp,
-                protocol: "NeuroLoom Vault",
-                asset: "USDT",
-                amount: Number(formatUnits(BigInt(item.assets), 18)),
-                detail: "User Withdrew Liquidity",
-                timestamp: Number(item.blockTimestamp) * 1000,
-                txHash: item.transactionHash,
-              })),
+              ...data.withdraws.map((item: GraphEvent) => {
+                const vaultName = getVaultName(item.address);
+                return {
+                  id: item.id,
+                  type: "VAULT_WITHDRAWN" as EventOp,
+                  protocol: vaultName, 
+                  asset: "USDT",
+                  amount: Number(formatUnits(BigInt(item.assets), 6)),
+                  detail: `From ${vaultName}`, 
+                  timestamp: Number(item.blockTimestamp) * 1000,
+                  txHash: item.transactionHash,
+                };
+              }),
             );
           }
 
           combinedEvents.sort((a, b) => b.timestamp - a.timestamp);
-
-          if (combinedEvents.length > 0) {
-            setEvents(combinedEvents);
-          }
+          if (combinedEvents.length > 0) setEvents(combinedEvents);
         }
       } catch (error) {
-        console.error("Gagal menarik data The Graph:", error);
+        console.error("Gagal menarik data Subgraph:", error);
       } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
+        if (isMounted) setIsLoading(false);
       }
     };
 
     void fetchGraphData();
     const interval = setInterval(fetchGraphData, 15000);
-
     return () => {
       isMounted = false;
       clearInterval(interval);
@@ -146,38 +142,40 @@ export function EventLog({
   }, []);
 
   return (
-    <div className="animate-fade-in-up">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
-          <h3 className="text-sm font-semibold text-white">
-            Live Vault Activity
+    <div className="animate-fade-in-up h-full flex flex-col">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <span className="w-1.5 h-1.5 bg-primary animate-pulse" />
+          <h3 className="text-xs font-mono tracking-widest text-[#f5f5f5] uppercase">
+            Event Ledger
           </h3>
         </div>
-        <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-success/10 border border-success/25 text-[10px] text-success font-mono">
-          {isLoading ? "SYNCING..." : "LIVE INDEXING"}
+        <div className="text-[10px] text-primary font-mono tracking-widest uppercase">
+          {isLoading ? "[ SYNCING ]" : "[ LIVE ]"}
         </div>
       </div>
 
       <div
         className={cn(
-          "rounded-xl bg-black/60 border border-white/10 overflow-hidden shadow-2xl",
+          "bg-[#0a0a0a] border border-[#1f1f1f] flex-grow flex flex-col",
           maxHeight,
         )}
       >
-        <div className="flex items-center gap-1.5 px-4 py-3 border-b border-white/[0.07] bg-[#0b1120]">
-          <span className="w-2.5 h-2.5 rounded-full bg-danger/80" />
-          <span className="w-2.5 h-2.5 rounded-full bg-warning/80" />
-          <span className="w-2.5 h-2.5 rounded-full bg-success/80" />
-          <span className="ml-2 text-[10px] uppercase tracking-[0.2em] text-gray-500 font-mono">
-            neuroloom-user-ledger · the-graph
+        {/* Header Terminal */}
+        <div className="flex items-center gap-2 px-4 py-3 border-b border-[#1f1f1f] bg-[#121212]">
+          <span className="w-2 h-2 bg-[#1f1f1f]" />
+          <span className="w-2 h-2 bg-[#1f1f1f]" />
+          <span className="w-2 h-2 bg-[#1f1f1f]" />
+          <span className="ml-2 text-[10px] uppercase tracking-[0.2em] text-[#8a8a8a] font-mono">
+            sys.graph.log
           </span>
         </div>
 
-        <div className="px-4 py-3 font-mono text-xs leading-relaxed overflow-y-auto [scrollbar-width:thin]">
+        {/* List Transaksi */}
+        <div className="px-4 py-3 font-mono text-[11px] leading-relaxed overflow-y-auto [scrollbar-width:thin] flex-grow">
           {events.length === 0 && !isLoading ? (
-            <div className="text-gray-500 italic py-4">
-              Waiting for user deposits or withdrawals...
+            <div className="text-[#8a8a8a] italic py-4">
+              &gt; _Awaiting network events...
             </div>
           ) : (
             events.map((event, i) => {
@@ -185,81 +183,49 @@ export function EventLog({
               return (
                 <div
                   key={event.id}
-                  className="flex items-start md:items-center gap-3 py-3 border-b border-white/[0.03] last:border-0 animate-fade-in-up hover:bg-white/[0.02] transition-colors rounded-lg px-2 -mx-2"
-                  style={{ animationDelay: `${140 + i * 180}ms` }}
+                  className="flex flex-col sm:flex-row sm:items-center gap-3 py-3 border-b border-[#1f1f1f] last:border-0 hover:bg-[#121212] transition-colors -mx-4 px-4"
                 >
-                  <span
-                    className="text-gray-600 select-none hidden sm:block"
-                    aria-hidden
-                  >
-                    ›
-                  </span>
-
-                  <div className="flex flex-col md:flex-row justify-between min-w-0 w-full gap-2 md:gap-4">
-                    <div className="flex flex-col gap-1.5">
+                  <div className="flex-grow flex items-center gap-3">
+                    <span className={cn(meta.text, "w-6 text-center")}>
+                      {meta.glyph}
+                    </span>
+                    <div className="flex flex-col gap-1">
                       <div className="flex items-center gap-2">
-                        <span
-                          className={cn(
-                            meta.text,
-                            "font-semibold whitespace-nowrap",
-                          )}
-                        >
-                          {meta.glyph} {event.type}
-                        </span>
-                        <ProtocolTag id={event.protocol} />
-                        <span className="text-gray-300 font-medium whitespace-nowrap">
-                          {event.asset}
-                        </span>
+                        <span className="text-[#c5c5c5]">{event.type}</span>
+                        <span className="text-[#8a8a8a]">::</span>
+                        <span className="text-primary">{event.asset}</span>
                       </div>
-
-                  
                       {event.detail && (
-                        <div className="text-info text-[11px] truncate max-w-[250px] sm:max-w-xs">
-                          {event.detail}
+                        <div className="text-[#8a8a8a] text-[10px]">
+                          &gt; {event.detail}
                         </div>
                       )}
                     </div>
-                
-                    <div className="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-center gap-x-4 gap-y-1 w-full md:w-auto">
-                      <span
-                        className={cn(
-                          meta.text,
-                          "whitespace-nowrap font-medium text-sm",
-                        )}
-                      >
-                        {event.amount > 0 ? "+" : ""}
-                        {event.amount.toFixed(2)} USDT
-                      </span>
+                  </div>
 
-                      <div className="flex items-center gap-2 text-[10px] text-gray-500 font-mono">
-                        <span className="whitespace-nowrap">
-                          {formatTimeAgo(event.timestamp)}
-                        </span>
-                        <span className="text-gray-700 select-none">·</span>
-                        <a
-                          href={`https://testnet.bscscan.com/tx/${event.txHash}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-primary hover:underline cursor-pointer whitespace-nowrap"
-                        >
-                          {event.txHash.slice(0, 6)}...{event.txHash.slice(-4)}
-                        </a>
-                      </div>
+                  <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-1 min-w-[120px]">
+                    <span className={cn(meta.text, "whitespace-nowrap")}>
+                      {event.amount > 0 ? "+" : ""}
+                      {event.amount.toFixed(2)} USDT
+                    </span>
+                    <div className="flex items-center gap-2 text-[9px] text-[#8a8a8a]">
+                      <span>{formatTimeAgo(event.timestamp)}</span>
+                      <a
+                        href={`https://testnet.bscscan.com/tx/${event.txHash}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="hover:text-primary hover:underline"
+                      >
+                        [{event.txHash.slice(0, 6)}]
+                      </a>
                     </div>
                   </div>
                 </div>
               );
             })
           )}
-
-          <div className="flex items-center gap-2 mt-4 pt-2">
-            <span className="text-gray-600 select-none" aria-hidden>
-              ›
-            </span>
-            <span className="text-primary inline-block animate-pulse">▍</span>
-            <span className="text-gray-500 text-[11px]">
-              listening for user events via The Graph…
-            </span>
+          <div className="mt-4 text-[#8a8a8a]">
+            &gt; <span className="text-primary animate-pulse">_</span>
           </div>
         </div>
       </div>

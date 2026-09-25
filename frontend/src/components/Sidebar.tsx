@@ -6,8 +6,8 @@ import {
   Wallet,
   X,
 } from "lucide-react";
-import { type ElementType } from "react";
 import Image from "next/image";
+import { type ElementType } from "react";
 
 export type PageId = "overview" | "vaults" | "terminal" | "history";
 
@@ -20,10 +20,10 @@ interface SidebarProps {
 }
 
 const navItems: { id: PageId; label: string; icon: ElementType }[] = [
-  { id: "overview", label: "Overview", icon: LayoutDashboard },
-  { id: "vaults", label: "Smart Vaults", icon: Wallet },
+  { id: "overview", label: "Dashboard", icon: LayoutDashboard },
+  { id: "vaults", label: "Strategy Vaults", icon: Wallet }, 
   { id: "terminal", label: "AI Terminal", icon: TerminalSquare },
-  { id: "history", label: "History", icon: ScrollText },
+  { id: "history", label: "Audit Trail", icon: ScrollText }, 
 ];
 
 function SidebarContent({
@@ -33,11 +33,12 @@ function SidebarContent({
 }: Pick<SidebarProps, "activePage" | "onNavigate" | "onBackToLanding">) {
   return (
     <>
-      <div className="px-5 py-5 border-b border-white/[0.06]">
+      {/* HEADER LOGO */}
+      <div className="px-5 py-6 border-b border-[#1f1f1f]">
         <button
           onClick={onBackToLanding}
           title="Back to NeuroLoom landing"
-          className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer w-full"
+          className="flex items-center gap-4 hover:opacity-80 transition-opacity cursor-pointer w-full group"
         >
           <div className="w-10 h-10 bg-primary/10 border border-primary/20 rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(139,92,246,0.3)] overflow-hidden p-0">
             <Image
@@ -50,20 +51,19 @@ function SidebarContent({
             />
           </div>
           <div className="text-left">
-            <div className="text-[15px] font-bold tracking-tight text-white">
-              NEUROLOOM
+            <div className="text-[15px] font-bold tracking-widest text-[#f5f5f5] uppercase font-mono">
+              NeuroLoom
             </div>
-            <div className="text-[10px] uppercase tracking-[0.2em] text-gray-500">
+            <div className="text-[9px] uppercase tracking-[0.3em] text-primary mt-1">
               AI Yield Optimizer
             </div>
           </div>
         </button>
       </div>
 
-      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        <div className="px-3 pb-2 text-[10px] uppercase tracking-[0.2em] text-gray-500">
-          Platform
-        </div>
+      {/* MENU NAVIGASI */}
+      <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+        <div className="px-2 pb-4 text-[10px] uppercase tracking-[0.2em] text-[#8a8a8a] font-mono"></div>
         {navItems.map((item) => {
           const Icon = item.icon;
           const active = activePage === item.id;
@@ -72,25 +72,30 @@ function SidebarContent({
               key={item.id}
               onClick={() => onNavigate(item.id)}
               className={cn(
-                "group w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 text-left relative",
+                "group w-full flex items-center gap-3 px-3 py-3 text-sm transition-all duration-200 text-left relative border",
                 active
-                  ? "liquid-glass text-primary border border-primary/25"
-                  : "text-gray-400 hover:bg-white/[0.04] hover:text-white border border-transparent",
+                  ? "bg-[#121212] border-[#1f1f1f] text-primary" 
+                  : "bg-transparent border-transparent text-[#8a8a8a] hover:bg-[#121212] hover:border-[#1f1f1f] hover:text-[#f5f5f5]",
               )}
             >
+              {active && (
+                <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-primary shadow-[0_0_8px_var(--color-primary)]" />
+              )}
+
               <span
                 className={cn(
-                  "flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200",
+                  "flex items-center justify-center transition-all duration-200",
                   active
-                    ? "bg-primary/15 text-primary shadow-inner"
-                    : "bg-[#151d33] text-gray-500 group-hover:text-white",
+                    ? "text-primary"
+                    : "text-[#8a8a8a] group-hover:text-primary",
                 )}
               >
-                <Icon className="w-4 h-4" strokeWidth={1.75} />
+                <Icon className="w-[18px] h-[18px]" strokeWidth={1.5} />
               </span>
-              {item.label}
+              <span className="font-medium tracking-wide">{item.label}</span>
+
               {item.id === "terminal" && (
-                <span className="ml-auto text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-success/15 text-success">
+                <span className="ml-auto text-[9px] uppercase tracking-widest px-1.5 py-0.5 border border-primary/30 bg-primary/10 text-primary font-mono">
                   Live
                 </span>
               )}
@@ -99,13 +104,17 @@ function SidebarContent({
         })}
       </nav>
 
-      <div className="px-4 py-4 border-t border-white/[0.06] space-y-2">
-        <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl liquid-glass text-[11px]">
-          <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
-          <span className="text-gray-300 font-medium">BSC Testnet</span>
-          <span className="ml-auto font-mono text-gray-500">Synced</span>
+      <div className="px-5 py-6 border-t border-[#1f1f1f] space-y-4 bg-[#0a0a0a]">
+        <div className="flex items-center gap-2 px-3 py-3 border border-[#1f1f1f] bg-[#121212] tick-frame">
+          <span className="w-1.5 h-1.5 bg-primary animate-pulse" />
+          <span className="text-[10px] font-mono tracking-widest text-[#c5c5c5] uppercase">
+            BSC Testnet
+          </span>
+          <span className="ml-auto font-mono text-[10px] text-primary uppercase">
+            Synced
+          </span>
         </div>
-        <p className="px-3 text-[10px] leading-relaxed text-gray-500">
+        <p className="text-[10px] leading-relaxed text-[#8a8a8a] font-mono">
           Autonomous yield execution powered by Intent-Driven AI.
         </p>
       </div>
@@ -122,7 +131,8 @@ export function Sidebar({
 }: SidebarProps) {
   return (
     <>
-      <aside className="hidden lg:flex w-64 flex-col shrink-0 bg-[rgba(9,14,28,0.72)] backdrop-blur-2xl border-r border-white/[0.07] min-h-screen relative z-40">
+      {/* SIDEBAR DESKTOP */}
+      <aside className="hidden lg:flex w-64 flex-col shrink-0 bg-[#0a0a0a] border-r border-[#1f1f1f] min-h-screen relative z-40">
         <SidebarContent
           activePage={activePage}
           onNavigate={onNavigate}
@@ -130,25 +140,26 @@ export function Sidebar({
         />
       </aside>
 
+      {/* SIDEBAR MOBILE */}
       <div
         className={cn(
-          "fixed inset-0 z-50 lg:hidden transition-opacity duration-300",
+          "fixed inset-0 z-[100] lg:hidden transition-opacity duration-300",
           mobileOpen ? "opacity-100" : "opacity-0 pointer-events-none",
         )}
       >
         <div
-          className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+          className="absolute inset-0 bg-black/80 backdrop-blur-sm"
           onClick={onCloseMobile}
         />
         <aside
-          className="absolute inset-y-0 left-0 w-72 max-w-[85vw] bg-[#0b1120] flex flex-col border-r border-white/10 shadow-2xl transition-transform duration-300"
+          className="absolute inset-y-0 left-0 w-72 max-w-[85vw] bg-[#0a0a0a] flex flex-col border-r border-[#1f1f1f] shadow-2xl transition-transform duration-300"
           style={{
             transform: mobileOpen ? "translateX(0)" : "translateX(-110%)",
           }}
         >
           <button
             onClick={onCloseMobile}
-            className="absolute top-4 right-4 w-9 h-9 rounded-xl liquid-glass flex items-center justify-center text-gray-400 hover:text-white"
+            className="absolute top-6 right-4 w-8 h-8 border border-[#1f1f1f] bg-[#121212] flex items-center justify-center text-[#8a8a8a] hover:text-primary hover:border-primary transition-colors"
           >
             <X className="w-4 h-4" />
           </button>

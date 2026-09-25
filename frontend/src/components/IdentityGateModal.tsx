@@ -21,7 +21,6 @@ export function IdentityGateModal({
   const { disconnect } = useDisconnect();
   const [mounted, setMounted] = useState(false);
 
-  // Menghindari Hydration Mismatch dari Next.js
   useEffect(() => {
     const timer = setTimeout(() => setMounted(true), 0);
     return () => clearTimeout(timer);

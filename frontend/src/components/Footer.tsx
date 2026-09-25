@@ -5,105 +5,103 @@ export function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-white/[0.05] bg-[#050814] pt-16 pb-8 relative overflow-hidden">
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-32 bg-primary/10 blur-[100px] rounded-full pointer-events-none" />
+    <footer className="relative min-h-screen flex flex-col z-10 pt-24 pb-8">
+      <div className="flex-grow flex flex-col items-center justify-center px-6">
+        <h2 className="serif text-5xl md:text-7xl text-[#f5f5f5] mb-10 leading-tight text-center">
+          Initialize the Agent.
+        </h2>
+        <div className="flex justify-center pointer-events-auto">
+          <button
+            onClick={() => {
+              window.dispatchEvent(new CustomEvent("open-gate"));
+            }}
+            className="px-10 py-5 bg-primary text-[#0a0a0a] border border-primary font-mono text-sm font-bold uppercase tracking-widest hover:bg-transparent hover:text-primary transition-all duration-300 shadow-[0_0_15px_rgba(139,92,246,0.2)] hover:shadow-[0_0_25px_rgba(139,92,246,0.4)]"
+          >
+            Launch Dashboard
+          </button>
+        </div>
+      </div>
 
-      <div className="max-w-7xl mx-auto px-6 relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 mb-16">
-          <div className="lg:col-span-2">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-10 h-10 bg-primary/10 border border-primary/20 rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(139,92,246,0.3)] overflow-hidden p-0">
+
+      <div className="w-full max-w-7xl mx-auto px-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 border-t border-[#1f1f1f] pt-10">
+          <div className="lg:col-span-2 flex flex-col h-full">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 flex items-center justify-center">
                 <Image
                   src="/neuroloom2.png"
                   alt="NeuroLoom Logo"
                   width={40}
                   height={40}
-                  className="w-full h-full object-contain scale-110"
-                  priority
+                  className="w-full h-full object-contain"
                 />
               </div>
-              <span className="text-xl font-bold text-white tracking-wide">
+              <span className="text-xl font-bold font-mono tracking-widest text-[#f5f5f5] uppercase">
                 NeuroLoom
               </span>
             </div>
-            <p className="text-gray-400 text-sm leading-relaxed mb-6 max-w-sm">
-              The first autonomous, AI-driven DeFi vault on the BNB Chain.
-              Maximizing yield through real-time dynamic multi-routing and
-              strict MEV protection.
+
+            <p className="text-[#8a8a8a] text-[11px] font-mono leading-relaxed mb-6 max-w-sm">
+              The Autonomous, AI-driven DeFi vault on the BNB Chain. Maximizing
+              yield through real-time dynamic multi-routing and strict MEV
+              protection.
             </p>
-            <div className="flex items-center gap-4">
+
+            <div className="flex items-center gap-4 mb-8">
               <SocialLink
                 href="https://github.com/r3belchain/NeuroLoom"
                 icon={<GithubIcon />}
               />
-              <SocialLink href="#" icon={<XIcon />} />
-              <SocialLink href="#" icon={<DiscordIcon />} />
+            </div>
+
+            <div className="text-[#444] text-[10px] font-mono uppercase tracking-widest mt-auto">
+              &copy; {currentYear} NeuroLoom.   Built for Indonesia Web3 Hackathon
+              2026. BNB Chain.
             </div>
           </div>
 
           <div>
-            <h4 className="text-white font-semibold mb-4 text-sm tracking-wider uppercase">
+            <h4 className="text-[#f5f5f5] font-mono font-bold mb-5 text-[10px] tracking-widest uppercase">
               Navigation
             </h4>
             <ul className="space-y-3">
               <ScrollLink targetId="features">The Problem</ScrollLink>
               <ScrollLink targetId="how-it-works">
-                How NeuroLoom Works
+                Execution Pipeline
               </ScrollLink>
-              <ScrollLink targetId="protocols">Integrations</ScrollLink>
+              <ScrollLink targetId="protocols">Liquidity Matrix</ScrollLink>
+              <ScrollLink targetId="vaults">Vault Architecture</ScrollLink>
             </ul>
           </div>
 
           <div>
-            <h4 className="text-white font-semibold mb-4 text-sm tracking-wider uppercase">
+            <h4 className="text-[#f5f5f5] font-mono font-bold mb-5 text-[10px] tracking-widest uppercase">
               Developers
             </h4>
             <ul className="space-y-3">
-              <FooterLink href="https://testnet.bscscan.com/address/0xe38887648d7272e9Eb3C06628767bb3d84a9FF4E">
+              <FooterLink href="https://testnet.bscscan.com/address/0x2d2e967e3114bb32175f4dfcf81cddcfb35bff6b">
                 Smart Contracts
               </FooterLink>
               <FooterLink href="https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.2">
                 The Graph API
               </FooterLink>
-              <FooterLink href="https://github.com/r3belchain/NeuroLoom/blob/main/README.md">
-                Documentation
+              <FooterLink href="https://data.chain.link">
+                Chainlink Oracles
               </FooterLink>
             </ul>
           </div>
 
           <div>
-            <h4 className="text-white font-semibold mb-4 text-sm tracking-wider uppercase">
+            <h4 className="text-[#f5f5f5] font-mono font-bold mb-5 text-[10px] tracking-widest uppercase">
               Ecosystem
             </h4>
             <ul className="space-y-3">
               <FooterLink href="https://pancakeswap.finance">
                 PancakeSwap V3
               </FooterLink>
-              <FooterLink href="https://data.chain.link">
-                Chainlink Oracles
-              </FooterLink>
+
               <FooterLink href="https://venus.io">Venus Protocol</FooterLink>
             </ul>
-          </div>
-        </div>
-
-        {/* Bottom Bar & Trust Signals */}
-        <div className="pt-8 border-t border-white/[0.05] flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="text-gray-500 text-xs font-mono">
-            &copy; {currentYear} NeuroLoom. Built for Indonesia Web3 Hackathon.
-            BNB Smart Chain.
-          </div>
-
-          <div className="flex items-center gap-6 text-xs font-mono">
-            <span className="text-gray-500">
-              Vault Version: V2 - UUPS Proxy
-            </span>
-            <div className="flex items-center gap-2 bg-success/10 border border-success/20 px-3 py-1.5 rounded-full">
-              <span className="w-2 h-2 rounded-full bg-success animate-pulse"></span>
-              <span className="text-success tracking-widest uppercase">
-                BSC Testnet: Operational
-              </span>
-            </div>
           </div>
         </div>
       </div>
@@ -111,6 +109,7 @@ export function Footer() {
   );
 }
 
+// HELPER COMPONENT
 
 function ScrollLink({
   targetId,
@@ -122,13 +121,16 @@ function ScrollLink({
   return (
     <li>
       <button
-        onClick={() => {
+        onClick={() =>
           document
             .getElementById(targetId)
-            ?.scrollIntoView({ behavior: "smooth" });
-        }}
-        className="text-gray-400 text-sm hover:text-primary transition-colors duration-200"
+            ?.scrollIntoView({ behavior: "smooth" })
+        }
+        className="text-[#8a8a8a] text-[11px] font-mono uppercase tracking-widest hover:text-primary transition-colors duration-200 relative group flex items-center"
       >
+        <span className="absolute -left-4 text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+          {">"}
+        </span>
         {children}
       </button>
     </li>
@@ -148,8 +150,11 @@ function FooterLink({
         href={href}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-gray-400 text-sm hover:text-primary transition-colors duration-200"
+        className="text-[#8a8a8a] text-[11px] font-mono uppercase tracking-widest hover:text-primary transition-colors duration-200 relative group flex items-center"
       >
+        <span className="absolute -left-4 text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+          {">"}
+        </span>
         {children}
       </a>
     </li>
@@ -162,7 +167,7 @@ function SocialLink({ href, icon }: { href: string; icon: React.ReactNode }) {
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-400 hover:text-white hover:bg-primary/20 hover:border-primary/50 transition-all duration-200"
+      className="w-10 h-10 bg-[#0a0a0a] border border-[#1f1f1f] flex items-center justify-center text-[#8a8a8a] hover:text-primary hover:border-primary transition-all duration-200"
     >
       {icon}
     </a>
@@ -176,7 +181,6 @@ function GithubIcon() {
     </svg>
   );
 }
-
 function XIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
@@ -184,7 +188,6 @@ function XIcon() {
     </svg>
   );
 }
-
 function DiscordIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">

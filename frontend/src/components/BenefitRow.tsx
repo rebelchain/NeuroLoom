@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { useSectionReveal } from "../lib/useSectionReveal";
 
 interface BenefitRowProps {
   icon: ReactNode;
@@ -9,19 +8,17 @@ interface BenefitRowProps {
 }
 
 export function BenefitRow({ icon, title, desc, delay }: BenefitRowProps) {
-  const { ref, visible } = useSectionReveal();
   return (
     <div
-      ref={ref}
-      className={`flex items-start gap-4 liquid-glass rounded-xl p-5 transition-all duration-500 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}
+      className="group flex items-start gap-4 border border-[#1f1f1f] bg-[#121212] p-5 transition-all duration-500 hover:border-primary/50"
       style={{ transitionDelay: delay }}
     >
-      <div className="w-10 h-10 rounded-xl bg-white/[0.02] border border-white/10 flex items-center justify-center shrink-0 shadow-inner">
+      <div className="w-10 h-10 border border-[#1f1f1f] bg-[#0a0a0a] flex items-center justify-center shrink-0 group-hover:border-primary transition-colors">
         {icon}
       </div>
       <div>
-        <div className="text-sm font-semibold text-white mb-1">{title}</div>
-        <div className="text-xs text-gray-400 leading-relaxed">{desc}</div>
+        <div className="text-sm font-semibold text-[#f5f5f5] mb-1">{title}</div>
+        <div className="text-xs text-[#8a8a8a] leading-relaxed">{desc}</div>
       </div>
     </div>
   );

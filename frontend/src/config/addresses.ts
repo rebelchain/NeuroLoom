@@ -1,0 +1,5 @@
+export const ACTIVE_VAULTS = [
+  "0xd00b514048afc47bfc4de6a1646d5c63bd23401a",
+  "0xF4be9e83543cc31e93B1a10EAe502B49fe3be92e",
+  "0xc86dB8fBeC6eb19DCF70aC9d34cb159867B36e55",
+];

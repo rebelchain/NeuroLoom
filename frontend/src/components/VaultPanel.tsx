@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { maxUint256, parseUnits } from "viem";
+import { formatUnits, maxUint256, parseUnits } from "viem";
 import {
   useAccount,
   useReadContract,
@@ -8,9 +8,7 @@ import {
   useWriteContract,
 } from "wagmi";
 
-const VAULT_ADDRESS = "0xe38887648d7272e9Eb3C06628767bb3d84a9FF4E";
-
-const USDT_ADDRESS = "0xFa45Fd644B34606cABFb7c8acc546E770e248b83";
+const USDT_ADDRESS = "0xA11c8D9DC9b66E209Ef60F0C8D969D3CD988782c";
 
 const vaultABI = [
   {
@@ -32,6 +30,13 @@ const vaultABI = [
     name: "withdraw",
     outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
     stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [{ internalType: "address", name: "owner", type: "address" }],
+    name: "maxWithdraw",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
     type: "function",
   },
 ] as const;
@@ -57,24 +62,56 @@ const erc20ABI = [
     stateMutability: "nonpayable",
     type: "function",
   },
+  {
+    inputs: [{ internalType: "address", name: "account", type: "address" }],
+    name: "balanceOf",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
 ] as const;
 
-export function VaultPanel() {
+interface VaultPanelProps {
+  vaultAddress: `0x${string}`;
+  vaultName: string;
+  vaultSymbol: string;
+  onClose: () => void;
+}
+
+export function VaultPanel({
+  vaultAddress,
+  vaultName,
+  vaultSymbol,
+  onClose,
+}: VaultPanelProps) {
   const [action, setAction] = useState<"deposit" | "withdraw">("deposit");
   const [amount, setAmount] = useState("");
-
   const { address, isConnected } = useAccount();
 
 
+  const { data: userBalance } = useReadContract({
+    address: USDT_ADDRESS,
+    abi: erc20ABI,
+    functionName: "balanceOf",
+    args: address ? [address] : undefined,
+    query: { enabled: !!address, refetchInterval: 3000 },
+  });
+
+
+  const { data: maxWithdrawData } = useReadContract({
+    address: vaultAddress,
+    abi: vaultABI,
+    functionName: "maxWithdraw",
+    args: address ? [address] : undefined,
+    query: { enabled: !!address, refetchInterval: 3000 },
+  });
 
   const { data: allowance, refetch: refetchAllowance } = useReadContract({
     address: USDT_ADDRESS,
     abi: erc20ABI,
     functionName: "allowance",
-    args: address ? [address, VAULT_ADDRESS] : undefined,
-    query: {
-      enabled: !!address,
-    },
+    args: address ? [address, vaultAddress] : undefined,
+    query: { enabled: !!address },
   });
 
   const {
@@ -84,7 +121,6 @@ export function VaultPanel() {
   } = useWriteContract();
   const { isLoading: isApproveConfirming, isSuccess: isApproveSuccess } =
     useWaitForTransactionReceipt({ hash: approveHash });
-
   const {
     data: depositHash,
     isPending: isDepositPending,
@@ -92,7 +128,6 @@ export function VaultPanel() {
   } = useWriteContract();
   const { isLoading: isDepositConfirming, isSuccess: isDepositSuccess } =
     useWaitForTransactionReceipt({ hash: depositHash });
-
   const {
     data: withdrawHash,
     isPending: isWithdrawPending,
@@ -101,42 +136,36 @@ export function VaultPanel() {
   const { isLoading: isWithdrawConfirming, isSuccess: isWithdrawSuccess } =
     useWaitForTransactionReceipt({ hash: withdrawHash });
 
-
   const parsedAmount =
-    amount && !isNaN(Number(amount)) ? parseUnits(amount, 18) : BigInt(0);
-
+    amount && !isNaN(Number(amount)) ? parseUnits(amount, 6) : BigInt(0);
   const needsApproval =
     allowance !== undefined && (allowance as bigint) < parsedAmount;
 
   useEffect(() => {
-    if (isApproveSuccess) {
-      refetchAllowance();
-    }
+    if (isApproveSuccess) refetchAllowance();
   }, [isApproveSuccess, refetchAllowance]);
 
   const handleExecute = () => {
     if (!amount || parsedAmount === BigInt(0)) return;
-
     if (action === "deposit") {
       if (needsApproval) {
         writeApprove({
           address: USDT_ADDRESS,
           abi: erc20ABI,
           functionName: "approve",
-          args: [VAULT_ADDRESS, maxUint256],
+          args: [vaultAddress, maxUint256],
         });
       } else {
-
         writeDeposit({
-          address: VAULT_ADDRESS,
+          address: vaultAddress,
           abi: vaultABI,
           functionName: "deposit",
-          args: [parsedAmount, address as `0x${string}`], 
+          args: [parsedAmount, address as `0x${string}`],
         });
       }
     } else {
       writeWithdraw({
-        address: VAULT_ADDRESS,
+        address: vaultAddress,
         abi: vaultABI,
         functionName: "withdraw",
         args: [
@@ -151,10 +180,22 @@ export function VaultPanel() {
   let buttonText = "Enter Amount";
   let isButtonDisabled = true;
 
+
+  const hasInsufficientDeposit =
+    userBalance !== undefined && (userBalance as bigint) < parsedAmount;
+  const hasInsufficientWithdraw =
+    maxWithdrawData !== undefined && (maxWithdrawData as bigint) < parsedAmount;
+
   if (!isConnected) {
     buttonText = "Connect Wallet First";
   } else if (amount && parsedAmount > BigInt(0)) {
-    if (action === "deposit") {
+    if (action === "deposit" && hasInsufficientDeposit) {
+      buttonText = "Insufficient USDT Balance";
+      isButtonDisabled = true;
+    } else if (action === "withdraw" && hasInsufficientWithdraw) {
+      buttonText = "Exceeds Vault Balance";
+      isButtonDisabled = true;
+    } else if (action === "deposit") {
       if (needsApproval) {
         if (isApprovePending) buttonText = "Confirming in Wallet...";
         else if (isApproveConfirming) buttonText = "Approving USDT...";
@@ -173,42 +214,82 @@ export function VaultPanel() {
         }
       }
     } else {
-      buttonText = "Execute Withdrawal";
-      isButtonDisabled = false;
+      if (isWithdrawPending) buttonText = "Confirming in Wallet...";
+      else if (isWithdrawConfirming) buttonText = "Withdrawing...";
+      else if (isWithdrawSuccess) buttonText = "Withdraw Success!";
+      else {
+        buttonText = "Execute Withdrawal";
+        isButtonDisabled = false;
+      }
     }
   }
 
-  const activeHash = depositHash || approveHash;
+  const activeHash = depositHash || approveHash || withdrawHash;
+  const displayBalance =
+    action === "deposit"
+      ? userBalance
+        ? formatUnits(userBalance as bigint, 6)
+        : "0"
+      : maxWithdrawData
+        ? formatUnits(maxWithdrawData as bigint, 6)
+        : "0";
 
   return (
-    <aside className="bg-[#0b1120]/90 rounded-3xl border border-white/[0.05] p-6 flex flex-col gap-6 relative overflow-hidden backdrop-blur-2xl shadow-2xl">
-      <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary/20 rounded-full blur-[80px] pointer-events-none"></div>
-
-      {/* Tabs */}
-      <div className="flex gap-6 border-b border-white/[0.05] pb-3 relative z-10">
+    <div className="bg-[#121212] border border-[#1f1f1f] p-6 flex flex-col gap-6 relative w-full max-w-md mx-auto shadow-2xl">
+      <div className="flex justify-between items-start border-b border-[#1f1f1f] pb-4">
+        <div>
+          <h2 className="text-sm font-bold font-mono uppercase tracking-widest text-[#f5f5f5]">
+            Target: {vaultName}
+          </h2>
+          <p className="text-[10px] font-mono text-[#8a8a8a] mt-1">
+            {">"} Contract: {vaultAddress.slice(0, 6)}...
+            {vaultAddress.slice(-4)}
+          </p>
+        </div>
         <button
-          onClick={() => setAction("deposit")}
-          className={`font-semibold tracking-wide pb-2 border-b-2 transition-colors ${action === "deposit" ? "text-white border-primary" : "text-gray-500 border-transparent hover:text-gray-300"}`}
+          onClick={onClose}
+          className="text-[#8a8a8a] hover:text-primary font-mono text-xs"
         >
-          Deposit Asset
+          [ X ]
+        </button>
+      </div>
+
+      <div className="flex gap-6 border-b border-[#1f1f1f] pb-0 font-mono text-[11px] uppercase tracking-widest">
+        <button
+          onClick={() => {
+            setAction("deposit");
+            setAmount("");
+          }}
+          className={`pb-3 border-b-2 transition-colors ${action === "deposit" ? "text-primary border-primary" : "text-[#8a8a8a] border-transparent hover:text-[#c5c5c5]"}`}
+        >
+          Deposit
         </button>
         <button
-          onClick={() => setAction("withdraw")}
-          className={`font-semibold tracking-wide pb-2 border-b-2 transition-colors ${action === "withdraw" ? "text-white border-primary" : "text-gray-500 border-transparent hover:text-gray-300"}`}
+          onClick={() => {
+            setAction("withdraw");
+            setAmount("");
+          }}
+          className={`pb-3 border-b-2 transition-colors ${action === "withdraw" ? "text-primary border-primary" : "text-[#8a8a8a] border-transparent hover:text-[#c5c5c5]"}`}
         >
           Withdraw
         </button>
       </div>
 
-      {/* Form*/}
-      <div className="flex flex-col gap-2 relative z-10">
-        <label className="text-[10px] font-mono text-gray-400 uppercase tracking-wider">
-          Amount
-        </label>
-        <div className="flex items-center justify-between bg-black/60 border border-white/10 rounded-xl p-3 focus-within:border-primary/50 transition-colors">
+      <div className="flex flex-col gap-3">
+        <div className="flex justify-between items-center text-[10px] font-mono uppercase tracking-widest">
+          <label className="text-[#8a8a8a]">{">"} Asset Amount</label>
+          <span
+            className="text-primary cursor-pointer hover:underline"
+            onClick={() => setAmount(displayBalance)}
+          >
+            {action === "deposit" ? "Wallet" : "Vault"}:{" "}
+            {Number(displayBalance).toFixed(2)} USDT
+          </span>
+        </div>
+        <div className="flex items-center justify-between bg-[#0a0a0a] border border-[#1f1f1f] p-3 focus-within:border-primary transition-colors">
           <input
             type="number"
-            placeholder="0.0"
+            placeholder="0.00"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             disabled={
@@ -219,23 +300,11 @@ export function VaultPanel() {
               isWithdrawPending ||
               isWithdrawConfirming
             }
-            className="bg-transparent text-2xl text-white outline-none w-full font-mono placeholder:text-gray-700 disabled:opacity-50"
+            className="bg-transparent text-xl text-[#f5f5f5] outline-none w-full font-mono placeholder:text-[#333] disabled:opacity-50"
           />
-          <span className="font-bold text-white bg-white/10 px-3 py-1.5 rounded-lg text-sm">
-            USDT
+          <span className="font-mono text-xs text-primary bg-primary/10 px-3 py-1.5 border border-primary/20">
+            {vaultSymbol.split("/")[0]}
           </span>
-        </div>
-      </div>
-
-      {/* Route */}
-      <div className="flex flex-col gap-3 p-4 bg-white/[0.02] rounded-xl border border-white/[0.05] relative z-10">
-        <div className="flex justify-between text-xs">
-          <span className="text-gray-400">AI Strategy Pool</span>
-          <span className="text-white font-mono">Dynamic Multi-Routing</span>
-        </div>
-        <div className="flex justify-between text-xs">
-          <span className="text-gray-400">Simulated APY</span>
-          <span className="text-success font-mono font-bold">~24.5%</span>
         </div>
       </div>
 
@@ -250,17 +319,7 @@ export function VaultPanel() {
           isWithdrawPending ||
           isWithdrawConfirming
         }
-        className={`w-full py-4 rounded-xl font-bold tracking-wide transition-all relative z-10
-          ${
-            isButtonDisabled
-              ? "bg-gray-800 text-gray-500 cursor-not-allowed"
-              : isDepositSuccess
-                ? "bg-success text-white shadow-[0_0_20px_rgba(34,197,94,0.4)]"
-                : needsApproval && action === "deposit"
-                  ? "bg-info text-white hover:shadow-[0_0_20px_rgba(6,182,212,0.4)]" // Warna berbeda untuk Approve
-                  : "bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:shadow-[0_0_20px_rgba(139,92,246,0.4)] hover:-translate-y-0.5"
-          }
-        `}
+        className={`w-full py-4 font-mono text-xs uppercase tracking-[0.2em] transition-all border ${isButtonDisabled ? "bg-[#0a0a0a] border-[#1f1f1f] text-[#8a8a8a] cursor-not-allowed" : isDepositSuccess || isWithdrawSuccess ? "bg-primary text-[#0a0a0a] border-primary font-bold" : needsApproval && action === "deposit" ? "bg-[#1f1f1f] border-[#c5c5c5] text-[#f5f5f5] hover:bg-[#333]" : "bg-primary border-primary text-[#0a0a0a] hover:bg-transparent hover:text-primary font-bold"}`}
       >
         {isApprovePending ||
         isApproveConfirming ||
@@ -268,26 +327,24 @@ export function VaultPanel() {
         isDepositConfirming ||
         isWithdrawPending ||
         isWithdrawConfirming ? (
-          <span className="flex items-center justify-center gap-2">
-            <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-            {buttonText}
+          <span className="flex items-center justify-center gap-3 animate-pulse">
+            [ EXECUTING... ]
           </span>
         ) : (
-          buttonText
+          `[ ${buttonText} ]`
         )}
       </button>
-
 
       {activeHash && (
         <a
           href={`https://testnet.bscscan.com/tx/${activeHash}`}
           target="_blank"
           rel="noreferrer"
-          className="text-[10px] text-center text-primary hover:underline font-mono truncate relative z-10"
+          className="text-[10px] text-center text-primary hover:underline font-mono truncate"
         >
-          Tx: {activeHash.slice(0, 14)}...
+          {">"} TX: {activeHash.slice(0, 14)}...
         </a>
       )}
-    </aside>
+    </div>
   );
 }

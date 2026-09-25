@@ -1,16 +1,22 @@
 "use client";
 
-import {
-  Activity,
-  AlertTriangle,
-  Download,
-  ExternalLink,
-  Filter,
-  Search,
-  ShieldCheck,
-} from "lucide-react";
+import { formatTimeAgo } from "@/lib/utils";
+import { Activity, Download, ExternalLink, Filter } from "lucide-react";
 import { useEffect, useState } from "react";
 import { formatUnits } from "viem";
+import { ACTIVE_VAULTS } from "../config/addresses";
+
+
+const VAULT_MAP: Record<string, string> = {
+  [ACTIVE_VAULTS[0].toLowerCase()]: "Yield Farm",
+  [ACTIVE_VAULTS[1].toLowerCase()]: "Bluechip Momentum",
+  [ACTIVE_VAULTS[2].toLowerCase()]: "Degen Accumulator",
+};
+
+function getVaultName(address?: string) {
+  if (!address) return "NeuroLoom Vault";
+  return VAULT_MAP[address.toLowerCase()] || "NeuroLoom Vault";
+}
 
 type EventType =
   | "AI_REBALANCE"
@@ -34,12 +40,14 @@ interface RawRebalance {
   tokenIn: string;
   tokenOut: string;
   amountIn: string;
+  address: string; 
   blockTimestamp: string;
   transactionHash: string;
 }
 interface RawDepositWithdraw {
   id: string;
   assets: string;
+  address: string; 
   blockTimestamp: string;
   transactionHash: string;
 }
@@ -64,9 +72,9 @@ export function HistoryView() {
   const [filterType, setFilterType] = useState<string>("ALL");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  const GRAPHQL_ENDPOINT =
-    "https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/version/latest";
 
+  const GRAPHQL_ENDPOINT =
+    "https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.6";
 
   useEffect(() => {
     async function fetchMasterLedger() {
@@ -74,36 +82,36 @@ export function HistoryView() {
         setLoading(true);
         const query = `
           {
-            rebalanceExecuteds(first: 20, orderBy: blockTimestamp, orderDirection: desc) { id, tokenIn, tokenOut, amountIn, blockTimestamp, transactionHash }
-            deposits(first: 20, orderBy: blockTimestamp, orderDirection: desc) { id, assets, blockTimestamp, transactionHash }
-            withdraws(first: 20, orderBy: blockTimestamp, orderDirection: desc) { id, assets, blockTimestamp, transactionHash }
+            rebalanceExecuteds(first: 20, orderBy: blockTimestamp, orderDirection: desc) { id, tokenIn, tokenOut, amountIn, address, blockTimestamp, transactionHash }
+            deposits(first: 20, orderBy: blockTimestamp, orderDirection: desc) { id, assets, address, blockTimestamp, transactionHash }
+            withdraws(first: 20, orderBy: blockTimestamp, orderDirection: desc) { id, assets, address, blockTimestamp, transactionHash }
             protocolApproveds(first: 10, orderBy: blockTimestamp, orderDirection: desc) { id, protocol, status, blockTimestamp, transactionHash }
             pauseds(first: 5, orderBy: blockTimestamp, orderDirection: desc) { id, account, blockTimestamp, transactionHash }
             unpauseds(first: 5, orderBy: blockTimestamp, orderDirection: desc) { id, account, blockTimestamp, transactionHash }
           }
         `;
-
         const res = await fetch(GRAPHQL_ENDPOINT, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ query }),
         });
-
         const { data } = await res.json();
-
         const normalizedData: VaultEvent[] = [];
 
         if (data) {
           if (data.rebalanceExecuteds) {
             normalizedData.push(
-              ...data.rebalanceExecuteds.map((e: RawRebalance) => ({
-                id: e.id,
-                type: "AI_REBALANCE" as EventType,
-                amount: `${formatUnits(BigInt(e.amountIn), 18)} USDT`,
-                route: `${shortenAddress(e.tokenIn)} → ${shortenAddress(e.tokenOut)}`,
-                timestamp: Number(e.blockTimestamp),
-                txHash: e.transactionHash,
-              })),
+              ...data.rebalanceExecuteds.map((e: RawRebalance) => {
+                const vaultName = getVaultName(e.address);
+                return {
+                  id: e.id,
+                  type: "AI_REBALANCE" as EventType,
+                  amount: `${formatUnits(BigInt(e.amountIn), 6)} USDT`,
+                  route: `[${vaultName}] ${shortenAddress(e.tokenIn)} → ${shortenAddress(e.tokenOut)}`,
+                  timestamp: Number(e.blockTimestamp),
+                  txHash: e.transactionHash,
+                };
+              }),
             );
           }
           if (data.deposits) {
@@ -111,8 +119,8 @@ export function HistoryView() {
               ...data.deposits.map((e: RawDepositWithdraw) => ({
                 id: e.id,
                 type: "USER_DEPOSIT" as EventType,
-                amount: `+ ${formatUnits(BigInt(e.assets), 18)} USDT`,
-                route: "Inbound Liquidity",
+                amount: `+ ${formatUnits(BigInt(e.assets), 6)} USDT`,
+                route: `Inbound to ${getVaultName(e.address)}`,
                 timestamp: Number(e.blockTimestamp),
                 txHash: e.transactionHash,
               })),
@@ -123,8 +131,8 @@ export function HistoryView() {
               ...data.withdraws.map((e: RawDepositWithdraw) => ({
                 id: e.id,
                 type: "USER_WITHDRAWAL" as EventType,
-                amount: `- ${formatUnits(BigInt(e.assets), 18)} USDT`,
-                route: "Outbound Liquidity",
+                amount: `- ${formatUnits(BigInt(e.assets), 6)} USDT`,
+                route: `Outbound from ${getVaultName(e.address)}`,
                 timestamp: Number(e.blockTimestamp),
                 txHash: e.transactionHash,
               })),
@@ -164,15 +172,15 @@ export function HistoryView() {
         setLoading(false);
       }
     }
-
     fetchMasterLedger();
-  }, []); 
-
+  }, []);
 
   const filteredEvents = events.filter((e) => {
-    const matchesSearch = e.txHash
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
+    const searchLower = searchQuery.toLowerCase();
+    const matchesSearch =
+      e.txHash.toLowerCase().includes(searchLower) ||
+      e.route.toLowerCase().includes(searchLower);
+
     const matchesType = filterType === "ALL" || e.type === filterType;
     return matchesSearch && matchesType;
   });
@@ -185,7 +193,6 @@ export function HistoryView() {
           `${e.type},"${e.amount}","${e.route}",${new Date(e.timestamp * 1000).toISOString()},${e.txHash}`,
       )
       .join("\n");
-
     const blob = new Blob([headers + rows], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -196,51 +203,56 @@ export function HistoryView() {
   };
 
   return (
-    <div className="w-full h-full flex flex-col p-8 overflow-y-auto">
+    <div className="w-full h-full flex flex-col p-6 lg:p-10 overflow-y-auto">
+      {/* HEADER */}
       <div className="mb-8">
-        <div className="flex items-center gap-2 mb-2">
-          <div className="px-3 py-1 rounded-full border border-primary/30 bg-primary/10 text-primary text-[10px] uppercase tracking-widest font-mono">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="px-3 py-1.5 border border-primary/30 bg-primary/10 text-primary text-[10px] uppercase tracking-widest font-mono tick-frame">
             Audit • On-Chain Ledger
           </div>
         </div>
-        <h1 className="text-3xl font-bold text-white mb-2">
+        <h1 className="text-2xl font-bold text-[#f5f5f5] mb-2 font-mono uppercase tracking-widest">
           Master <span className="text-primary">Ledger</span>
         </h1>
-        <p className="text-gray-400 text-sm max-w-2xl">
-          The immutable audit trail of every vault rebalance, user deposit, and
-          administrative action, verified directly by the BSC smart contracts.
+        <p className="text-[#8a8a8a] text-xs max-w-2xl font-mono">
+          {">"} The immutable audit trail of every vault rebalance, user
+          deposit, and administrative action, verified directly by the BSC smart
+          contracts.
         </p>
       </div>
 
-      <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6 bg-white/[0.02] p-4 rounded-xl border border-white/5">
-        <div className="flex w-full md:w-auto gap-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+      {/* CONTROL PANEL  */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 bg-[#0a0a0a] p-4 border border-[#1f1f1f]">
+        <div className="flex flex-col sm:flex-row w-full md:w-auto gap-4 flex-grow">
+          {/* SEARCH INPUT */}
+          <div className="relative w-full sm:w-64">
             <input
               type="text"
-              placeholder="Search Tx Hash..."
+              placeholder="Search Hash or Vault..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full md:w-64 bg-black/20 border border-white/10 rounded-lg py-2 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-primary/50 transition-colors font-mono"
+              className="w-full bg-[#121212] border border-[#1f1f1f] py-2.5 px-4 text-xs text-[#f5f5f5] focus:outline-none focus:border-primary transition-colors font-mono placeholder:text-[#333]"
             />
           </div>
 
-          <div className="relative">
-            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 z-10 pointer-events-none" />
-
+          {/* FILTER DROPDOWN */}
+          <div className="relative w-full sm:w-56">
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="flex items-center justify-between w-full md:w-48 bg-black/40 border border-white/10 rounded-lg py-2 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-primary/50 transition-colors cursor-pointer"
+              className="flex items-center justify-between w-full bg-[#121212] border border-[#1f1f1f] py-2.5 px-4 text-[11px] uppercase tracking-widest text-[#f5f5f5] focus:outline-none focus:border-primary transition-colors cursor-pointer font-mono"
             >
-              <span>
-                {filterType === "ALL" && "All Events"}
-                {filterType === "AI_REBALANCE" && "AI Rebalances"}
-                {filterType === "USER_DEPOSIT" && "User Deposits"}
-                {filterType === "USER_WITHDRAWAL" && "User Withdrawals"}
-                {filterType === "ADMIN_WHITELIST" && "Admin Whitelist"}
-              </span>
+              <div className="flex items-center gap-2.5">
+                <Filter className="w-[14px] h-[14px] text-[#8a8a8a]" />
+                <span>
+                  {filterType === "ALL" && "All Events"}
+                  {filterType === "AI_REBALANCE" && "AI Rebalances"}
+                  {filterType === "USER_DEPOSIT" && "User Deposits"}
+                  {filterType === "USER_WITHDRAWAL" && "User Withdrawals"}
+                  {filterType === "ADMIN_WHITELIST" && "Admin Whitelist"}
+                </span>
+              </div>
               <svg
-                className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""}`}
+                className={`w-3 h-3 text-[#8a8a8a] transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""}`}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -261,9 +273,8 @@ export function HistoryView() {
               />
             )}
 
-            {/* Menu Dropdown Kustom */}
             {isDropdownOpen && (
-              <div className="absolute top-full left-0 mt-2 w-full bg-[#0b1021] border border-white/10 rounded-lg shadow-xl overflow-hidden z-50">
+              <div className="absolute top-full left-0 mt-1 w-full bg-[#0a0a0a] border border-[#1f1f1f] shadow-2xl z-50 flex flex-col">
                 {[
                   { value: "ALL", label: "All Events" },
                   { value: "AI_REBALANCE", label: "AI Rebalances" },
@@ -277,10 +288,10 @@ export function HistoryView() {
                       setFilterType(option.value);
                       setIsDropdownOpen(false);
                     }}
-                    className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                    className={`w-full text-left px-4 py-3 text-[10px] uppercase tracking-widest font-mono transition-colors ${
                       filterType === option.value
-                        ? "bg-primary/20 text-primary font-medium"
-                        : "text-gray-400 hover:bg-white/5 hover:text-white"
+                        ? "bg-primary text-[#0a0a0a] font-bold"
+                        : "text-[#8a8a8a] hover:bg-[#121212] hover:text-[#f5f5f5]"
                     }`}
                   >
                     {option.label}
@@ -291,80 +302,77 @@ export function HistoryView() {
           </div>
         </div>
 
+        {/*  EXPORT BUTTON */}
         <button
           onClick={exportToCSV}
-          className="flex items-center gap-2 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 px-4 py-2 rounded-lg text-sm font-medium transition-all w-full md:w-auto justify-center"
+          className="flex items-center gap-2 bg-primary hover:bg-transparent text-[#0a0a0a] hover:text-primary border border-primary px-6 py-2.5 text-[11px] uppercase tracking-widest font-mono font-bold transition-colors shrink-0 justify-center w-full md:w-auto"
         >
-          <Download className="w-4 h-4" />
-          Export CSV
+          <Download className="w-3.5 h-3.5" />[ Export CSV ]
         </button>
       </div>
 
-      <div className="bg-[#0b1021] border border-white/5 rounded-2xl overflow-hidden">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="border-b border-white/5 text-xs text-gray-500 font-mono tracking-wider">
-              <th className="py-4 px-6 font-medium">EVENT TYPE</th>
-              <th className="py-4 px-6 font-medium">AMOUNT / STATUS</th>
-              <th className="py-4 px-6 font-medium">ROUTING / TARGET</th>
-              <th className="py-4 px-6 font-medium">TIMESTAMP</th>
-              <th className="py-4 px-6 font-medium">TRANSACTION</th>
-            </tr>
-          </thead>
-          <tbody className="text-sm">
-            {loading ? (
-              <tr>
-                <td
-                  colSpan={5}
-                  className="py-12 text-center text-gray-500 font-mono"
-                >
-                  <Activity className="w-6 h-6 animate-spin mx-auto mb-2 opacity-50" />
-                  Syncing from The Graph...
-                </td>
+      {/* DATA GRID  */}
+      <div className="bg-[#0a0a0a] border border-[#1f1f1f] flex-grow flex flex-col min-h-[400px]">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left whitespace-nowrap">
+            <thead>
+              <tr className="bg-[#121212] border-b border-[#1f1f1f] text-[10px] text-[#8a8a8a] font-mono uppercase tracking-widest">
+                <th className="py-4 px-6 font-normal">Event Type</th>
+                <th className="py-4 px-6 font-normal">Amount / Status</th>
+                <th className="py-4 px-6 font-normal">Routing / Target</th>
+                <th className="py-4 px-6 font-normal">Timestamp</th>
+                <th className="py-4 px-6 font-normal">Transaction</th>
               </tr>
-            ) : filteredEvents.length === 0 ? (
-              <tr>
-                <td
-                  colSpan={5}
-                  className="py-12 text-center text-gray-500 font-mono"
-                >
-                  No events found matching your filter.
-                </td>
-              </tr>
-            ) : (
-              filteredEvents.map((event, idx) => (
-                <tr
-                  key={`${event.txHash}-${idx}`}
-                  className="border-b border-white/5 hover:bg-white/[0.02] transition-colors group"
-                >
-                  <td className="py-4 px-6">
-                    <EventBadge type={event.type} />
-                  </td>
-                  <td className="py-4 px-6 font-mono text-gray-300">
-                    {event.amount}
-                  </td>
-                  <td className="py-4 px-6 font-mono text-gray-400">
-                    {event.route}
-                  </td>
-                  <td className="py-4 px-6 text-gray-500">
-                    {formatTimeAgo(event.timestamp)}
-                  </td>
-                  <td className="py-4 px-6">
-                    <a
-                      href={`https://testnet.bscscan.com/tx/${event.txHash}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-primary/70 hover:text-primary font-mono transition-colors"
-                    >
-                      {shortenAddress(event.txHash)}
-                      <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </a>
+            </thead>
+            <tbody className="text-[11px] font-mono">
+              {loading ? (
+                <tr>
+                  <td colSpan={5} className="py-16 text-center text-[#8a8a8a]">
+                    <div className="flex flex-col items-center gap-3">
+                      <Activity className="w-5 h-5 text-primary animate-spin" />
+                      {">"} _Syncing ledger from The Graph...
+                    </div>
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : filteredEvents.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="py-16 text-center text-[#8a8a8a]">
+                    {">"} _No events found matching your parameters.
+                  </td>
+                </tr>
+              ) : (
+                filteredEvents.map((event, idx) => (
+                  <tr
+                    key={`${event.txHash}-${idx}`}
+                    className="border-b border-[#1f1f1f] hover:bg-[#121212] transition-colors group"
+                  >
+                    <td className="py-4 px-6">
+                      <EventBadge type={event.type} />
+                    </td>
+                    <td className="py-4 px-6 text-[#f5f5f5] tnum">
+                      {event.amount}
+                    </td>
+                    <td className="py-4 px-6 text-[#c5c5c5]">{event.route}</td>
+                    <td className="py-4 px-6 text-[#8a8a8a]">
+                      {formatTimeAgo(event.timestamp)}
+                    </td>
+                    <td className="py-4 px-6">
+                      <a
+                        href={`https://testnet.bscscan.com/tx/${event.txHash}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-[#8a8a8a] hover:text-primary transition-colors"
+                      >
+                        [{shortenAddress(event.txHash)}]
+                        <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </a>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
@@ -373,46 +381,27 @@ export function HistoryView() {
 function EventBadge({ type }: { type: EventType }) {
   switch (type) {
     case "AI_REBALANCE":
-      return (
-        <span className="text-success font-medium flex items-center gap-2">
-          <Activity className="w-4 h-4" /> AI_REBALANCE
-        </span>
-      );
+      return <span className="text-primary font-bold">[ REBALANCE ]</span>;
     case "USER_DEPOSIT":
-      return <span className="text-blue-400 font-medium">VAULT_DEPOSIT</span>;
+      return <span className="text-[#f5f5f5] font-bold">[ + DEPOSIT ]</span>;
     case "USER_WITHDRAWAL":
-      return (
-        <span className="text-orange-400 font-medium">VAULT_WITHDRAWAL</span>
-      );
+      return <span className="text-[#8a8a8a] font-bold">[ - WITHDRAW ]</span>;
     case "ADMIN_WHITELIST":
-      return (
-        <span className="text-purple-400 font-medium flex items-center gap-2">
-          <ShieldCheck className="w-4 h-4" /> ADMIN_WHITELIST
-        </span>
-      );
+      return <span className="text-[#c5c5c5] font-bold">[ WHITELIST ]</span>;
     case "SYSTEM_PAUSED":
       return (
-        <span className="text-red-500 font-medium flex items-center gap-2">
-          <AlertTriangle className="w-4 h-4" /> EMERGENCY_PAUSED
+        <span className="text-[#ff5f5f] font-bold animate-pulse">
+          [ HALTED ]
         </span>
       );
+    case "SYSTEM_UNPAUSED":
+      return <span className="text-primary font-bold">[ RESUMED ]</span>;
     default:
-      return <span className="text-gray-400 font-medium">{type}</span>;
+      return <span className="text-[#8a8a8a] font-bold">[ {type} ]</span>;
   }
 }
 
 function shortenAddress(address: string) {
   if (!address) return "";
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
-}
-
-function formatTimeAgo(timestamp: number) {
-  const seconds = Math.floor(Date.now() / 1000 - timestamp);
-  if (seconds < 60) return `${seconds}s ago`;
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  return `${days}d ago`;
 }

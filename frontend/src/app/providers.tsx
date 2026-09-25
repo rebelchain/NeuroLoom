@@ -21,12 +21,17 @@ export const wagmiConfig = getDefaultConfig({
 });
 
 export function Providers({ children }: { children: React.ReactNode }) {
-
   const [queryClient] = useState(() => new QueryClient());
   return (
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider theme={darkTheme({ accentColor: "#8b5cf6" })}>
+        <RainbowKitProvider
+          theme={darkTheme({
+            accentColor: "#00ED64", 
+            accentColorForeground: "#0a0a0a", 
+            borderRadius: "none", 
+          })}
+        >
           {children}
         </RainbowKitProvider>
       </QueryClientProvider>

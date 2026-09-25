@@ -3,7 +3,6 @@ import { network } from "hardhat";
 async function main() {
   console.log("Initializing Admin Wallet for Whitelist Protocol...");
 
- 
   const { viem } = await network.create();
   const publicClient = await viem.getPublicClient();
 

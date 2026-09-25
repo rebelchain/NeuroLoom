@@ -2,77 +2,79 @@ import { network } from "hardhat";
 import { parseEventLogs } from "viem";
 
 async function main() {
-  console.log(" deploy to BSC Testnet via Viem...");
+  console.log("🚀 Deploying NeuroLoom Core to BSC Testnet via Viem...");
 
   const { viem } = await network.create();
-
-
   const publicClient = await viem.getPublicClient();
   const [deployer] = await viem.getWalletClients();
 
-  console.log("Deploying with account:", deployer.account.address);
+  console.log("Deployer account:", deployer.account.address);
 
   const balance = await publicClient.getBalance({
     address: deployer.account.address,
   });
-  console.log(` BNB balance: ${Number(balance) / 1e18}`);
+  if (balance === 0n)
+    throw new Error("BNB balance is zero, please use faucet!");
 
-  if (balance === 0n) {
-    throw new Error("BNB balance is zero, brooo");
-  }
 
-  console.log("\nDemploy master vault");
-
+  console.log("\n[1] Deploying Master Vault Logic...");
   const masterVault = await viem.deployContract("NeuroLoomVault");
-  console.log("master vault success deployed on:", masterVault.address);
+  console.log("Master Logic deployed at:", masterVault.address);
 
 
-  console.log("\nDeploying NeuroLoomVaultFactory");
-
-
+  console.log("\n[2] Deploying Vault Factory...");
   const factory = await viem.deployContract("NeuroLoomVaultFactory", [
     masterVault.address,
   ]);
-  console.log("Factory success deployed on:", factory.address);
+  console.log("Factory deployed at:", factory.address);
 
-  console.log("\nPrinting new vault with Factory");
 
+  console.log("\n[3] Printing 3 AI Strategy Vaults...");
   const USDT_TESTNET = "0xA11c8D9DC9b66E209Ef60F0C8D969D3CD988782c";
+  const aiExecutorAddress = deployer.account.address;
 
-
-  const txHash = await factory.write.createStrategyVault([
-    USDT_TESTNET,
-    "NeuroLoom Stable Yield", 
-    "nlUSDT-YIELD", 
-    deployer.account.address, 
-  ]);
-
-  console.log("Waiting transaction Vault");
-  const receipt = await publicClient.waitForTransactionReceipt({
-    hash: txHash,
-  });
-
+  const vaultsToDeploy = [
+    { name: "The Yield Farm", symbol: "nlYIELD" },
+    { name: "Bluechip Momentum", symbol: "nlBLUE" },
+    { name: "Degen Accumulator", symbol: "nlDEGEN" },
+  ];
 
   const factoryAbi = (
     await viem.getContractAt("NeuroLoomVaultFactory", factory.address)
   ).abi;
-  const logs = parseEventLogs({
-    abi: factoryAbi,
-    eventName: "VaultCreated",
-    logs: receipt.logs,
-  });
+  const deployedAddresses = [];
 
-  const newVaultAddress =
-    (logs[0] as any)?.args?.vaultAddress || "Tidak ditemukan";
+  for (const v of vaultsToDeploy) {
+    console.log(`Deploying: ${v.name}...`);
+    const txHash = await factory.write.createStrategyVault([
+      USDT_TESTNET,
+      v.name,
+      v.symbol,
+      aiExecutorAddress,
+    ]);
 
-  console.log(
-    "Vault strategy success printed in:",
-    newVaultAddress,
-  );
+    const receipt = await publicClient.waitForTransactionReceipt({
+      hash: txHash,
+    });
+    const logs = parseEventLogs({
+      abi: factoryAbi,
+      eventName: "VaultCreated",
+      logs: receipt.logs,
+    });
 
+    const newVaultAddress = (logs[0] as any)?.args?.vaultAddress;
+    deployedAddresses.push(newVaultAddress);
+    console.log(`✅ ${v.name} deployed at: ${newVaultAddress}`);
+  }
+
+  console.log("\n=== DEPLOYMENT SUMMARY ===");
   console.log("Master Logic :", masterVault.address);
   console.log("Factory      :", factory.address);
-  console.log("Vault ke-1   :", newVaultAddress);
+  console.log("Vault 1 (Yield Farm) :", deployedAddresses[0]);
+  console.log("Vault 2 (Bluechip)   :", deployedAddresses[1]);
+  console.log("Vault 3 (Degen)      :", deployedAddresses[2]);
+  console.log("==========================");
+  console.log("SIMPAN KETIGA ADDRESS VAULT INI UNTUK SUBGRAPH DAN FRONTEND!");
 }
 
 main()

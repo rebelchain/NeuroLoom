@@ -6,7 +6,6 @@ async function main() {
   console.log(`\nUpgrade UUPS Proxy on BSC Testnet..`);
   console.log(`Proxy Target: ${proxyAddress}\n`);
 
-  //  "Everything below hangs off the connection returned by network.create()"
   const { viem } = await network.create();
 
   const publicClient = await viem.getPublicClient();

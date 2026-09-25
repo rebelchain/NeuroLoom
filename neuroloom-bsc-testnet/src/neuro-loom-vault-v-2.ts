@@ -52,7 +52,7 @@ export function handleDeposit(event: DepositEvent): void {
   entity.owner = event.params.owner;
   entity.assets = event.params.assets;
   entity.shares = event.params.shares;
-
+entity.address = event.address;
   entity.blockNumber = event.block.number;
   entity.blockTimestamp = event.block.timestamp;
   entity.transactionHash = event.transaction.hash;
@@ -94,7 +94,7 @@ export function handleRebalanceExecuted(event: RebalanceExecutedEvent): void {
   entity.tokenOut = event.params.tokenOut;
   entity.amountIn = event.params.amountIn;
   entity.timestamp = event.params.timestamp;
-
+  entity.address = event.address;
   entity.blockNumber = event.block.number;
   entity.blockTimestamp = event.block.timestamp;
   entity.transactionHash = event.transaction.hash;
@@ -197,7 +197,7 @@ export function handleWithdraw(event: WithdrawEvent): void {
   entity.owner = event.params.owner;
   entity.assets = event.params.assets;
   entity.shares = event.params.shares;
-
+  entity.address = event.address;
   entity.blockNumber = event.block.number;
   entity.blockTimestamp = event.block.timestamp;
   entity.transactionHash = event.transaction.hash;

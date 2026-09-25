@@ -10,6 +10,7 @@ type Approval @entity(immutable: true) {
 
 type Deposit @entity(immutable: true) {
   id: Bytes!
+  address: Bytes!
   sender: Bytes! # address
   owner: Bytes! # address
   assets: BigInt! # uint256
@@ -37,6 +38,7 @@ type Paused @entity(immutable: true) {
 
 type RebalanceExecuted @entity(immutable: true) {
   id: Bytes!
+  address: Bytes!
   tokenIn: Bytes! # address
   tokenOut: Bytes! # address
   amountIn: BigInt! # uint256
@@ -104,6 +106,7 @@ type Upgraded @entity(immutable: true) {
 
 type Withdraw @entity(immutable: true) {
   id: Bytes!
+  address: Bytes!
   sender: Bytes! # address
   receiver: Bytes! # address
   owner: Bytes! # address

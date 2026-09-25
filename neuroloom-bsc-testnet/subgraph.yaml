@@ -4,13 +4,16 @@ indexerHints:
 schema:
   file: ./schema.graphql
 dataSources:
+  # ==========================================
+  # VAULT 1: THE YIELD FARM
+  # ==========================================
   - kind: ethereum
-    name: NeuroLoomVaultV2
+    name: YieldFarm
     network: chapel
     source:
-      address: "0xe38887648d7272e9Eb3C06628767bb3d84a9FF4E"
-      abi: NeuroLoomVaultV2
-      startBlock: 131368139 
+      address: "0xD00b514048AFC47bFc4DE6a1646D5c63Bd23401a"
+      abi: NeuroLoomVault
+      startBlock: 133059687
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.9
@@ -28,9 +31,130 @@ dataSources:
         - Unpaused
         - Upgraded
         - Withdraw
+        - ProtocolApproved
       abis:
-        - name: NeuroLoomVaultV2
-          file: ./abis/NeuroLoomVaultV2.json
+        - name: NeuroLoomVault
+          file: ./abis/NeuroLoomVault.json
+      eventHandlers:
+        - event: Approval(indexed address,indexed address,uint256)
+          handler: handleApproval
+        - event: Deposit(indexed address,indexed address,uint256,uint256)
+          handler: handleDeposit
+        - event: Initialized(uint64)
+          handler: handleInitialized
+        - event: Paused(address)
+          handler: handlePaused
+        - event: RebalanceExecuted(indexed address,indexed address,uint256,uint256)
+          handler: handleRebalanceExecuted
+        - event: RoleAdminChanged(indexed bytes32,indexed bytes32,indexed bytes32)
+          handler: handleRoleAdminChanged
+        - event: RoleGranted(indexed bytes32,indexed address,indexed address)
+          handler: handleRoleGranted
+        - event: RoleRevoked(indexed bytes32,indexed address,indexed address)
+          handler: handleRoleRevoked
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+        - event: Unpaused(address)
+          handler: handleUnpaused
+        - event: Upgraded(indexed address)
+          handler: handleUpgraded
+        - event: Withdraw(indexed address,indexed address,indexed address,uint256,uint256)
+          handler: handleWithdraw
+        - event: ProtocolApproved(indexed address,bool)
+          handler: handleProtocolApproved
+      file: ./src/neuro-loom-vault-v-2.ts
+
+  # ==========================================
+  # VAULT 2: BLUECHIP MOMENTUM
+  # ==========================================
+  - kind: ethereum
+    name: BluechipMomentum
+    network: chapel
+    source:
+      address: "0xF4be9e83543cc31e93B1a10EAe502B49fe3be92e"
+      abi: NeuroLoomVault
+      startBlock: 133059725
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - Approval
+        - Deposit
+        - Initialized
+        - Paused
+        - RebalanceExecuted
+        - RoleAdminChanged
+        - RoleGranted
+        - RoleRevoked
+        - Transfer
+        - Unpaused
+        - Upgraded
+        - Withdraw
+        - ProtocolApproved
+      abis:
+        - name: NeuroLoomVault
+          file: ./abis/NeuroLoomVault.json
+      eventHandlers:
+        - event: Approval(indexed address,indexed address,uint256)
+          handler: handleApproval
+        - event: Deposit(indexed address,indexed address,uint256,uint256)
+          handler: handleDeposit
+        - event: Initialized(uint64)
+          handler: handleInitialized
+        - event: Paused(address)
+          handler: handlePaused
+        - event: RebalanceExecuted(indexed address,indexed address,uint256,uint256)
+          handler: handleRebalanceExecuted
+        - event: RoleAdminChanged(indexed bytes32,indexed bytes32,indexed bytes32)
+          handler: handleRoleAdminChanged
+        - event: RoleGranted(indexed bytes32,indexed address,indexed address)
+          handler: handleRoleGranted
+        - event: RoleRevoked(indexed bytes32,indexed address,indexed address)
+          handler: handleRoleRevoked
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+        - event: Unpaused(address)
+          handler: handleUnpaused
+        - event: Upgraded(indexed address)
+          handler: handleUpgraded
+        - event: Withdraw(indexed address,indexed address,indexed address,uint256,uint256)
+          handler: handleWithdraw
+        - event: ProtocolApproved(indexed address,bool)
+          handler: handleProtocolApproved
+      file: ./src/neuro-loom-vault-v-2.ts
+
+  # ==========================================
+  # VAULT 3: DEGEN ACCUMULATOR
+  # ==========================================
+  - kind: ethereum
+    name: DegenAccumulator
+    network: chapel
+    source:
+      address: "0xc86dB8fBeC6eb19DCF70aC9d34cb159867B36e55"
+      abi: NeuroLoomVault
+      startBlock: 133059769
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - Approval
+        - Deposit
+        - Initialized
+        - Paused
+        - RebalanceExecuted
+        - RoleAdminChanged
+        - RoleGranted
+        - RoleRevoked
+        - Transfer
+        - Unpaused
+        - Upgraded
+        - Withdraw
+        - ProtocolApproved
+      abis:
+        - name: NeuroLoomVault
+          file: ./abis/NeuroLoomVault.json
       eventHandlers:
         - event: Approval(indexed address,indexed address,uint256)
           handler: handleApproval

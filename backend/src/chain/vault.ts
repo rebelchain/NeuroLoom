@@ -7,56 +7,63 @@ const publicClient = createPublicClient({
   transport: http(CONFIG.RPC_URL),
 });
 
-export interface VaultState {
-  wbnbBalance: string;
-  usdtBalance: string;
-  wbnbBalanceWei: bigint; 
-  usdtBalanceWei: bigint; 
+
+export interface MultiVaultState {
+  yieldFarm: bigint;
+  bluechip: bigint;
+  degen: bigint;
 }
 
-export async function getVaultState(): Promise<VaultState> {
+export async function getVaultState(): Promise<{
+  balances: MultiVaultState;
+  formatted: any;
+}> {
   try {
     const scenario = process.env.MOCK_SCENARIO || "PRODUCTION";
 
-
-    if (scenario === "HIGH_YIELD_ENTRY" || scenario === "LIQUIDITY_VACUUM") {
+    if (scenario !== "PRODUCTION") {
       return {
-        wbnbBalance: "0.0",
-        usdtBalance: "10000.0",
-        wbnbBalanceWei: 0n,
-        usdtBalanceWei: 10000000000000000000000n,
+        balances: {
+          yieldFarm: 10000000000000000000000n, 
+          bluechip: 5000000000000000000000n, 
+          degen: 2000000000000000000000n, 
+        },
+        formatted: {
+          yieldFarm: "10000.0",
+          bluechip: "5000.0",
+          degen: "2000.0",
+        },
       };
     }
 
-    if (scenario === "IL_MITIGATION_EXIT") {
-      return {
-        wbnbBalance: "15.0",
-        usdtBalance: "0.0",
-        wbnbBalanceWei: 15000000000000000000n,
-        usdtBalanceWei: 0n,
-      };
-    }
-
-
-    const wbnbRaw = (await publicClient.readContract({
-      address: CONFIG.TOKENS.WBNB as `0x${string}`,
-      abi: erc20Abi,
-      functionName: "balanceOf",
-      args: [CONFIG.VAULT_PROXY as `0x${string}`],
-    })) as bigint;
-
-    const usdtRaw = (await publicClient.readContract({
+    const yfRaw = (await publicClient.readContract({
       address: CONFIG.TOKENS.USDT as `0x${string}`,
       abi: erc20Abi,
       functionName: "balanceOf",
-      args: [CONFIG.VAULT_PROXY as `0x${string}`],
+      args: [CONFIG.VAULTS.YIELD_FARM as `0x${string}`],
+    })) as bigint;
+
+    const bcRaw = (await publicClient.readContract({
+      address: CONFIG.TOKENS.USDT as `0x${string}`,
+      abi: erc20Abi,
+      functionName: "balanceOf",
+      args: [CONFIG.VAULTS.BLUECHIP as `0x${string}`],
+    })) as bigint;
+
+    const dgRaw = (await publicClient.readContract({
+      address: CONFIG.TOKENS.USDT as `0x${string}`,
+      abi: erc20Abi,
+      functionName: "balanceOf",
+      args: [CONFIG.VAULTS.DEGEN as `0x${string}`],
     })) as bigint;
 
     return {
-      wbnbBalance: formatUnits(wbnbRaw, 18),
-      usdtBalance: formatUnits(usdtRaw, 18),
-      wbnbBalanceWei: wbnbRaw, 
-      usdtBalanceWei: usdtRaw, 
+      balances: { yieldFarm: yfRaw, bluechip: bcRaw, degen: dgRaw },
+      formatted: {
+        yieldFarm: formatUnits(yfRaw, 18),
+        bluechip: formatUnits(bcRaw, 18),
+        degen: formatUnits(dgRaw, 18),
+      },
     };
   } catch (error) {
     console.error("❌ Gagal membaca state on-chain Vault:", error);

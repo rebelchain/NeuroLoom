@@ -5,27 +5,31 @@ const DB_PATH = path.resolve(process.cwd(), "trade_journal.json");
 
 export interface TradeRecord {
   timestamp: string;
-  vaultStrategy: string;
+  vaultStrategy: string; 
+  targetVault?: string; 
   action: string;
   executedPrice: number;
   rsiAtExecution: number;
   reasoning: string;
   status: string;
+  txHash?: string; 
 }
 
-// Inisialisasi DB JSON jika belum ada
+
 if (!fs.existsSync(DB_PATH)) {
   fs.writeFileSync(DB_PATH, JSON.stringify([]));
 }
 
-// Menerima 5 atau 6 argumen sesuai dengan yang dipanggil di index.ts
+
 export async function logAIDecision(
   vaultStrategy: string,
   action: string,
   executedPrice: number,
   rsiAtExecution: number,
   reasoning: string,
-  status: string = "SUCCESS", 
+  status: string = "SUCCESS",
+  txHash: string = "",
+  targetVault: string = "", 
 ): Promise<void> {
   const data = fs.readFileSync(DB_PATH, "utf-8");
   const records: TradeRecord[] = JSON.parse(data);
@@ -33,11 +37,13 @@ export async function logAIDecision(
   const newRecord: TradeRecord = {
     timestamp: new Date().toISOString(),
     vaultStrategy,
+    targetVault,
     action,
     executedPrice,
     rsiAtExecution,
     reasoning,
     status,
+    txHash,
   };
 
   records.push(newRecord);

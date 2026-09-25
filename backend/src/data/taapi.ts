@@ -27,7 +27,7 @@ export async function fetchQuantData(
   
     const encodedSymbol = encodeURIComponent(symbol);
 
-    // Menggunakan endpoint /indicator/ dan parameter timeframe sesuai docs resmi
+
     const [rsiRes, macdRes, emaRes] = await Promise.all([
       fetch(
         `https://v2.taapi.io/indicator/rsi?exchange=binance&symbol=${encodedSymbol}&timeframe=1h`,
@@ -53,7 +53,6 @@ export async function fetchQuantData(
     const macdData = await macdRes.json();
     const emaData = await emaRes.json();
 
-    // Data berada di dalam index [0] sesuai docs resmi
     const rsi = rsiData.value[0];
     const macd = {
       value: macdData.valueMACD[0],
@@ -79,7 +78,6 @@ export async function fetchQuantData(
     console.log(
       `[DATA WARNING] TAAPI v2 gagal (${error.message}). Fallback ke data simulasi historis...`,
     );
-    // Fallback ini memastikan simulasi marketing di Frontend tetap hidup meskipun API limit habis
     return {
       symbol,
       price: 590,

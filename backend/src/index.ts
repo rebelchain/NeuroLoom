@@ -15,7 +15,7 @@ let isRunning = true;
 
 const evaluatorLLM = new ChatGroq({
   apiKey: process.env.GROQ_API_KEY,
-  model: "qwen/qwen3.8-27b",
+  model: "openai/gpt-oss-safeguard-20b",
   temperature: 0,
 });
 
@@ -25,7 +25,7 @@ async function neuroLoomCycle() {
 
   try {
     const market = await fetchQuantData("BNB/USDT");
-    const vault = await getVaultState();
+    const vaultData = await getVaultState();
     const memories = await getRecentMemories(3);
 
     let feedbackContext = "";
@@ -40,10 +40,11 @@ async function neuroLoomCycle() {
 
       const { thoughts, draft } = await generateDecision(
         market,
-        vault,
+        vaultData,
         memories,
         feedbackContext,
       );
+
       finalThoughts = thoughts;
       currentDraft = draft;
 
@@ -64,12 +65,14 @@ async function neuroLoomCycle() {
       }
 
       console.log(`\n[EVALUATOR] Reviewing the draft: ${draft.toolName}`);
+
       const evaluation = await evaluateDecision(
         evaluatorLLM,
         draft,
         market,
-        vault.usdtBalanceWei,
+        vaultData.balances, 
       );
+
       console.log(`[EVALUATOR] Status: ${evaluation.status}`);
       console.log(`[EVALUATOR] Feedback: ${evaluation.feedback}`);
 
@@ -112,12 +115,8 @@ async function neuroLoomCycle() {
     }
 
     if (currentDraft) {
-      console.log(
-        `\n[SYSTEM] On-Chain Execution Approved! Executing ${currentDraft.toolName}...`,
-      );
       try {
         let result: any;
-
         if (currentDraft.toolName === "execute_pancake_swap") {
           result = await executePancakeSwap.invoke(currentDraft.args);
         } else if (currentDraft.toolName === "execute_venus_deposit") {
@@ -128,7 +127,13 @@ async function neuroLoomCycle() {
           typeof result === "string"
             ? result
             : result?.content || JSON.stringify(result);
+
         console.log(`ON-CHAIN SUCCESS: ${finalOutput}`);
+
+  
+        const txHash = result?.hash || result || "0x_simulated_hash";
+
+        const targetVault = currentDraft.args.vaultAddress || "Unknown Vault";
 
         await logAIDecision(
           currentDraft.toolName,
@@ -137,6 +142,8 @@ async function neuroLoomCycle() {
           market.rsi,
           finalThoughts,
           "SUCCESS",
+          txHash, 
+          targetVault, 
         );
       } catch (chainError) {
         console.error(`[EXECUTION ERROR]Smart contract failed:`, chainError);

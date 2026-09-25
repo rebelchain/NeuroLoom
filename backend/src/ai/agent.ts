@@ -22,21 +22,21 @@ export async function generateDecision(
 ): Promise<{ thoughts: string; draft: ToolDraft | null }> {
   const llm = new ChatGroq({
     apiKey: process.env.GROQ_API_KEY,
-    model: "qwen/qwen3.8-27b",
+    model: "openai/gpt-oss-safeguard-20b",
     temperature: 0.1,
   });
 
 const VAULT_STRATEGIES = `
-1. "The Yield Farm": execute_venus_deposit. Rule: Max 80% allocation (leave 20% buffer).
-2. "Bluechip Momentum": execute_pancake_swap (BUY_WBNB / SELL_WBNB). Rule: Requires clear reversal Market Structure.
-3. "Degen Accumulator": execute_pancake_swap (BUY_BTCB / SELL_BTCB). Rule: High volatility strategy.
+1. "The Yield Farm" (Address: ${CONFIG.VAULTS.YIELD_FARM}): execute_venus_deposit. Rule: Max 80% allocation (leave 20% buffer).
+2. "Bluechip Momentum" (Address: ${CONFIG.VAULTS.BLUECHIP}): execute_pancake_swap (BUY_WBNB / SELL_WBNB). Rule: Requires clear reversal Market Structure.
+3. "Degen Accumulator" (Address: ${CONFIG.VAULTS.DEGEN}): execute_pancake_swap (BUY_BTCB / SELL_BTCB). Rule: High volatility strategy.
 
 CRITICAL RULE FOR amountInWei: 
 amountInWei represents the amount of INPUT tokens you are spending, NOT the output you want. 
 If action is BUY_WBNB, you are spending USDT. Therefore, if you want to spend 4,000 USDT, amountInWei MUST be "4000000000000000000000" (4000 * 10^18). Do NOT convert it to WBNB amounts!
 `;
 
-  const systemPrompt = `You are the NeuroLoom Quant Agent. 
+const systemPrompt = `You are the NeuroLoom Quant Agent. 
 Your goal is to complete the execution task based on the DEFI STATE. 
 If there is feedback from your previous generations, you must reflect on it to improve your solution.
 
@@ -45,11 +45,11 @@ ${VAULT_STRATEGIES}
 
 Output strictly in this XML format:
 <thoughts>
-[Your understanding of the TAAPI market structure, Risk/Reward calculation, and how you plan to improve if there is feedback]
+[Your understanding of the TAAPI market structure, Risk/Reward calculation, and which specific Vault Strategy to use]
 </thoughts>
 
 <response>
-[A valid JSON object representing your execution plan. Example: {"toolName": "execute_pancake_swap", "args": {"vaultAddress": "${CONFIG.VAULT_PROXY}", "action": "BUY_WBNB", "amountInWei": "5000000000000000000", "currentPriceStr": "590"}}]
+[A valid JSON object representing your execution plan. Example: {"toolName": "execute_pancake_swap", "args": {"vaultAddress": "${CONFIG.VAULTS.BLUECHIP}", "action": "BUY_WBNB", "amountInWei": "5000000000000000000", "currentPriceStr": "590"}}]
 </response>
 `;
 

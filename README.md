@@ -258,13 +258,14 @@ Create a `.env` file in both `/contracts` and `/backend` directories.
 
 ### 3. Quick Start Commands
 
-Run these core services from their respective directories:
+Run these core services from their respective directories in separate terminal windows:
 
 | **Service** | **Command** | **Description** |
-| --- | --- | --- |
+| :--- | :--- | :--- |
 | **Smart Contracts** | `npx hardhat test test/E2ESlippage.test.ts` | Runs deterministic security & MEV attack simulations. |
-| **AI Engine** | `npx tsx src/index.ts` | Boots the Autonomous Harness (requires Groq key). |
-| **Frontend** | `npm run dev` | Launches the Next.js Dashboard at `http://localhost:7000`. |
+| **API & PDF Server** | `npx tsx src/server.ts` | Boots the Express backend (Port 4000) for PDF rendering and history logs. |
+| **AI Orchestrator** | `npx tsx src/index.ts` | Boots the autonomous LangChain Harness (requires Groq key). |
+| **Frontend UI** | `npm run dev` | Launches the Next.js Web3 Dashboard at `http://localhost:7000`. |
 
 ## Security & Threat Model
 

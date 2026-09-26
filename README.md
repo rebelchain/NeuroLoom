@@ -226,7 +226,7 @@ To ensure high availability for the hackathon, the Express.js server (`server.ts
 - **Function:** Serves the `/api/history` data and dynamically generates the Institutional PDF Tear Sheets via `pdfkit`.
 - **Database:** Reads from a static `trade_journal.json` populated with simulated pre-computed AI behaviors.
 
-*(Note: The autonomous AI orchestration loop via `index.ts` is omitted from cloud deployment due to LLM rate limits and is reserved for local demonstration purposes).*
+*Note: The autonomous AI orchestration loop via `index.ts` is omitted from cloud deployment due to LLM rate limits and is reserved for local demonstration purposes.*
 ---
 
 ## Getting Started

@@ -310,12 +310,11 @@ Targeted network scripts for real-world deployment, security provisioning, and l
 
 | **Phase** | **Command** | **Directory** | **Purpose** |
 | --- | --- | --- | --- |
-| **1. Upgrade Logic** | `npx hardhat run scripts/upgradeToV2.ts --network bscTestnet` | `/contracts` | Seamless UUPS implementation swap to `NeuroLoomVaultV2`. |
-| **2. Whitelist Target** | `npx hardhat run scripts/whitelist-protocol.ts --network bscTestnet` | `/contracts` | Admin authorization for the V3 Router at the contract level. |
-| **3. Oracle Setup** | `npx tsx src/tests/setup-oracle.ts` | `/backend` | Connects Chainlink BNB/USD to the dynamic oracle system. |
-| **4. Demo Rebalance** | `npx tsx src/tests/rebalance-executed.ts` | `/backend` | Bypasses LLM delay to blast a deterministic entry payload (`BUY_WBNB`). |
-| **5. Demo Unwind** | `npx tsx src/tests/unwind-position.ts` | `/backend` | Simulates an AI exiting a volatile AMM position (`SELL_WBNB`). |
-| **6. Audit Vault** | `npx tsx src/tests/debug-vault.ts` | `/backend` | Read-only diagnostic utility fetching real-time idle and active TVL. |
+| **1. Whitelist Target** | `npx hardhat run scripts/whitelist-protocol.ts --network bscTestnet` | `/contracts` | Admin authorization for the V3 Router at the contract level. |
+| **3. Oracle Setup** | `npx tsx src/scripts/setup-oracle.ts` | `/backend` | Connects Chainlink BNB/USD to the dynamic oracle system. |
+| **4. Demo Rebalance** | `npx tsx src/scripts/demo_rebalance.ts` | `/backend` | Bypasses LLM delay to blast a deterministic entry payload. |
+| **5. Demo Unwind** | `npx tsx src/scripts/demo_unwind.ts` | `/backend` | Simulates an AI exiting a volatile AMM position. |
+| **6. Audit Vault** | `npx tsx src/scripts/debug-vault.ts` | `/backend` | Read-only diagnostic utility fetching real-time idle and active TVL. |
 ---
 
 ## Known Limitations & Production Roadmap

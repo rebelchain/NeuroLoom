@@ -264,7 +264,7 @@ Run these core services from their respective directories:
 | --- | --- | --- |
 | **Smart Contracts** | `npx hardhat test test/E2ESlippage.test.ts` | Runs deterministic security & MEV attack simulations. |
 | **AI Engine** | `npx tsx src/index.ts` | Boots the Autonomous Harness (requires Groq key). |
-| **Frontend** | `npm run dev` | Launches the Next.js Dashboard at `http://localhost:3000`. |
+| **Frontend** | `npm run dev` | Launches the Next.js Dashboard at `http://localhost:7000`. |
 
 ## Security & Threat Model
 

@@ -206,10 +206,10 @@ async function main() {
     }
 
     if (i < 9) {
-      // const minSeconds = 3 * 60;
-      // const maxSeconds = 60 * 60;
-      const minSeconds = 15; // for testing ai event log
-      const maxSeconds = 60; // for testing AI Event log
+      const minSeconds = 3 * 60;
+      const maxSeconds = 60 * 60;
+      // const minSeconds = 15; // for testing ai event log
+      // const maxSeconds = 60; // for testing AI Event log
 
       const waitTimeSeconds = Math.floor(
         Math.random() * (maxSeconds - minSeconds + 1) + minSeconds,

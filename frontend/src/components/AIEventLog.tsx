@@ -6,7 +6,6 @@ import { useEffect, useRef, useState } from "react";
 import { formatUnits } from "viem";
 import { ACTIVE_VAULTS } from "../config/addresses";
 
-
 const GRAPHQL_URL =
   "https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.6";
 
@@ -26,7 +25,7 @@ interface GraphRebalanceData {
   tokenIn: string;
   tokenOut: string;
   amountIn: string;
-  address: string; 
+  address: string;
   blockTimestamp: string;
   transactionHash: string;
 }
@@ -38,23 +37,33 @@ export function AIEventLog() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    let isMounted = true;
+
     const fetchLogs = async () => {
       try {
         const response = await fetch(
           "https://neuroloom-api.duckdns.org/api/ai-logs",
+          { cache: "no-store" },
         );
+        if (!response.ok) return;
         const data = await response.json();
-        if (data.logs && data.logs.length !== visibleLogs.length) {
+        if (isMounted && data.logs) {
           setVisibleLogs(data.logs);
         }
       } catch (error) {
-        console.error("Gagal mengambil log:", error);
+        console.error("Gagal mengambil log AI:", error);
       }
     };
 
+    void fetchLogs();
+
     const interval = setInterval(fetchLogs, 1000);
-    return () => clearInterval(interval);
-  }, [visibleLogs.length]);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, []);
 
   useEffect(() => {
     if (scrollRef.current) {

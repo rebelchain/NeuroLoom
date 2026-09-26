@@ -224,7 +224,7 @@ The UI is built with Next.js (App Router) and deployed via Vercel.
 ### 2. API Server & PDF Engine (Oracle Cloud)
 To ensure high availability for the hackathon, the Express.js server (`server.ts`) is deployed on an Oracle Cloud Ubuntu VM behind an Nginx reverse proxy with SSL (Let's Encrypt).
 - **Function:** Serves the `/api/history` data and dynamically generates the Institutional PDF Tear Sheets via `pdfkit`.
-- **Database:** Reads from a static `trade_journal.json` populated with simulated pre-computed AI behaviors.
+- **Database:** Reads from a static `yield_journal.json` populated with simulated pre-computed AI behaviors.
 
 *Note: The autonomous AI orchestration loop via `index.ts` is omitted from cloud deployment due to LLM rate limits and is reserved for local demonstration purposes.*
 ---

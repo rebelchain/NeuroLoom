@@ -32,7 +32,7 @@ export function IdentityGateModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
       <div className="absolute inset-0" onClick={onClose} aria-hidden="true" />
 
-      <div className="relative w-full max-w-md bg-[#0b1120] border border-white/[0.08] shadow-2xl rounded-3xl overflow-hidden liquid-glass-strong p-8 animate-scale-up">
+      <div className="relative w-full max-w-md bg-[#0a0a0a]/60 backdrop-blur-2xl border border-white/[0.08] shadow-2xl rounded-3xl overflow-hidden p-8 animate-scale-up">
         {/* Header Modal */}
         <div className="flex items-center gap-3 mb-8">
           <div className="w-10 h-10 bg-black border border-white/10 rounded-xl flex items-center justify-center shadow-inner">
@@ -101,7 +101,6 @@ export function IdentityGateModal({
             </button>
           </div>
         ) : (
-
           <div className="flex flex-col items-center text-center animate-fade-in-up">
             <div className="w-16 h-16 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center mb-5">
               <Wallet className="w-8 h-8 text-gray-400" />

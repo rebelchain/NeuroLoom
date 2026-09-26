@@ -1,13 +1,13 @@
+import * as dotenvx from "@dotenvx/dotenvx";
 import {
-  createWalletClient,
   createPublicClient,
-  http,
+  createWalletClient,
   encodeFunctionData,
+  http,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { bscTestnet } from "viem/chains";
-import * as dotenvx from "@dotenvx/dotenvx";
-import { pushLog, clearLogs } from "../utils/push-log.js"; 
+import { clearLogs, pushLog } from "../utils/push-log.js";
 
 dotenvx.config();
 
@@ -18,11 +18,10 @@ const CONFIG = {
   TOKENS: { USDT: "0xA11c8D9DC9b66E209Ef60F0C8D969D3CD988782c" },
   MOCKS: {
     WBNB: "0x4856f641715bd527f8d7b70e9ade7da3c38fe52e",
-    ROUTER: "0xbb1a7bb79166dde24767cd17338ed045159893e4",
+    ROUTER: "0xf33c30a801720294eba818a143339e487cddf129",
   },
   ORACLES: { BNB_USD: "0x2514895c72f50D8bd4B4F9b1110F0D6bD2c97526" },
 } as const;
-
 
 const BLUECHIP_VAULT = "0xF4be9e83543cc31e93B1a10EAe502B49fe3be92e";
 
@@ -119,7 +118,6 @@ async function main() {
   );
   await delay(2500);
   await pushLog(`[ROUTING] Target: PancakeSwap V3 | Pair: USDT -> WBNB`);
-
 
   const amountIn = 200n;
   const expectedAmountOut =

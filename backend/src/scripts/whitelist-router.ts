@@ -28,7 +28,7 @@ async function setupVaultMultiStrategy() {
   });
 
   // MOCK ECOSYSTEM ADDRESSES 
-  const MOCK_ROUTER = "0xbb1a7bb79166dde24767cd17338ed045159893e4";
+  const MOCK_ROUTER = "0xf33c30a801720294eba818a143339e487cddf129";
   const MOCK_WBNB = "0x4856f641715bd527f8d7b70e9ade7da3c38fe52e";
   const MOCK_BTCB = "0x18ecc91ea38ec9c5cd29f2d1e1686d0a63f49960";
 

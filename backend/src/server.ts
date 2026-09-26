@@ -17,6 +17,28 @@ const VAULT_MAP_REVERSE: Record<string, string> = {
 app.use(cors());
 app.use(express.json());
 
+let globalLogs: string[] = [];
+
+app.get("/api/ai-logs", (req, res) => {
+  res.json({ logs: globalLogs });
+});
+
+app.post("/api/ai-logs", (req, res) => {
+  const { action, log } = req.body;
+
+  if (action === "clear") {
+    globalLogs = [];
+    return res.json({ success: true, message: "Logs cleared" });
+  }
+
+  if (log) {
+    globalLogs.push(log);
+    if (globalLogs.length > 100) globalLogs.shift();
+  }
+
+  res.json({ success: true });
+});
+
 app.get("/api/history", async (req, res) => {
   try {
     const history = await getRecentMemories(20);

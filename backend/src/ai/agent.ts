@@ -26,7 +26,7 @@ export async function generateDecision(
     temperature: 0.1,
   });
 
-const VAULT_STRATEGIES = `
+  const VAULT_STRATEGIES = `
 1. "The Yield Farm" (Address: ${CONFIG.VAULTS.YIELD_FARM}): execute_venus_deposit. Rule: Max 80% allocation (leave 20% buffer).
 2. "Bluechip Momentum" (Address: ${CONFIG.VAULTS.BLUECHIP}): execute_pancake_swap (BUY_WBNB / SELL_WBNB). Rule: Requires clear reversal Market Structure.
 3. "Degen Accumulator" (Address: ${CONFIG.VAULTS.DEGEN}): execute_pancake_swap (BUY_BTCB / SELL_BTCB). Rule: High volatility strategy.
@@ -36,7 +36,7 @@ amountInWei represents the amount of INPUT tokens you are spending, NOT the outp
 If action is BUY_WBNB, you are spending USDT. Therefore, if you want to spend 4,000 USDT, amountInWei MUST be "4000000000000000000000" (4000 * 10^18). Do NOT convert it to WBNB amounts!
 `;
 
-const systemPrompt = `You are the NeuroLoom Quant Agent. 
+  const systemPrompt = `You are the NeuroLoom Quant Agent. 
 Your goal is to complete the execution task based on the DEFI STATE. 
 If there is feedback from your previous generations, you must reflect on it to improve your solution.
 

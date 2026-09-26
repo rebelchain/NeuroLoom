@@ -4,7 +4,7 @@ import PDFDocument from "pdfkit";
 import { getRecentMemories } from "../data/db.js";
 
 const GRAPHQL_ENDPOINT =
-  "https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.4";
+  "https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.6";
 
 // [UTILITY] GENERATE DYNAMIC CHART VIA QUICKCHART API
 async function fetchChartBuffer(
@@ -101,7 +101,7 @@ export async function generateProofOfTradingPDF(
         .fontSize(20)
         .font("Helvetica-Bold")
         .fillColor("#121212")
-        .text("QUANTITATIVE STRATEGY TEAR SHEET", { align: "center" });
+        .text("YIELD STRATEGY TEAR SHEET", { align: "center" });
       doc.moveDown(0.2);
       doc
         .fontSize(11)
@@ -139,7 +139,7 @@ export async function generateProofOfTradingPDF(
       doc.moveDown(0.5);
 
       const metricsY = doc.y;
-      doc.fontSize(10).font("Helvetica").fillColor("#555555");
+      doc.fontSize(10).font("Helvetica").fillColor("#9e7878");
       doc.text("Total Automated Decisions", 50, metricsY);
       doc.text("Execution Success Rate", 50, metricsY + 15);
       doc.text("Report Timestamp", 50, metricsY + 30);

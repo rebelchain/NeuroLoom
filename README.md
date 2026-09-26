@@ -311,10 +311,10 @@ Targeted network scripts for real-world deployment, security provisioning, and l
 | **Phase** | **Command** | **Directory** | **Purpose** |
 | --- | --- | --- | --- |
 | **1. Whitelist Target** | `npx hardhat run scripts/whitelist-protocol.ts --network bscTestnet` | `/contracts` | Admin authorization for the V3 Router at the contract level. |
-| **3. Oracle Setup** | `npx tsx src/scripts/setup-oracle.ts` | `/backend` | Connects Chainlink BNB/USD to the dynamic oracle system. |
-| **4. Demo Rebalance** | `npx tsx src/scripts/demo_rebalance.ts` | `/backend` | Bypasses LLM delay to blast a deterministic entry payload. |
-| **5. Demo Unwind** | `npx tsx src/scripts/demo_unwind.ts` | `/backend` | Simulates an AI exiting a volatile AMM position. |
-| **6. Audit Vault** | `npx tsx src/scripts/debug-vault.ts` | `/backend` | Read-only diagnostic utility fetching real-time idle and active TVL. |
+| **2. Oracle Setup** | `npx tsx src/scripts/setup-oracle.ts` | `/backend` | Connects Chainlink BNB/USD to the dynamic oracle system. |
+| **3. Demo Rebalance** | `npx tsx src/scripts/demo_rebalance.ts` | `/backend` | Bypasses LLM delay to blast a deterministic entry payload. |
+| **4. Demo Unwind** | `npx tsx src/scripts/demo_unwind.ts` | `/backend` | Simulates an AI exiting a volatile AMM position. |
+| **5. Audit Vault** | `npx tsx src/scripts/debug-vault.ts` | `/backend` | Read-only diagnostic utility fetching real-time idle and active TVL. |
 ---
 
 ## Known Limitations & Production Roadmap

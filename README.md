@@ -130,14 +130,26 @@ The core primitive of NeuroLoom is the `NeuroLoomVaultV2` contract, adopting the
 
 ## Live Deployment (BSC Testnet)
 
-**Network:** chain `97` (BNB Smart Chain Testnet)
+**Network:** Chain ID `97` (BNB Smart Chain Testnet)
 
-| Entity | Address (BscScan) |
-| --- | --- |
-| NeuroLoomProxy (Vault) | `0xe38887648d7272e9Eb3C06628767bb3d84a9FF4E` |
-| Implementation V2 | `0x3c699d1a67cc83e6c91770741aeb6f5f79945c32` |
-| Chainlink BNB/USD | `0x2514895c72f50D8bd4B4F9b1110F0D6bD2c97526` |
-| The Graph Subgraph | `https://api.studio.thegraph.com/query/.../neuroloom-bsc-testnet` |
+### Core Protocol Contracts
+The protocol utilizes an upgradeable Factory Pattern (ERC-1967) to manage multiple isolated strategy vaults efficiently.
+
+| Component | Contract Address (BscScan) |
+| :--- | :--- |
+| **NeuroLoomVaultFactory** | `0x2d2e967e3114bb32175f4dfcf81cddcfb35bff6b` |
+| **Master Logic (Implementation)** | `0xee02cc386315d42d4d9ca34acb3967b6b27d92a6` |
+| **Vault 1: The Yield Farm** (Proxy) | `0xD00b514048AFC47bFc4DE6a1646D5c63Bd23401a` |
+| **Vault 2: Bluechip Momentum** (Proxy) | `0xF4be9e83543cc31e93B1a10EAe502B49fe3be92e` |
+| **Vault 3: Degen Accumulator** (Proxy) | `0xc86dB8fBeC6eb19DCF70aC9d34cb159867B36e55` |
+
+### Oracles & Infrastructure
+| Entity | Address / Endpoint |
+| :--- | :--- |
+| **Chainlink BNB/USD Oracle** | `0x2514895c72f50D8bd4B4F9b1110F0D6bD2c97526` |
+| **Chainlink BTC/USD Oracle** | `0x5741306c21795FdCBb9b265Ea0255F499DFe515C` |
+| **The Graph Subgraph API** | `https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.6` |
+| **NeuroLoom DEX Router** *(Testnet)* | `0xf33c30a801720294eba818a143339e487cddf129` |
 
 ---
 

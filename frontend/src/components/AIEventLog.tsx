@@ -45,8 +45,11 @@ export function AIEventLog() {
           "https://neuroloom-api.duckdns.org/api/ai-logs",
           { cache: "no-store" },
         );
+
         if (!response.ok) return;
+
         const data = await response.json();
+
         if (isMounted && data.logs) {
           setVisibleLogs(data.logs);
         }
@@ -56,7 +59,6 @@ export function AIEventLog() {
     };
 
     void fetchLogs();
-
     const interval = setInterval(fetchLogs, 1000);
 
     return () => {

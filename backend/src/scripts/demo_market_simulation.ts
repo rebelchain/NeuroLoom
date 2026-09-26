@@ -125,28 +125,29 @@ async function executeRandomTrade(tradeIndex: number) {
   await pushLog(`[ORACLE] BNB/USD Price Verified: $${displayPrice}`);
   await delay(1500);
 
-  const amountIn = 100n;
+  let amountIn, tokenIn, tokenOut, expectedAmountOut, path;
   const deadline = BigInt(Math.floor(Date.now() / 1000) + 1200);
-  let tokenIn, tokenOut, expectedAmountOut, path;
 
   if (action === "REBALANCE") {
     await pushLog(
       `[NEURAL_NET] Volatility optimal. Executing REBALANCE (USDT -> WBNB)`,
     );
+    amountIn = 200n;
     tokenIn = CONFIG.TOKENS.USDT;
     tokenOut = CONFIG.MOCKS.WBNB;
     path = [tokenIn, tokenOut];
-
-    expectedAmountOut = (amountIn * 10n ** 20n) / assetPrice;
+    expectedAmountOut =
+      (amountIn * assetPrice * 10n ** 18n) / (10n ** 6n * 10n ** 8n);
   } else {
     await pushLog(
       `[NEURAL_NET] Risk detected. Executing Emergency UNWIND (WBNB -> USDT)`,
     );
+    amountIn = 100n;
     tokenIn = CONFIG.MOCKS.WBNB;
     tokenOut = CONFIG.TOKENS.USDT;
     path = [tokenIn, tokenOut];
-
-    expectedAmountOut = (amountIn * assetPrice) / 10n ** 20n;
+    expectedAmountOut =
+      (amountIn * assetPrice * 10n ** 18n) / (10n ** 18n * 10n ** 8n);
   }
 
   const minAmountOut = (expectedAmountOut * 9800n) / 10000n;

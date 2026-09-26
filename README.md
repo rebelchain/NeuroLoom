@@ -14,7 +14,7 @@ Built for the **Indonesia Web3 Hackathon 2026**. **BNB Chain**.
   <img alt="Solidity 0.8.28" src="https://img.shields.io/badge/Solidity-0.8.28-363636?logo=solidity&logoColor=white&style=for-the-badge" />
   <img alt="Next.js" src="https://img.shields.io/badge/Next.js-16-000000?logo=next.js&logoColor=white&style=for-the-badge" />
   <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white&style=for-the-badge" />
-  <img alt="LangChain" src="https://img.shields.io/badge/AI-LangChain%20%7C%20Qwen%203.8%2027b-10B981?style=for-the-badge" />
+  <img alt="LangChain" src="https://img.shields.io/badge/AI-LangChain%20%7C%20openai/gptosssafeguard%2020b-10B981?style=for-the-badge" />
   <img alt="BSC Testnet" src="https://img.shields.io/badge/Network-BSC%20Testnet-F3BA2F?logo=binance&logoColor=black&style=for-the-badge" />
   <img alt="Tests" src="https://img.shields.io/badge/Tests-7%20passing-10B981?style=for-the-badge" />
 </p>
@@ -108,16 +108,17 @@ The following is a real execution log from the NeuroLoom AI backend demonstratin
 
 ```
 
-## The Vault Model (ERC-4626)
+## The Vault Architecture (Factory & ERC-4626)
 
-The core primitive of NeuroLoom is the `NeuroLoomVaultV2` contract, adopting the `ERC4626Upgradeable` standard behind an `ERC1967Proxy`:
+The core infrastructure of NeuroLoom utilizes a scalable Factory Pattern. The `NeuroLoomVaultFactory` dynamically deploys isolated strategy vaults as `ERC1967Proxy` instances, all delegating calls to a single, gas-efficient `NeuroLoomVault` master implementation that adopts the `ERC4626Upgradeable` standard:
 
-1. **Liquidity Provision (ERC-4626):** Tokenized vault standard enables seamless deposit/withdraw integrations.
-2. **Multi-Protocol Execution Calls:** The AI agent compiles raw instructions and calls `executeOmnichain(targetProtocol, data, tokenIn, tokenOut, amountIn, expectedAmountOutMin)`.
-3. **The Protocol Allowlist (Layer 1 Guardrail):** The vault asserts that `targetProtocol` exists in a strict admin-approved whitelist, preventing the AI from routing funds to malicious or arbitrary smart contracts.
-4. **The Oracle Gate & Decimal Agnostic Math (Layer 2 Guardrail):** The Vault dynamically maps the asset pair to its corresponding Chainlink feeds. It reads the exact token decimals via `IERC20Metadata`, dynamically normalizes the math to prevent decimal hallucinations, checks for stale data, and validates the expected slippage boundary.
-5. **Generic Execution & Absolute Validation (Layer 3 Guardrail):** Protected by OpenZeppelin v5's `ReentrancyGuard`, the contract executes `targetProtocol.call(data)`. If the returned token balance (`balanceAfter - balanceBefore`) is strictly less than `expectedAmountOutMin`, the contract reverts the entire transaction. Maximum loss is hardcapped at 200 BPS (2%).
-
+1. **Dynamic Strategy Deployment:** The Factory contract enables the instantaneous creation of new risk-adjusted vaults (e.g., Yield Farm, Bluechip Momentum, Degen Accumulator) while maintaining strictly isolated states, liquidity pools, and tokenomics.
+2. **Liquidity Provision (ERC-4626):** The tokenized vault standard ensures seamless, non-custodial deposit and withdraw integrations for end-users.
+3. **Multi-Protocol Execution Calls:** The AI agent compiles raw calldata instructions and invokes `executeOmnichain(targetProtocol, data, tokenIn, tokenOut, amountIn, expectedAmountOutMin)`.
+4. **The Protocol Allowlist (Layer 1 Guardrail):** The vault asserts that `targetProtocol` exists in a strict admin-approved whitelist, physically preventing the AI from routing user funds to malicious or arbitrary smart contracts.
+5. **The Oracle Gate & Decimal Agnostic Math (Layer 2 Guardrail):** The Vault maps the asset pair to its corresponding Chainlink feeds. It dynamically normalizes the math via `IERC20Metadata` to prevent decimal hallucinations, checks for stale data, and validates the expected slippage boundary based on real-time market prices.
+6. **Generic Execution & Absolute Validation (Layer 3 Guardrail):** Protected by OpenZeppelin v5's `ReentrancyGuard`, the contract executes `targetProtocol.call(data)`. If the returned token balance (`balanceAfter - balanceBefore`) is strictly less than `expectedAmountOutMin`, the contract reverts the entire transaction. Maximum loss is hardcapped at 200 BPS (2%).
+   
 ---
 
 ## System Flow
@@ -130,14 +131,26 @@ The core primitive of NeuroLoom is the `NeuroLoomVaultV2` contract, adopting the
 
 ## Live Deployment (BSC Testnet)
 
-**Network:** chain `97` (BNB Smart Chain Testnet)
+**Network:** Chain ID `97` (BNB Smart Chain Testnet)
 
-| Entity | Address (BscScan) |
-| --- | --- |
-| NeuroLoomProxy (Vault) | `0xe38887648d7272e9Eb3C06628767bb3d84a9FF4E` |
-| Implementation V2 | `0x3c699d1a67cc83e6c91770741aeb6f5f79945c32` |
-| Chainlink BNB/USD | `0x2514895c72f50D8bd4B4F9b1110F0D6bD2c97526` |
-| The Graph Subgraph | `https://api.studio.thegraph.com/query/.../neuroloom-bsc-testnet` |
+### Core Protocol Contracts
+The protocol utilizes an upgradeable Factory Pattern (ERC-1967) to manage multiple isolated strategy vaults efficiently.
+
+| Component | Contract Address (BscScan) |
+| :--- | :--- |
+| **NeuroLoomVaultFactory** | `0x2d2e967e3114bb32175f4dfcf81cddcfb35bff6b` |
+| **Master Logic (Implementation)** | `0xee02cc386315d42d4d9ca34acb3967b6b27d92a6` |
+| **Vault 1: The Yield Farm** (Proxy) | `0xD00b514048AFC47bFc4DE6a1646D5c63Bd23401a` |
+| **Vault 2: Bluechip Momentum** (Proxy) | `0xF4be9e83543cc31e93B1a10EAe502B49fe3be92e` |
+| **Vault 3: Degen Accumulator** (Proxy) | `0xc86dB8fBeC6eb19DCF70aC9d34cb159867B36e55` |
+
+### Oracles & Infrastructure
+| Entity | Address / Endpoint |
+| :--- | :--- |
+| **Chainlink BNB/USD Oracle** | `0x2514895c72f50D8bd4B4F9b1110F0D6bD2c97526` |
+| **Chainlink BTC/USD Oracle** | `0x5741306c21795FdCBb9b265Ea0255F499DFe515C` |
+| **The Graph Subgraph API** | `https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.6` |
+| **NeuroLoom DEX Router** *(Testnet)* | `0xf33c30a801720294eba818a143339e487cddf129` |
 
 ---
 
@@ -145,32 +158,40 @@ The core primitive of NeuroLoom is the `NeuroLoomVaultV2` contract, adopting the
 
 ```text
 NeuroLoom/
-├── frontend/                      # Next.js DApp (Dashboard, Landing, AI Terminal)
-│   ├── public/                    # Static UI assets and banners
+├── frontend/                        # Next.js App Router (Web3 Dashboard)
+│   ├── public/                      # Static assets & background videos
 │   └── src/
-│       ├── app/                   # Next.js App Router pages and layouts
-│       ├── components/            # Modular React components (Terminal, Vaults, etc.)
-│       └── lib/                   # Utility functions and custom hooks
-├── backend/                       # AI Agentic Harness (Node.js, LangChain, SQLite)
-│   └── src/
-│       ├── abi/                   # Compiled smart contract ABIs for Viem
-│       ├── ai/
-│       │   ├── agent.ts           # The Orchestrator-Workers delegation logic
-│       │   └── evaluator.ts       # Evaluator-Optimizer feedback loop
-│       ├── chain/
-│       │   ├── executor.ts        # Calldata builder & AI transaction signer
-│       │   └── vault.ts           # Vault state reader and on-chain interaction
-│       └── data/                  # SQLite database for AI memory states
-|       │
-|       └── tests/                 # On-Chain Provisioning & Operational Scripts (due to rate limit API)
-├── contracts/                     # Hardhat v3 workspace (ERC-4626 Vault, Proxy, Tests)
-│   ├── contracts/                 # NeuroLoomVault.sol, NeuroLoomFactory.sol, NeuroLoomProxy.sol, MockOracle.sol, MockERC20.sol, MockDex.sol
-│   ├── scripts/                   # Deployment, smoke tests, whitelist protocol, and UUPS upgrades
-│   └── test/                      # E2E Slippage & Security Guard MEV tests
-└── neuroloom-bsc-testnet/         # The Graph Subgraph (Event Indexing)
-    ├── abis/                      # NeuroLoomVaultV2.json ABI definitions
-    ├── src/                       # AssemblyScript mappings for event handlers
-    └── tests/                     # Subgraph unit tests
+│       ├── app/                     # Page layouts and Next.js API routes (e.g., ai-logs)
+│       ├── components/              # UI modules (SmartVaultsView, AITerminalView, EventLog)
+│       ├── config/                  # Subgraph & contract address configurations
+│       └── lib/                     # Custom React hooks (useVaultTelemetry) and utilities
+│
+├── backend/                         # Node.js AI Orchestrator & API Server
+│   ├── src/
+│       ├── ai/                      # LangChain agents and strategy evaluators
+│       ├── chain/                   # Viem clients and smart contract interactions
+│       ├── data/                    # External data integrations (Binance, TAAPI, DB)
+│       ├── scripts/                 # Core automation (demo_rebalance, demo_unwind, setup)
+│       ├── tools/                   # DeFi execution tools for the AI agent
+│       ├── utils/                   # Helpers including Institutional PDF Generator
+│       └── server.ts                # Express server entry point
+│   
+│
+├── contracts/                       # Solidity Smart Contracts (Hardhat)
+│   ├── contracts/
+│   │   ├── NeuroLoomVault.sol       # Main ERC-4626 Vault Logic (Implementation)
+│   │   ├── NeuroLoomVaultFactory.sol# Factory for generating ERC1967 Proxies
+│   │   ├── NeuroLoomProxy.sol       # Custom ERC1967 Proxy structure
+│   │   ├── MockRouterV2.sol         # DEX Router simulation for safe local/testnet testing
+│   │   └── MockEcosystem.sol        # Testnet mock tokens (MockWBNB, MockBTCB)
+│   ├── scripts/                     # Deployment scripts (deploy-factory, fund-router)
+│   ├── test/                        # Hardhat unit tests (SecurityGuard, E2ESlippage)
+│   └── hardhat.config.ts            # Network configurations (BSC Testnet)
+│
+└── neuroloom-bsc-testnet/           # The Graph (Subgraph Indexer)
+    ├── src/                         # AssemblyScript event mapping logic
+    ├── schema.graphql               # Subgraph GraphQL entities definition
+    └── subgraph.yaml                # Subgraph manifest tracking all Vault Proxies
 
 ```
 
@@ -178,27 +199,34 @@ NeuroLoom/
 
 ## Technology Stack
 
+The NeuroLoom ecosystem is built on a modern, high-performance web3 stack, strictly separating on-chain execution, AI orchestration, and client-side visualization.
+
 | Layer | Technologies Used |
-| --- | --- |
-| **Smart Contracts** | Solidity `0.8.28`, Hardhat v3 (Ignition & Viem), OpenZeppelin v5 UUPS |
-| **Frontend (Core & UI)** | Next.js 16.3, React 19, TailwindCSS v4, DaisyUI, Framer Motion, tsParticles |
-| **Frontend (Web3 & Data)** | Wagmi, Viem, RainbowKit, Apollo Client (GraphQL) |
-| **Backend (AI Engine)** | Node.js (tsx), TypeScript, `viem`, `@dotenvx/dotenvx` |
-| **AI / LLM Framework** | Node.js (tsx), `@langchain/core` |
-| **Active LLM Model** | Groq API (qwen/qwen3.8-27b) *— dynamic Orchestrator routing* |
-| **Data & Indexing** | SQLite (AI Memory state), The Graph (On-chain event streaming) |
+| :--- | :--- |
+| **Smart Contracts** | Solidity `^0.8.28`, Hardhat v3 (Ignition & Viem), OpenZeppelin v5 (ERC-4626 & ERC-1967 Proxies) |
+| **Frontend (Core & UI)** | Next.js 16.3 (App Router), React 19, Tailwind CSS v4, Three.js (WebGL), GSAP, Framer Motion, tsParticles |
+| **Frontend (Analytics)** | Lightweight Charts (TradingView UI), jsPDF & html-to-image |
+| **Frontend (Web3 & Data)**| Wagmi v2, Viem, RainbowKit, Apollo Client (GraphQL), TanStack React Query, @x402/evm |
+| **Backend (API & AI Engine)** | Express.js (REST API), Node.js (tsx), TypeScript v7, Viem (Tx Signer), LangChain (`@langchain/core`), PDFKit |
+| **AI Model & Memory** | Groq API (openai/gpt-oss-safeguard-20b) *— Dynamic Orchestrator*, SQLite (Local Agent State) |
+| **On-chain Indexing** | The Graph (Subgraph API for real-time event streaming) |
 
 ---
 
-## Production Deployment
+## Production & Demo Deployment
 
-The NeuroLoom frontend is built with Next.js and optimized for zero-config deployment on Vercel. Vercel automatically provisions the serverless environments required for the UI and API routes.
+NeuroLoom's architecture cleanly separates the client-facing Web3 UI from the AI execution engine.
 
-1. Import the repository into your Vercel dashboard.
-2. Set the **Root Directory** to `frontend` (Vercel will auto-detect Next.js).
-3. Leave the build command as the default (`npm run build`).
-4. **No environment variables required.** All network configurations, including the BSC Testnet RPC URLs and Proxy Contract addresses, are hardcoded constants within the component files.
+### 1. Frontend Dashboard (Vercel)
+The UI is built with Next.js (App Router) and deployed via Vercel.
+- **Environment:** Zero-config. All network configurations and proxy contract addresses are hardcoded constants.
 
+### 2. API Server & PDF Engine (Oracle Cloud)
+To ensure high availability for the hackathon, the Express.js server (`server.ts`) is deployed on an Oracle Cloud Ubuntu VM behind an Nginx reverse proxy with SSL (Let's Encrypt).
+- **Function:** Serves the `/api/history` data and dynamically generates the Institutional PDF Tear Sheets via `pdfkit`.
+- **Database:** Reads from a static `yield_journal.json` populated with simulated pre-computed AI behaviors.
+
+*Note: The autonomous AI orchestration loop via `index.ts` is omitted from cloud deployment due to LLM rate limits and is reserved for local demonstration purposes.*
 ---
 
 ## Getting Started
@@ -230,13 +258,14 @@ Create a `.env` file in both `/contracts` and `/backend` directories.
 
 ### 3. Quick Start Commands
 
-Run these core services from their respective directories:
+Run these core services from their respective directories in separate terminal windows:
 
 | **Service** | **Command** | **Description** |
-| --- | --- | --- |
+| :--- | :--- | :--- |
 | **Smart Contracts** | `npx hardhat test test/E2ESlippage.test.ts` | Runs deterministic security & MEV attack simulations. |
-| **AI Engine** | `npx tsx src/index.ts` | Boots the Autonomous Harness (requires Groq key). |
-| **Frontend** | `npm run dev` | Launches the Next.js Dashboard at `http://localhost:3000`. |
+| **API & PDF Server** | `npx tsx src/server.ts` | Boots the Express backend (Port 4000) for PDF rendering and history logs. |
+| **AI Orchestrator** | `npx tsx src/index.ts` | Boots the autonomous LangChain Harness (requires Groq key). |
+| **Frontend UI** | `npm run dev` | Launches the Next.js Web3 Dashboard at `http://localhost:7000`. |
 
 ## Security & Threat Model
 
@@ -281,12 +310,11 @@ Targeted network scripts for real-world deployment, security provisioning, and l
 
 | **Phase** | **Command** | **Directory** | **Purpose** |
 | --- | --- | --- | --- |
-| **1. Upgrade Logic** | `npx hardhat run scripts/upgradeToV2.ts --network bscTestnet` | `/contracts` | Seamless UUPS implementation swap to `NeuroLoomVaultV2`. |
-| **2. Whitelist Target** | `npx hardhat run scripts/whitelist-protocol.ts --network bscTestnet` | `/contracts` | Admin authorization for the V3 Router at the contract level. |
-| **3. Oracle Setup** | `npx tsx src/tests/setup-oracle.ts` | `/backend` | Connects Chainlink BNB/USD to the dynamic oracle system. |
-| **4. Demo Rebalance** | `npx tsx src/tests/rebalance-executed.ts` | `/backend` | Bypasses LLM delay to blast a deterministic entry payload (`BUY_WBNB`). |
-| **5. Demo Unwind** | `npx tsx src/tests/unwind-position.ts` | `/backend` | Simulates an AI exiting a volatile AMM position (`SELL_WBNB`). |
-| **6. Audit Vault** | `npx tsx src/tests/debug-vault.ts` | `/backend` | Read-only diagnostic utility fetching real-time idle and active TVL. |
+| **1. Whitelist Target** | `npx hardhat run scripts/whitelist-protocol.ts --network bscTestnet` | `/contracts` | Admin authorization for the V3 Router at the contract level. |
+| **2. Oracle Setup** | `npx tsx src/scripts/setup-oracle.ts` | `/backend` | Connects Chainlink BNB/USD to the dynamic oracle system. |
+| **3. Demo Rebalance** | `npx tsx src/scripts/demo_rebalance.ts` | `/backend` | Bypasses LLM delay to blast a deterministic entry payload. |
+| **4. Demo Unwind** | `npx tsx src/scripts/demo_unwind.ts` | `/backend` | Simulates an AI exiting a volatile AMM position. |
+| **5. Audit Vault** | `npx tsx src/scripts/debug-vault.ts` | `/backend` | Read-only diagnostic utility fetching real-time idle and active TVL. |
 ---
 
 ## Known Limitations & Production Roadmap

@@ -213,14 +213,19 @@ The NeuroLoom ecosystem is built on a modern, high-performance web3 stack, stric
 
 ---
 
-## Production Deployment
+## Production & Demo Deployment
 
-The NeuroLoom frontend is built with Next.js and optimized for zero-config deployment on Vercel. Vercel automatically provisions the serverless environments required for the UI and API routes.
+NeuroLoom's architecture cleanly separates the client-facing Web3 UI from the heavy AI orchestration and PDF rendering engine.
 
+### 1. Frontend Dashboard (Vercel)
+The UI is built with Next.js (App Router) and is optimized for zero-config deployment on Vercel.
 1. Import the repository into your Vercel dashboard.
-2. Set the **Root Directory** to `frontend` (Vercel will auto-detect Next.js).
+2. Set the **Root Directory** to `frontend`.
 3. Leave the build command as the default (`npm run build`).
-4. **No environment variables required.** All network configurations, including the BSC Testnet RPC URLs and Proxy Contract addresses, are hardcoded constants within the component files.
+4. **No environment variables required.** All network configurations, including the BSC Testnet RPC URLs and Proxy Contract addresses, are hardcoded constants.
+
+### 2. AI Backend & PDF Engine (Node.js)
+The backend is a standalone Express.js server (`server.ts`) responsible for LangChain AI execution, querying local SQLite memory states, and dynamically generating the Institutional PDF Tear Sheets via `pdfkit`.
 
 ---
 

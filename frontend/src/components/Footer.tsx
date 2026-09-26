@@ -8,7 +8,7 @@ export function Footer() {
     <footer className="relative min-h-screen flex flex-col z-10 pt-24 pb-8">
       <div className="flex-grow flex flex-col items-center justify-center px-6">
         <h2 className="serif text-5xl md:text-7xl text-[#f5f5f5] mb-10 leading-tight text-center">
-          Initialize the Agent.
+          Ready to Automate?
         </h2>
         <div className="flex justify-center pointer-events-auto">
           <button

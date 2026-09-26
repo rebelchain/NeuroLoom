@@ -563,8 +563,7 @@ export function mountMarkField(host: HTMLElement): () => void {
    let wantX = state.positionX;
    let wantY = 0;
 
-   // PERBAIKAN: Pindai elemen [data-figure] secara real-time setiap frame
-   // Ini memastikan WebGL sinkron dengan render React/Next.js
+
    const figures = document.querySelectorAll("[data-figure]");
    let activeFigure: Element | null = null;
    let minDistance = Infinity;

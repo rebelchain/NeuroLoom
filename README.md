@@ -215,18 +215,18 @@ The NeuroLoom ecosystem is built on a modern, high-performance web3 stack, stric
 
 ## Production & Demo Deployment
 
-NeuroLoom's architecture cleanly separates the client-facing Web3 UI from the heavy AI orchestration and PDF rendering engine.
+NeuroLoom's architecture cleanly separates the client-facing Web3 UI from the AI execution engine.
 
 ### 1. Frontend Dashboard (Vercel)
-The UI is built with Next.js (App Router) and is optimized for zero-config deployment on Vercel.
-1. Import the repository into your Vercel dashboard.
-2. Set the **Root Directory** to `frontend`.
-3. Leave the build command as the default (`npm run build`).
-4. **No environment variables required.** All network configurations, including the BSC Testnet RPC URLs and Proxy Contract addresses, are hardcoded constants.
+The UI is built with Next.js (App Router) and deployed via Vercel.
+- **Environment:** Zero-config. All network configurations and proxy contract addresses are hardcoded constants.
 
-### 2. AI Backend & PDF Engine (Node.js)
-The backend is a standalone Express.js server (`server.ts`) responsible for LangChain AI execution, querying local SQLite memory states, and dynamically generating the Institutional PDF Tear Sheets via `pdfkit`.
+### 2. API Server & PDF Engine (Oracle Cloud)
+To ensure high availability for the hackathon, the Express.js server (`server.ts`) is deployed on an Oracle Cloud Ubuntu VM behind an Nginx reverse proxy with SSL (Let's Encrypt).
+- **Function:** Serves the `/api/history` data and dynamically generates the Institutional PDF Tear Sheets via `pdfkit`.
+- **Database:** Reads from a static `trade_journal.json` populated with simulated pre-computed AI behaviors.
 
+*(Note: The autonomous AI orchestration loop via `index.ts` is omitted from cloud deployment due to LLM rate limits and is reserved for local demonstration purposes).*
 ---
 
 ## Getting Started

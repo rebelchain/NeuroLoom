@@ -199,15 +199,17 @@ NeuroLoom/
 
 ## Technology Stack
 
+The NeuroLoom ecosystem is built on a modern, high-performance web3 stack, strictly separating on-chain execution, AI orchestration, and client-side visualization.
+
 | Layer | Technologies Used |
-| --- | --- |
-| **Smart Contracts** | Solidity `0.8.28`, Hardhat v3 (Ignition & Viem), OpenZeppelin v5 UUPS |
-| **Frontend (Core & UI)** | Next.js 16.3, React 19, TailwindCSS v4, DaisyUI, Framer Motion, tsParticles |
-| **Frontend (Web3 & Data)** | Wagmi, Viem, RainbowKit, Apollo Client (GraphQL) |
-| **Backend (AI Engine)** | Node.js (tsx), TypeScript, `viem`, `@dotenvx/dotenvx` |
-| **AI / LLM Framework** | Node.js (tsx), `@langchain/core` |
-| **Active LLM Model** | Groq API (qwen/qwen3.8-27b) *— dynamic Orchestrator routing* |
-| **Data & Indexing** | SQLite (AI Memory state), The Graph (On-chain event streaming) |
+| :--- | :--- |
+| **Smart Contracts** | Solidity `^0.8.28`, Hardhat v3 (Ignition & Viem), OpenZeppelin v5 (ERC-4626 & ERC-1967 Proxies) |
+| **Frontend (Core & UI)** | Next.js 16.3 (App Router), React 19, Tailwind CSS v4, Three.js (WebGL), GSAP, Framer Motion, tsParticles |
+| **Frontend (Analytics)** | Lightweight Charts (TradingView UI), jsPDF & html-to-image |
+| **Frontend (Web3 & Data)**| Wagmi v2, Viem, RainbowKit, Apollo Client (GraphQL), TanStack React Query, @x402/evm |
+| **Backend (API & AI Engine)** | Express.js (REST API), Node.js (tsx), TypeScript v7, Viem (Tx Signer), LangChain (`@langchain/core`), PDFKit |
+| **AI Model & Memory** | Groq API (openai/gpt-oss-safeguard-20b) *— Dynamic Orchestrator*, SQLite (Local Agent State) |
+| **On-chain Indexing** | The Graph (Subgraph API for real-time event streaming) |
 
 ---
 

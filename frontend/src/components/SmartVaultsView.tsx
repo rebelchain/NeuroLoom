@@ -101,7 +101,10 @@ function VaultCard({
 
   const handleDownloadProof = () => {
     setIsDownloading(true);
-    window.open(`http://localhost:4000/api/report/pdf?vault=${vault.id}`, "_blank");
+    window.open(
+      `https://neuroloom-api.duckdns.org/api/report/pdf?vault=${vault.id}`,
+      "_blank",
+    );
     setTimeout(() => setIsDownloading(false), 2000);
   };
 

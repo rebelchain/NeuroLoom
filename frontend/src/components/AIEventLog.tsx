@@ -40,7 +40,9 @@ export function AIEventLog() {
   useEffect(() => {
     const fetchLogs = async () => {
       try {
-        const response = await fetch("/api/ai-logs");
+        const response = await fetch(
+          "https://neuroloom-api.duckdns.org/api/ai-logs",
+        );
         const data = await response.json();
         if (data.logs && data.logs.length !== visibleLogs.length) {
           setVisibleLogs(data.logs);
@@ -61,8 +63,9 @@ export function AIEventLog() {
   }, [visibleLogs]);
 
   const clearLogs = async () => {
-    await fetch("/api/ai-logs", {
+    await fetch("https://neuroloom-api.duckdns.org/api/ai-logs", {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "clear" }),
     });
     setVisibleLogs([]);

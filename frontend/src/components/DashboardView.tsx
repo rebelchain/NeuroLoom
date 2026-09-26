@@ -66,7 +66,10 @@ export function DashboardView() {
 
   const handleDownloadPDF = () => {
     setIsPrinting(true);
-    window.open("http://localhost:4000/api/report/pdf?vault=global", "_blank");
+    window.open(
+      "https://neuroloom-api.duckdns.org/api/report/pdf?vault=global",
+      "_blank",
+    );
     setTimeout(() => {
       setIsPrinting(false);
     }, 2000);

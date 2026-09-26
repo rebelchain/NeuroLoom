@@ -14,7 +14,7 @@ Built for the **Indonesia Web3 Hackathon 2026**. **BNB Chain**.
   <img alt="Solidity 0.8.28" src="https://img.shields.io/badge/Solidity-0.8.28-363636?logo=solidity&logoColor=white&style=for-the-badge" />
   <img alt="Next.js" src="https://img.shields.io/badge/Next.js-16-000000?logo=next.js&logoColor=white&style=for-the-badge" />
   <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white&style=for-the-badge" />
-  <img alt="LangChain" src="https://img.shields.io/badge/AI-LangChain%20%7C%20Qwen%203.8%2027b-10B981?style=for-the-badge" />
+  <img alt="LangChain" src="https://img.shields.io/badge/AI-LangChain%20%7C%20openai/gptosssafeguard%2020b-10B981?style=for-the-badge" />
   <img alt="BSC Testnet" src="https://img.shields.io/badge/Network-BSC%20Testnet-F3BA2F?logo=binance&logoColor=black&style=for-the-badge" />
   <img alt="Tests" src="https://img.shields.io/badge/Tests-7%20passing-10B981?style=for-the-badge" />
 </p>

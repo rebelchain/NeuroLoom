@@ -25,7 +25,6 @@ const CONFIG = {
   ORACLES: { BNB_USD: "0x2514895c72f50D8bd4B4F9b1110F0D6bD2c97526" },
 } as const;
 
-
 const VAULTS = [
   { name: "Yield Farm", address: "0xD00b514048AFC47bFc4DE6a1646D5c63Bd23401a" },
   {
@@ -108,7 +107,7 @@ async function executeRandomTrade(tradeIndex: number) {
   const vault = VAULTS[Math.floor(Math.random() * VAULTS.length)];
   const action = Math.random() > 0.5 ? "REBALANCE" : "UNWIND";
 
-  await pushLog(`\n[SYSTEM] --- INITIATING TRADE #${tradeIndex} ---`);
+  await pushLog(`\n[SYSTEM] INITIATING ORCHESTRATOR #${tradeIndex} `);
   await delay(1500);
   await pushLog(
     `[ORCHESTRATOR] Analyzing metrics for ${vault.name} (${vault.address.substring(0, 6)}...)`,
@@ -126,8 +125,7 @@ async function executeRandomTrade(tradeIndex: number) {
   await pushLog(`[ORACLE] BNB/USD Price Verified: $${displayPrice}`);
   await delay(1500);
 
-  // 3. Konfigurasi Rute Swap
-  const amountIn = 100n; // Nilai kecil agar aman untuk simulasi
+  const amountIn = 100n; 
   const deadline = BigInt(Math.floor(Date.now() / 1000) + 1200);
   let tokenIn, tokenOut, expectedAmountOut, path;
 
@@ -138,8 +136,8 @@ async function executeRandomTrade(tradeIndex: number) {
     tokenIn = CONFIG.TOKENS.USDT;
     tokenOut = CONFIG.MOCKS.WBNB;
     path = [tokenIn, tokenOut];
-    expectedAmountOut =
-      (amountIn * assetPrice * 10n ** 18n) / (10n ** 6n * 10n ** 8n);
+
+    expectedAmountOut = (amountIn * 10n ** 20n) / assetPrice;
   } else {
     await pushLog(
       `[NEURAL_NET] Risk detected. Executing Emergency UNWIND (WBNB -> USDT)`,
@@ -147,13 +145,12 @@ async function executeRandomTrade(tradeIndex: number) {
     tokenIn = CONFIG.MOCKS.WBNB;
     tokenOut = CONFIG.TOKENS.USDT;
     path = [tokenIn, tokenOut];
-    expectedAmountOut =
-      (amountIn * assetPrice * 10n ** 18n) / (10n ** 18n * 10n ** 8n);
+
+    expectedAmountOut = (amountIn * assetPrice) / 10n ** 20n;
   }
 
-  const minAmountOut = (expectedAmountOut * 9800n) / 10000n; 
+  const minAmountOut = (expectedAmountOut * 9800n) / 10000n;
 
-  
   const swapData = encodeFunctionData({
     abi: mockRouterAbi,
     functionName: "swapExactTokensForTokens",
@@ -183,7 +180,6 @@ async function executeRandomTrade(tradeIndex: number) {
     ],
   });
 
-
   const hash = await walletClient.writeContract(request);
   await pushLog(`[NETWORK] Awaiting BSC Testnet confirmation...`);
   await publicClient.waitForTransactionReceipt({ hash });
@@ -202,22 +198,31 @@ async function main() {
   for (let i = 1; i <= 9; i++) {
     try {
       await executeRandomTrade(i);
-      if (i < 9) {
-        const waitTime = Math.floor(Math.random() * (45 - 15 + 1) + 15);
-        await pushLog(
-          `[SYSTEM] Sleeping for ${waitTime} seconds before next cycle...`,
-        );
-        await delay(waitTime * 1000);
-      }
     } catch (error: any) {
       await pushLog(
         `[ERROR] Cycle #${i} failed: ${error.shortMessage || error.message}`,
       );
     }
+
+    if (i < 9) {
+      const minSeconds = 3 * 60;
+      const maxSeconds = 60 * 60;
+
+      const waitTimeSeconds = Math.floor(
+        Math.random() * (maxSeconds - minSeconds + 1) + minSeconds,
+      );
+
+      const minutes = Math.floor(waitTimeSeconds / 60);
+      const seconds = waitTimeSeconds % 60;
+
+      await pushLog(
+        `[SYSTEM] Sleeping for ${minutes} minutes ${seconds} seconds before next cycle...`,
+      );
+      await delay(waitTimeSeconds * 1000);
+    }
   }
 
-  await pushLog("\n[SYSTEM] --- ALL SIMULATION CYCLES COMPLETED ---");
+  await pushLog("\n[SYSTEM]  ALL SIMULATION CYCLES COMPLETED ");
 }
-
 
 main().catch(console.error);

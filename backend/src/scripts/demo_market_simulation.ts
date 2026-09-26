@@ -125,7 +125,7 @@ async function executeRandomTrade(tradeIndex: number) {
   await pushLog(`[ORACLE] BNB/USD Price Verified: $${displayPrice}`);
   await delay(1500);
 
-  const amountIn = 100n; 
+  const amountIn = 100n;
   const deadline = BigInt(Math.floor(Date.now() / 1000) + 1200);
   let tokenIn, tokenOut, expectedAmountOut, path;
 
@@ -205,8 +205,10 @@ async function main() {
     }
 
     if (i < 9) {
-      const minSeconds = 3 * 60;
-      const maxSeconds = 60 * 60;
+      // const minSeconds = 3 * 60;
+      // const maxSeconds = 60 * 60;
+      const minSeconds = 15; // for testing ai event log
+      const maxSeconds = 60; // for testing AI Event log
 
       const waitTimeSeconds = Math.floor(
         Math.random() * (maxSeconds - minSeconds + 1) + minSeconds,

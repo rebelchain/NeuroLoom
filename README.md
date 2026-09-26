@@ -158,32 +158,40 @@ The protocol utilizes an upgradeable Factory Pattern (ERC-1967) to manage multip
 
 ```text
 NeuroLoom/
-├── frontend/                      # Next.js DApp (Dashboard, Landing, AI Terminal)
-│   ├── public/                    # Static UI assets and banners
+├── frontend/                        # Next.js App Router (Web3 Dashboard)
+│   ├── public/                      # Static assets & background videos
 │   └── src/
-│       ├── app/                   # Next.js App Router pages and layouts
-│       ├── components/            # Modular React components (Terminal, Vaults, etc.)
-│       └── lib/                   # Utility functions and custom hooks
-├── backend/                       # AI Agentic Harness (Node.js, LangChain, SQLite)
-│   └── src/
-│       ├── abi/                   # Compiled smart contract ABIs for Viem
-│       ├── ai/
-│       │   ├── agent.ts           # The Orchestrator-Workers delegation logic
-│       │   └── evaluator.ts       # Evaluator-Optimizer feedback loop
-│       ├── chain/
-│       │   ├── executor.ts        # Calldata builder & AI transaction signer
-│       │   └── vault.ts           # Vault state reader and on-chain interaction
-│       └── data/                  # SQLite database for AI memory states
-|       │
-|       └── tests/                 # On-Chain Provisioning & Operational Scripts (due to rate limit API)
-├── contracts/                     # Hardhat v3 workspace (ERC-4626 Vault, Proxy, Tests)
-│   ├── contracts/                 # NeuroLoomVault.sol, NeuroLoomFactory.sol, NeuroLoomProxy.sol, MockOracle.sol, MockERC20.sol, MockDex.sol
-│   ├── scripts/                   # Deployment, smoke tests, whitelist protocol, and UUPS upgrades
-│   └── test/                      # E2E Slippage & Security Guard MEV tests
-└── neuroloom-bsc-testnet/         # The Graph Subgraph (Event Indexing)
-    ├── abis/                      # NeuroLoomVaultV2.json ABI definitions
-    ├── src/                       # AssemblyScript mappings for event handlers
-    └── tests/                     # Subgraph unit tests
+│       ├── app/                     # Page layouts and Next.js API routes (e.g., ai-logs)
+│       ├── components/              # UI modules (SmartVaultsView, AITerminalView, EventLog)
+│       ├── config/                  # Subgraph & contract address configurations
+│       └── lib/                     # Custom React hooks (useVaultTelemetry) and utilities
+│
+├── backend/                         # Node.js AI Orchestrator & API Server
+│   ├── src/
+│       ├── ai/                      # LangChain agents and strategy evaluators
+│       ├── chain/                   # Viem clients and smart contract interactions
+│       ├── data/                    # External data integrations (Binance, TAAPI, DB)
+│       ├── scripts/                 # Core automation (demo_rebalance, demo_unwind, setup)
+│       ├── tools/                   # DeFi execution tools for the AI agent
+│       ├── utils/                   # Helpers including Institutional PDF Generator
+│       └── server.ts                # Express server entry point
+│   
+│
+├── contracts/                       # Solidity Smart Contracts (Hardhat)
+│   ├── contracts/
+│   │   ├── NeuroLoomVault.sol       # Main ERC-4626 Vault Logic (Implementation)
+│   │   ├── NeuroLoomVaultFactory.sol# Factory for generating ERC1967 Proxies
+│   │   ├── NeuroLoomProxy.sol       # Custom ERC1967 Proxy structure
+│   │   ├── MockRouterV2.sol         # DEX Router simulation for safe local/testnet testing
+│   │   └── MockEcosystem.sol        # Testnet mock tokens (MockWBNB, MockBTCB)
+│   ├── scripts/                     # Deployment scripts (deploy-factory, fund-router)
+│   ├── test/                        # Hardhat unit tests (SecurityGuard, E2ESlippage)
+│   └── hardhat.config.ts            # Network configurations (BSC Testnet)
+│
+└── neuroloom-bsc-testnet/           # The Graph (Subgraph Indexer)
+    ├── src/                         # AssemblyScript event mapping logic
+    ├── schema.graphql               # Subgraph GraphQL entities definition
+    └── subgraph.yaml                # Subgraph manifest tracking all Vault Proxies
 
 ```
 

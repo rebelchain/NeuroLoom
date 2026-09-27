@@ -30,5 +30,29 @@
     "status": "FAIL",
     "reasoning": "The NeuroLoom engine detected a flash‑crash event in the target liquidity pool, triggering an immediate liquidity shock assessment. Real‑time order book analysis and on‑chain price oracles revealed a 5.5 % projected slippage for the intended trade size, exceeding the vault’s predefined risk tolerance threshold of 3 %. Consequently, the Risk Evaluator flagged the transaction as high‑risk and aborted execution to prevent a potential loss that would materially impact the vault’s NAV.\n\nTo safeguard capital while maintaining market exposure, the engine automatically engaged the SLIPPAGE_PROTECTION protocol. This mechanism re‑routes the trade through a multi‑step, low‑slippage path, employing dynamic pool selection and incremental order batching. By doing so, it mitigates the flash‑crash impact, preserves the vault’s yield integrity, and aligns with institutional risk governance standards.",
     "hash": "REJECTED_BY_RISK_EVALUATOR"
+  },
+  {
+    "timestamp": 1790536717845,
+    "action": "TAKE_PROFIT_WBNB",
+    "type": "EXECUTE",
+    "status": "FAILED_ON_CHAIN",
+    "reasoning": "The AI engine identified that WBNB had advanced 8% above its recent swing high, breaching a well‑tested resistance zone that historically precedes a corrective pullback. Coupled with an RSI of 75, the asset is in a clear overbought state, signaling diminishing upward momentum and an elevated probability of a short‑term reversal. In a highly leveraged yield‑farm environment, such technical cues trigger a predefined profit‑taking protocol to mitigate exposure to sudden price corrections.\n\nBy liquidating the WBNB position and converting the proceeds to USDT, the vault preserves capital and re‑allocates liquidity into lower‑risk or higher‑yield opportunities. This action aligns with the strategy’s risk‑adjusted return framework, ensuring that the portfolio remains balanced against market volatility while locking in gains accrued from the recent price surge.",
+    "hash": "REVERTED"
+  },
+  {
+    "timestamp": 1790537796570,
+    "action": "VENUS_UNWIND",
+    "type": "EXECUTE",
+    "status": "FAILED_ON_CHAIN",
+    "reasoning": "The AI engine identified a clear macro‑driven breakout signal across the altcoin segment, signalling a high‑probability window for rapid capital deployment. To capitalize on this, the strategy requires immediate, liquid USDT to allocate to short‑term leveraged positions or to seize arbitrage opportunities. Holding the assets in Venus’s interest‑bearing vaults would lock the capital in a low‑yield, low‑liquidity form, preventing timely entry into the anticipated upside.\n\nConsequently, the engine executed a VENUS_UNWIND to redeem the underlying assets back to the Vault. This action converts the locked Venus collateral into liquid USDT, aligning the portfolio’s liquidity profile with the current market outlook while preserving the ability to re‑invest in higher‑yield, higher‑volatility opportunities. The unwind also mitigates the risk of over‑exposure to Venus’s interest rate fluctuations during a volatile market phase, ensuring the strategy remains agile and risk‑managed.",
+    "hash": "REVERTED"
+  },
+  {
+    "timestamp": 1790538189150,
+    "action": "ACCUMULATE_WBNB",
+    "type": "EXECUTE",
+    "status": "EXECUTE",
+    "reasoning": "The AI engine identified a confluence of market signals that favored a cost‑effective acquisition of WBNB. The 5 % price decline, coupled with an RSI of 28, signals a pronounced oversold condition, implying that the asset is undervalued relative to its recent trend. Simultaneously, the spike in daily volume confirms ample liquidity, reducing slippage risk and enabling a swift conversion of USDT to WBNB at a favorable price point. This combination of a depressed price and high liquidity creates an optimal window for accumulation, aligning with the vault’s objective to secure a larger WBNB position at a lower entry cost.\n\nFrom a portfolio‑rebalancing perspective, the protocol’s exposure to stable‑coin USDT must be converted into yield‑generating WBNB to maintain the target allocation and maximize staking rewards. Executing ACCUMULATE_WBNB during this oversold window not only preserves capital efficiency but also positions the vault to benefit from the anticipated price rebound and subsequent yield accrual. The decision is therefore grounded in quantitative market analysis and strategic asset allocation, ensuring both risk mitigation and upside capture.",
+    "hash": "0x3b88c8d5ca2e41f6934a9041cdd0fc2bac45e086b949e6101dcb134ec39b2821"
   }
 ]

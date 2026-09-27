@@ -1,8 +1,8 @@
 import * as dotenvx from "@dotenvx/dotenvx";
-import { ChatGroq } from "@langchain/groq";
-import fs from "fs";
-import cron from "node-cron";
 import path from "path";
+import cron from "node-cron";
+import fs from "fs";
+import { ChatGroq } from "@langchain/groq";
 import {
   createPublicClient,
   createWalletClient,
@@ -11,17 +11,14 @@ import {
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { bscTestnet } from "viem/chains";
-dotenvx.config();
-console.log(
-  "CEK PRIVATE KEY:",
-  process.env.AI_PRIVATE_KEY ? "TERBACA" : "KOSONG!",
-);
-
 import { clearLogs, pushLog } from "../utils/push-log.js";
+
+dotenvx.config();
+
+const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
 const CONFIG = {
   RPC_URL: "https://data-seed-prebsc-2-s2.bnbchain.org:8545/",
-  VAULT: "0xD00b514048AFC47bFc4DE6a1646D5c63Bd23401a",
   TOKENS: {
     USDT: "0xA11c8D9DC9b66E209Ef60F0C8D969D3CD988782c",
     vUSDT: "0xb7526572FFE56AB9D7489838Bf2E18e3323b441A",
@@ -30,12 +27,13 @@ const CONFIG = {
     WBNB: "0x4856f641715bd527f8d7b70e9ade7da3c38fe52e",
     ROUTER: "0xf33c30a801720294eba818a143339e487cddf129",
   },
+  ORACLES: { BNB_USD: "0x2514895c72f50D8bd4B4F9b1110F0D6bD2c97526" },
   PROTOCOLS: {
     VENUS_VUSDT: "0xb7526572FFE56AB9D7489838Bf2E18e3323b441A",
   },
-  ORACLES: { BNB_USD: "0x2514895c72f50D8bd4B4F9b1110F0D6bD2c97526" },
-};
+} as const;
 
+const VAULT_ADDRESS = "0xD00b514048AFC47bFc4DE6a1646D5c63Bd23401a" as const; // The Yield Farm
 const LOG_FILE = path.resolve(process.cwd(), "yield_farm_logs.json");
 
 let rawPrivateKey = process.env.AI_PRIVATE_KEY || process.env.PRIVATE_KEY;
@@ -58,7 +56,7 @@ const llm = new ChatGroq({
   temperature: 0.2,
 });
 
-// ABIs
+
 const vaultABI = [
   {
     inputs: [
@@ -79,22 +77,24 @@ const vaultABI = [
     type: "function",
   },
 ] as const;
-const routerABI = [
+
+const mockRouterAbi = [
   {
-    inputs: [
-      { internalType: "uint256", name: "amountIn" },
-      { internalType: "uint256", name: "amountOutMin" },
-      { internalType: "address[]", name: "path" },
-      { internalType: "address", name: "to" },
-      { internalType: "uint256", name: "deadline" },
-    ],
     name: "swapExactTokensForTokens",
-    outputs: [{ internalType: "uint256[]", name: "amounts" }],
-    stateMutability: "nonpayable",
     type: "function",
+    stateMutability: "nonpayable",
+    inputs: [
+      { type: "uint256", name: "amountIn" },
+      { type: "uint256", name: "amountOutMin" },
+      { type: "address[]", name: "path" },
+      { type: "address", name: "to" },
+      { type: "uint256", name: "deadline" },
+    ],
+    outputs: [{ type: "uint256[]", name: "amounts" }],
   },
 ] as const;
-const vTokenABI = [
+
+const vTokenAbi = [
   {
     inputs: [{ internalType: "uint256", name: "mintAmount", type: "uint256" }],
     name: "mint",
@@ -112,6 +112,7 @@ const vTokenABI = [
     type: "function",
   },
 ] as const;
+
 const oracleAbi = [
   {
     inputs: [],
@@ -128,7 +129,6 @@ const oracleAbi = [
   },
 ] as const;
 
-//  DETERMINISTIC PHASES
 const PHASES = [
   {
     type: "EXECUTE",
@@ -181,9 +181,11 @@ function saveLog(log: any) {
 
 async function runDeterminisitcCycle() {
   await clearLogs();
+  await delay(1000);
   await pushLog(
     `\n[SYSTEM] Initiating Yield Farm AI Cycle - ${new Date().toISOString()}`,
   );
+  await delay(1500);
 
   const logs = getLogs();
   const nextPhaseIndex = logs.length % PHASES.length;
@@ -192,9 +194,22 @@ async function runDeterminisitcCycle() {
   await pushLog(
     `[ORCHESTRATOR] Selected Phase: ${currentPhase.action} (${currentPhase.type})`,
   );
+  await delay(1500);
+
+
+  const [, priceInt] = await publicClient.readContract({
+    address: CONFIG.ORACLES.BNB_USD,
+    abi: oracleAbi,
+    functionName: "latestRoundData",
+  });
+  const assetPrice = BigInt(priceInt);
+  const displayPrice = (Number(assetPrice) / 1e8).toFixed(2);
+
+  await pushLog(`[ORACLE] BNB/USD Price Verified: $${displayPrice}`);
+  await delay(1500);
+
 
   await pushLog(`[AGENT] Generating analytical reasoning...`);
-
   const prompt = `You are the NeuroLoom AI Agent managing the 'Yield Farm' Strategy Vault.
 Current market data: "${currentPhase.mockData}"
 
@@ -206,8 +221,8 @@ Use analytical, institutional DeFi language. No fluff, get straight to the reaso
     const response = await llm.invoke(prompt);
     aiReasoning = response.content.toString();
     await pushLog(`[AGENT REASONING]\n${aiReasoning}\n`);
+    await delay(2000);
   } catch (error) {
-    console.error("[AGENT ERROR] Groq failed:", error);
     aiReasoning =
       "Error: AI reasoning generation timed out. Fallback to default security protocol.";
     await pushLog(`[ERROR] AI Engine failed to generate reasoning.`);
@@ -218,19 +233,12 @@ Use analytical, institutional DeFi language. No fluff, get straight to the reaso
 
   try {
     if (currentPhase.type === "EXECUTE") {
-      const [, priceInt] = await publicClient.readContract({
-        address: CONFIG.ORACLES.BNB_USD as `0x${string}`,
-        abi: oracleAbi,
-        functionName: "latestRoundData",
-      });
-      const assetPrice = BigInt(priceInt);
-
-      let targetProtocol = "",
-        omnichainData = "",
-        tokenIn = "",
-        tokenOut = "";
-      let amountIn = 0n,
-        expectedAmountOut = 0n;
+      let amountIn: bigint,
+        tokenIn: string,
+        tokenOut: string,
+        expectedAmountOut: bigint,
+        targetProtocol: string,
+        omnichainData: `0x${string}`;
       const deadline = BigInt(Math.floor(Date.now() / 1000) + 1200);
 
       if (currentPhase.action === "ACCUMULATE_WBNB") {
@@ -243,25 +251,27 @@ Use analytical, institutional DeFi language. No fluff, get straight to the reaso
 
         const path = [tokenIn, tokenOut];
         const minAmountOut = (expectedAmountOut * 9800n) / 10000n;
+
         omnichainData = encodeFunctionData({
-          abi: routerABI,
+          abi: mockRouterAbi,
           functionName: "swapExactTokensForTokens",
           args: [
             amountIn,
             minAmountOut,
             path as `0x${string}`[],
-            CONFIG.VAULT as `0x${string}`,
+            VAULT_ADDRESS,
             deadline,
           ],
         });
       } else if (currentPhase.action === "VENUS_YIELD_DEPOSIT") {
         targetProtocol = CONFIG.PROTOCOLS.VENUS_VUSDT;
-        amountIn = 10000000n; // 10 USDT
+        amountIn = 10000000n;
         tokenIn = CONFIG.TOKENS.USDT;
         tokenOut = CONFIG.TOKENS.vUSDT;
         expectedAmountOut = (amountIn * 10n ** 8n) / 10n ** 6n;
+
         omnichainData = encodeFunctionData({
-          abi: vTokenABI,
+          abi: vTokenAbi,
           functionName: "mint",
           args: [amountIn],
         });
@@ -275,52 +285,46 @@ Use analytical, institutional DeFi language. No fluff, get straight to the reaso
 
         const path = [tokenIn, tokenOut];
         const minAmountOut = (expectedAmountOut * 9800n) / 10000n;
+
         omnichainData = encodeFunctionData({
-          abi: routerABI,
+          abi: mockRouterAbi,
           functionName: "swapExactTokensForTokens",
           args: [
             amountIn,
             minAmountOut,
             path as `0x${string}`[],
-            CONFIG.VAULT as `0x${string}`,
+            VAULT_ADDRESS,
             deadline,
           ],
         });
-      } else if (currentPhase.action === "VENUS_UNWIND") {
+      } else {
+  
         targetProtocol = CONFIG.PROTOCOLS.VENUS_VUSDT;
-        amountIn = 1000000000n; // 10 vUSDT
+        amountIn = 1000000000n;
         tokenIn = CONFIG.TOKENS.vUSDT;
         tokenOut = CONFIG.TOKENS.USDT;
         expectedAmountOut = (amountIn * 10n ** 6n) / 10n ** 8n;
+
         omnichainData = encodeFunctionData({
-          abi: vTokenABI,
+          abi: vTokenAbi,
           functionName: "redeem",
           args: [amountIn],
         });
       }
+
       const minAmountOutFinal = (expectedAmountOut * 9800n) / 10000n;
 
-      if (
-        !targetProtocol ||
-        !tokenIn ||
-        !tokenOut ||
-        !omnichainData ||
-        !CONFIG.VAULT
-      ) {
-        throw new Error("MISSING CONFIG VARIABLES!");
-      }
+      await pushLog(`[EXECUTION] Signing transaction for The Yield Farm...`);
+      await delay(1500);
 
-      await pushLog(
-        `[EXECUTION] Signing transaction for ${currentPhase.action}...`,
-      );
       const { request } = await publicClient.simulateContract({
         account,
-        address: CONFIG.VAULT as `0x${string}`,
+        address: VAULT_ADDRESS,
         abi: vaultABI,
         functionName: "executeOmnichain",
         args: [
           targetProtocol as `0x${string}`,
-          omnichainData as `0x${string}`,
+          omnichainData,
           tokenIn as `0x${string}`,
           tokenOut as `0x${string}`,
           amountIn,
@@ -335,21 +339,25 @@ Use analytical, institutional DeFi language. No fluff, get straight to the reaso
       await publicClient.waitForTransactionReceipt({
         hash: txHash as `0x${string}`,
       });
-      await pushLog(`[SUCCESS] On-chain execution verified.`);
+      await pushLog(`[SUCCESS] On-chain execution verified!`);
+      await pushLog(`[EXPLORER] TxHash: ${txHash}`);
+      await delay(1500);
     } else if (currentPhase.type === "HOLD") {
       await pushLog(
         `[HOLD] AI Agent holding position. No on-chain execution required.`,
       );
+      await delay(1500);
       txHash = "NO_TX_REQUIRED";
     } else if (currentPhase.type === "FAIL") {
       await pushLog(
         `[FAIL] Execution aborted due to high risk (Slippage/Liquidity).`,
       );
+      await delay(1500);
       txHash = "REJECTED_BY_RISK_EVALUATOR";
     }
   } catch (error: any) {
     const errorMsg = error.shortMessage || error.message;
-    await pushLog(`[EXECUTION FAILED] Smart contract reverted: ${errorMsg}`);
+    await pushLog(`[ERROR] Execution failed: ${errorMsg}`);
     finalStatus = "FAILED_ON_CHAIN";
     txHash = "REVERTED";
   }
@@ -366,7 +374,6 @@ Use analytical, institutional DeFi language. No fluff, get straight to the reaso
   await pushLog(`[SYSTEM] Cycle completed. Logs securely stored.`);
 }
 
-// Cron
 cron.schedule("0 */3 * * *", () => {
   runDeterminisitcCycle();
 });

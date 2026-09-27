@@ -135,17 +135,15 @@ The core infrastructure of NeuroLoom utilizes a scalable Factory Pattern. The `N
 
 NeuroLoom utilizes a Factory-Proxy architecture to deploy isolated ERC-4626 standard vaults. The AI Agent acts as an external EOA (msg.sender) that continuously monitors state and executes verified calldata into these vaults.
 
-**AI Executor (The Agent)**
-* **Agent EOA:** [`0x5f2AC81d58582C16f606d38927120e4676A1e07b`](https://testnet.bscscan.com/address/0x5f2AC81d58582C16f606d38927120e4676A1e07b)
-
-**Core Protocol Contracts**
-* **Vault Factory:** [`0x2d2e967e3114bb32175f4dfcf81cddcfb35bff6b`](https://testnet.bscscan.com/address/0x2d2e967e3114bb32175f4dfcf81cddcfb35bff6b)
-* **Master Logic (Implementation):** [`0xee02cc386315d42d4d9ca34acb3967b6b27d92a6`](https://testnet.bscscan.com/address/0xee02cc386315d42d4d9ca34acb3967b6b27d92a6)
-
-**Active Portfolios (ERC1967 Proxies)**
-* **Vault 1 (The Yield Farm):** [`0xD00b514048AFC47bFc4DE6a1646D5c63Bd23401a`](https://testnet.bscscan.com/address/0xD00b514048AFC47bFc4DE6a1646D5c63Bd23401a)
-* **Vault 2 (Bluechip Momentum):** [`0xF4be9e83543cc31e93B1a10EAe502B49fe3be92e`](https://testnet.bscscan.com/address/0xF4be9e83543cc31e93B1a10EAe502B49fe3be92e)
-* **Vault 3 (Degen Accumulator):** [`0xc86dB8fBeC6eb19DCF70aC9d34cb159867B36e55`](https://testnet.bscscan.com/address/0xc86dB8fBeC6eb19DCF70aC9d34cb159867B36e55)
+### Smart Contracts & Execution
+| Component | Address / Link (BscScan) |
+| :--- | :--- |
+| **Agent EOA (AI Executor)** | [`0x5f2AC81d58582C16f606d38927120e4676A1e07b`](https://testnet.bscscan.com/address/0x5f2AC81d58582C16f606d38927120e4676A1e07b) |
+| **Vault Factory** | [`0x2d2e967e3114bb32175f4dfcf81cddcfb35bff6b`](https://testnet.bscscan.com/address/0x2d2e967e3114bb32175f4dfcf81cddcfb35bff6b) |
+| **Master Logic (Implementation)** | [`0xee02cc386315d42d4d9ca34acb3967b6b27d92a6`](https://testnet.bscscan.com/address/0xee02cc386315d42d4d9ca34acb3967b6b27d92a6) |
+| **Vault 1: The Yield Farm** (Proxy) | [`0xD00b514048AFC47bFc4DE6a1646D5c63Bd23401a`](https://testnet.bscscan.com/address/0xD00b514048AFC47bFc4DE6a1646D5c63Bd23401a) |
+| **Vault 2: Bluechip Momentum** (Proxy) | [`0xF4be9e83543cc31e93B1a10EAe502B49fe3be92e`](https://testnet.bscscan.com/address/0xF4be9e83543cc31e93B1a10EAe502B49fe3be92e) |
+| **Vault 3: Degen Accumulator** (Proxy) | [`0xc86dB8fBeC6eb19DCF70aC9d34cb159867B36e55`](https://testnet.bscscan.com/address/0xc86dB8fBeC6eb19DCF70aC9d34cb159867B36e55) |
 
 ### Oracles & Infrastructure
 | Entity | Address / Endpoint |

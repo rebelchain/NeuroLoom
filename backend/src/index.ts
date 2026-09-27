@@ -130,7 +130,6 @@ async function neuroLoomCycle() {
 
         console.log(`ON-CHAIN SUCCESS: ${finalOutput}`);
 
-  
         const txHash = result?.hash || result || "0x_simulated_hash";
 
         const targetVault = currentDraft.args.vaultAddress || "Unknown Vault";

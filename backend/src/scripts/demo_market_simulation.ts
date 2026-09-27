@@ -17,12 +17,18 @@ const randomDelay = (min: number, max: number) =>
 
 const CONFIG = {
   RPC_URL: "https://data-seed-prebsc-2-s2.bnbchain.org:8545/",
-  TOKENS: { USDT: "0xA11c8D9DC9b66E209Ef60F0C8D969D3CD988782c" },
+  TOKENS: {
+    USDT: "0xA11c8D9DC9b66E209Ef60F0C8D969D3CD988782c",
+    vUSDT: "0xb7526572FFE56AB9D7489838Bf2E18e3323b441A",
+  },
   MOCKS: {
     WBNB: "0x4856f641715bd527f8d7b70e9ade7da3c38fe52e",
     ROUTER: "0xf33c30a801720294eba818a143339e487cddf129",
   },
   ORACLES: { BNB_USD: "0x2514895c72f50D8bd4B4F9b1110F0D6bD2c97526" },
+  PROTOCOLS: {
+    VENUS_VUSDT: "0xb7526572FFE56AB9D7489838Bf2E18e3323b441A",
+  },
 } as const;
 
 const VAULTS = [
@@ -87,6 +93,26 @@ const mockRouterAbi = [
     outputs: [{ type: "uint256[]", name: "amounts" }],
   },
 ] as const;
+
+const vTokenAbi = [
+  {
+    inputs: [{ internalType: "uint256", name: "mintAmount", type: "uint256" }],
+    name: "mint",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      { internalType: "uint256", name: "redeemTokens", type: "uint256" },
+    ],
+    name: "redeem",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+] as const;
+
 const oracleAbi = [
   {
     inputs: [],
@@ -125,44 +151,88 @@ async function executeRandomTrade(tradeIndex: number) {
   await pushLog(`[ORACLE] BNB/USD Price Verified: $${displayPrice}`);
   await delay(1500);
 
-  let amountIn, tokenIn, tokenOut, expectedAmountOut, path;
+  let amountIn,
+    tokenIn,
+    tokenOut,
+    expectedAmountOut,
+    targetProtocol,
+    omnichainData;
   const deadline = BigInt(Math.floor(Date.now() / 1000) + 1200);
 
-  if (action === "REBALANCE") {
-    await pushLog(
-      `[NEURAL_NET] Volatility optimal. Executing REBALANCE (USDT -> WBNB)`,
-    );
-    amountIn = 200n;
-    tokenIn = CONFIG.TOKENS.USDT;
-    tokenOut = CONFIG.MOCKS.WBNB;
-    path = [tokenIn, tokenOut];
-    expectedAmountOut =
-      (amountIn * assetPrice * 10n ** 18n) / (10n ** 6n * 10n ** 8n);
+  if (vault.name === "Yield Farm") {
+    targetProtocol = CONFIG.PROTOCOLS.VENUS_VUSDT;
+
+    if (action === "REBALANCE") {
+      await pushLog(
+        `[NEURAL_NET] Low volatility. Executing YIELD FARM (Deposit USDT -> vUSDT)`,
+      );
+      amountIn = 10000000n;
+      tokenIn = CONFIG.TOKENS.USDT;
+      tokenOut = CONFIG.TOKENS.vUSDT;
+
+      expectedAmountOut = (amountIn * 10n ** 8n) / 10n ** 6n;
+
+      omnichainData = encodeFunctionData({
+        abi: vTokenAbi,
+        functionName: "mint",
+        args: [amountIn],
+      });
+    } else {
+      await pushLog(
+        `[NEURAL_NET] Liquidity needed. Executing YIELD UNWIND (Withdraw vUSDT -> USDT)`,
+      );
+      amountIn = 1000000000n;
+      tokenIn = CONFIG.TOKENS.vUSDT;
+      tokenOut = CONFIG.TOKENS.USDT;
+
+      expectedAmountOut = (amountIn * 10n ** 6n) / 10n ** 8n;
+
+      omnichainData = encodeFunctionData({
+        abi: vTokenAbi,
+        functionName: "redeem",
+        args: [amountIn],
+      });
+    }
   } else {
-    await pushLog(
-      `[NEURAL_NET] Risk detected. Executing Emergency UNWIND (WBNB -> USDT)`,
-    );
-    amountIn = 100n;
-    tokenIn = CONFIG.MOCKS.WBNB;
-    tokenOut = CONFIG.TOKENS.USDT;
-    path = [tokenIn, tokenOut];
-    expectedAmountOut =
-      (amountIn * assetPrice * 10n ** 18n) / (10n ** 18n * 10n ** 8n);
+    targetProtocol = CONFIG.MOCKS.ROUTER;
+
+    if (action === "REBALANCE") {
+      await pushLog(
+        `[NEURAL_NET] Volatility optimal. Executing REBALANCE (USDT -> WBNB)`,
+      );
+      amountIn = 200n;
+      tokenIn = CONFIG.TOKENS.USDT;
+      tokenOut = CONFIG.MOCKS.WBNB;
+      expectedAmountOut =
+        (amountIn * assetPrice * 10n ** 18n) / (10n ** 6n * 10n ** 8n);
+    } else {
+      await pushLog(
+        `[NEURAL_NET] Risk detected. Executing Emergency UNWIND (WBNB -> USDT)`,
+      );
+      amountIn = 100n;
+      tokenIn = CONFIG.MOCKS.WBNB;
+      tokenOut = CONFIG.TOKENS.USDT;
+      expectedAmountOut =
+        (amountIn * assetPrice * 10n ** 18n) / (10n ** 18n * 10n ** 8n);
+    }
+
+    const path = [tokenIn, tokenOut];
+    const minAmountOut = (expectedAmountOut * 9800n) / 10000n;
+
+    omnichainData = encodeFunctionData({
+      abi: mockRouterAbi,
+      functionName: "swapExactTokensForTokens",
+      args: [
+        amountIn,
+        minAmountOut,
+        path as `0x${string}`[],
+        vault.address as `0x${string}`,
+        deadline,
+      ],
+    });
   }
 
-  const minAmountOut = (expectedAmountOut * 9800n) / 10000n;
-
-  const swapData = encodeFunctionData({
-    abi: mockRouterAbi,
-    functionName: "swapExactTokensForTokens",
-    args: [
-      amountIn,
-      minAmountOut,
-      path as `0x${string}`[],
-      vault.address as `0x${string}`,
-      deadline,
-    ],
-  });
+  const minAmountOutFinal = (expectedAmountOut * 9800n) / 10000n;
 
   await pushLog(`[EXECUTION] Signing transaction for ${vault.name}...`);
 
@@ -172,12 +242,12 @@ async function executeRandomTrade(tradeIndex: number) {
     abi: vaultABI,
     functionName: "executeOmnichain",
     args: [
-      CONFIG.MOCKS.ROUTER as `0x${string}`,
-      swapData,
+      targetProtocol as `0x${string}`,
+      omnichainData,
       tokenIn as `0x${string}`,
       tokenOut as `0x${string}`,
       amountIn,
-      minAmountOut,
+      minAmountOutFinal,
     ],
   });
 
@@ -208,8 +278,6 @@ async function main() {
     if (i < 9) {
       const minSeconds = 3 * 60;
       const maxSeconds = 60 * 60;
-      // const minSeconds = 15; // for testing ai event log
-      // const maxSeconds = 60; // for testing AI Event log
 
       const waitTimeSeconds = Math.floor(
         Math.random() * (maxSeconds - minSeconds + 1) + minSeconds,

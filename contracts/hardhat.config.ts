@@ -1,8 +1,8 @@
 import hardhatToolboxViem from "@nomicfoundation/hardhat-toolbox-viem";
-import { defineConfig } from "hardhat/config";
-import "@openzeppelin/hardhat-upgrades";
 import "@nomicfoundation/hardhat-verify";
+import "@openzeppelin/hardhat-upgrades";
 import * as dotenv from "dotenv";
+import { defineConfig } from "hardhat/config";
 
 dotenv.config();
 
@@ -31,6 +31,11 @@ export default defineConfig({
       url: "https://data-seed-prebsc-2-s2.bnbchain.org:8545/",
       chainId: 97,
       accounts: PRIVATE_KEY,
+    },
+  },
+  verify: {
+    etherscan: {
+      apiKey: process.env.BSCSCAN_API_KEY || "",
     },
   },
 });

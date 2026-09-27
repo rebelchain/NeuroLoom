@@ -27,7 +27,7 @@ contract NeuroLoomVault is
     ERC4626Upgradeable, 
     AccessControlUpgradeable, 
     PausableUpgradeable, 
-    ReentrancyGuard, // Tidak perlu versi Upgradeable lagi
+    ReentrancyGuard, 
     UUPSUpgradeable 
 {
     using SafeERC20 for IERC20;

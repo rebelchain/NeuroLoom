@@ -1,9 +1,9 @@
-import { createWalletClient, createPublicClient, http } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
-import { bscTestnet } from "viem/chains";
+import * as dotenv from "dotenv";
 import * as fs from "fs";
 import * as path from "path";
-import * as dotenv from "dotenv";
+import { createPublicClient, createWalletClient, http } from "viem";
+import { privateKeyToAccount } from "viem/accounts";
+import { bscTestnet } from "viem/chains";
 
 dotenv.config();
 
@@ -25,7 +25,6 @@ const walletClient = createWalletClient({
 async function main() {
   console.log(`[+] Deploying NeuroMockRouterV2...`);
 
-
   const artifactPath = path.join(
     process.cwd(),
     `artifacts/contracts/MockRouterV2.sol/NeuroMockRouterV2.json`,
@@ -43,13 +42,6 @@ async function main() {
 
   console.log(
     `\n[SUCCESS] Router V2 ter-deploy di: ${receipt.contractAddress}`,
-  );
-  console.log(`\n!!! TUGAS SELANJUTNYA !!!`);
-  console.log(`1. Buka Metamask / Dompetmu`);
-  console.log(`2. Kirim 1000 USDT Testnet ke  alamat Router di atas`);
-  console.log(`3. Kirim 10 Mock WBNB ke alamat Router di atas`);
-  console.log(
-    `4. Ganti CONFIG.MOCKS.ROUTER di script demo-mu dengan alamat ini!`,
   );
 }
 

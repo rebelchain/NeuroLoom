@@ -74,7 +74,6 @@ async function main() {
   console.log("Vault 2 (Bluechip)   :", deployedAddresses[1]);
   console.log("Vault 3 (Degen)      :", deployedAddresses[2]);
   console.log("==========================");
-  console.log("SIMPAN KETIGA ADDRESS VAULT INI UNTUK SUBGRAPH DAN FRONTEND!");
 }
 
 main()

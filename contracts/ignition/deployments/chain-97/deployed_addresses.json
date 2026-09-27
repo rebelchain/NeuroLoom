@@ -1,4 +1,5 @@
 {
   "UUPSVaultModule#NeuroLoomVault": "0x0647C267aDB9458c50aA7Cd114992d022f06AC07",
-  "UUPSVaultModule#NeuroLoomProxy": "0x53D7935759fADd30f06953837d6C2eBEb10bb853"
+  "UUPSVaultModule#NeuroLoomProxy": "0x53D7935759fADd30f06953837d6C2eBEb10bb853",
+  "MockOracleModule#MockChainlinkOracle": "0xC3726635c244D6C283b33DAC5cc576e26D1dc1b7"
 }

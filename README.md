@@ -9,12 +9,13 @@
 NeuroLoom is a next-generation Decentralized Finance (DeFi) protocol that fuses advanced **Agentic Workflows** with mathematically guaranteed on-chain execution. It enables an autonomous AI engine to analyze, optimize, and route portfolios (Swap, Lending, Staking) 24/7 across the DeFi ecosystem, while strict Smart Contract guardrails protect the Total Value Locked (TVL) from MEV bots, flash loan attacks, and AI hallucinations.
 
 Built for the **Indonesia Web3 Hackathon 2026**. **BNB Chain**.
+Link: https://indonesiaweb3hack.xyz/en/projects/proj_231bfb01edfeb05edc
 
 <p align="center">
   <img alt="Solidity 0.8.28" src="https://img.shields.io/badge/Solidity-0.8.28-363636?logo=solidity&logoColor=white&style=for-the-badge" />
   <img alt="Next.js" src="https://img.shields.io/badge/Next.js-16-000000?logo=next.js&logoColor=white&style=for-the-badge" />
   <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white&style=for-the-badge" />
-  <img alt="LangChain" src="https://img.shields.io/badge/AI-LangChain%20%7C%20openai/gptosssafeguard%2020b-10B981?style=for-the-badge" />
+  <img alt="LangChain" src="https://img.shields.io/badge/AI-LangChain%20%7C%20qwen/qwen3.8/%20-27b981?style=for-the-badge" />
   <img alt="BSC Testnet" src="https://img.shields.io/badge/Network-BSC%20Testnet-F3BA2F?logo=binance&logoColor=black&style=for-the-badge" />
   <img alt="Tests" src="https://img.shields.io/badge/Tests-7%20passing-10B981?style=for-the-badge" />
 </p>
@@ -133,16 +134,17 @@ The core infrastructure of NeuroLoom utilizes a scalable Factory Pattern. The `N
 
 **Network:** Chain ID `97` (BNB Smart Chain Testnet)
 
-### Core Protocol Contracts
-The protocol utilizes an upgradeable Factory Pattern (ERC-1967) to manage multiple isolated strategy vaults efficiently.
+NeuroLoom utilizes a Factory-Proxy architecture to deploy isolated ERC-4626 standard vaults. The AI Agent acts as an external EOA (msg.sender) that continuously monitors state and executes verified calldata into these vaults.
 
-| Component | Contract Address (BscScan) |
+### Smart Contracts & Execution
+| Component | Address / Link (BscScan) |
 | :--- | :--- |
-| **NeuroLoomVaultFactory** | `0x2d2e967e3114bb32175f4dfcf81cddcfb35bff6b` |
-| **Master Logic (Implementation)** | `0xee02cc386315d42d4d9ca34acb3967b6b27d92a6` |
-| **Vault 1: The Yield Farm** (Proxy) | `0xD00b514048AFC47bFc4DE6a1646D5c63Bd23401a` |
-| **Vault 2: Bluechip Momentum** (Proxy) | `0xF4be9e83543cc31e93B1a10EAe502B49fe3be92e` |
-| **Vault 3: Degen Accumulator** (Proxy) | `0xc86dB8fBeC6eb19DCF70aC9d34cb159867B36e55` |
+| **Agent EOA (AI Executor)** | [`0x5f2AC81d58582C16f606d38927120e4676A1e07b`](https://testnet.bscscan.com/address/0x5f2AC81d58582C16f606d38927120e4676A1e07b) |
+| **Vault Factory** | [`0x2d2e967e3114bb32175f4dfcf81cddcfb35bff6b`](https://testnet.bscscan.com/address/0x2d2e967e3114bb32175f4dfcf81cddcfb35bff6b) |
+| **Master Logic (Implementation)** | [`0xee02cc386315d42d4d9ca34acb3967b6b27d92a6`](https://testnet.bscscan.com/address/0xee02cc386315d42d4d9ca34acb3967b6b27d92a6) |
+| **Vault 1: The Yield Farm** (Proxy) | [`0xD00b514048AFC47bFc4DE6a1646D5c63Bd23401a`](https://testnet.bscscan.com/address/0xD00b514048AFC47bFc4DE6a1646D5c63Bd23401a) |
+| **Vault 2: Bluechip Momentum** (Proxy) | [`0xF4be9e83543cc31e93B1a10EAe502B49fe3be92e`](https://testnet.bscscan.com/address/0xF4be9e83543cc31e93B1a10EAe502B49fe3be92e) |
+| **Vault 3: Degen Accumulator** (Proxy) | [`0xc86dB8fBeC6eb19DCF70aC9d34cb159867B36e55`](https://testnet.bscscan.com/address/0xc86dB8fBeC6eb19DCF70aC9d34cb159867B36e55) |
 
 ### Oracles & Infrastructure
 | Entity | Address / Endpoint |
@@ -150,7 +152,7 @@ The protocol utilizes an upgradeable Factory Pattern (ERC-1967) to manage multip
 | **Chainlink BNB/USD Oracle** | `0x2514895c72f50D8bd4B4F9b1110F0D6bD2c97526` |
 | **Chainlink BTC/USD Oracle** | `0x5741306c21795FdCBb9b265Ea0255F499DFe515C` |
 | **The Graph Subgraph API** | `https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.6` |
-| **NeuroLoom DEX Router** *(Testnet)* | `0xf33c30a801720294eba818a143339e487cddf129` |
+| **PancakeSwap Router (v3)** *(Testnet)* | `0x1b81D678ffb9C0263b24A97847620C99d213eB14` |
 
 ---
 
@@ -208,8 +210,9 @@ The NeuroLoom ecosystem is built on a modern, high-performance web3 stack, stric
 | **Frontend (Analytics)** | Lightweight Charts (TradingView UI), jsPDF & html-to-image |
 | **Frontend (Web3 & Data)**| Wagmi v2, Viem, RainbowKit, Apollo Client (GraphQL), TanStack React Query, @x402/evm |
 | **Backend (API & AI Engine)** | Express.js (REST API), Node.js (tsx), TypeScript v7, Viem (Tx Signer), LangChain (`@langchain/core`), PDFKit |
-| **AI Model & Memory** | Groq API (openai/gpt-oss-safeguard-20b) *— Dynamic Orchestrator*, SQLite (Local Agent State) |
+| **AI Model & Memory** | Groq API (qwen/qwen3.8-27b) *— Dynamic Orchestrator*, SQLite (Local Agent State) |
 | **On-chain Indexing** | The Graph (Subgraph API for real-time event streaming) |
+| **Infrastructure & Backend Deployment** | Oracle Cloud (Linux VPS), Nginx (Reverse Proxy), DuckDNS (Dynamic DNS), Let's Encrypt (SSL/TLS)|
 
 ---
 

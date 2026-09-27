@@ -88,7 +88,6 @@ export function VaultPanel({
   const [amount, setAmount] = useState("");
   const { address, isConnected } = useAccount();
 
-
   const { data: userBalance } = useReadContract({
     address: USDT_ADDRESS,
     abi: erc20ABI,
@@ -96,7 +95,6 @@ export function VaultPanel({
     args: address ? [address] : undefined,
     query: { enabled: !!address, refetchInterval: 3000 },
   });
-
 
   const { data: maxWithdrawData } = useReadContract({
     address: vaultAddress,

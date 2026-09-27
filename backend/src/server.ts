@@ -2,6 +2,7 @@ import cors from "cors";
 import express from "express";
 import PDFDocument from "pdfkit"; 
 import { getRecentMemories } from "./data/db.js";
+import { generateYieldFarmPDF } from "./pdfYieldFarm.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -126,6 +127,14 @@ app.get("/api/history", async (req, res) => {
 app.get("/api/report/pdf", (req, res) => {
   const vaultId = (req.query.vault as string) || "global";
   const isGlobal = vaultId === "global";
+
+  //THE YIELD FARM pdf generator for Demo, mencegat data
+  if (
+    vaultId.toLowerCase().includes("yield-farm") ||
+    vaultId.toLowerCase().includes("yieldfarm")
+  ) {
+    return generateYieldFarmPDF(res);
+  }
 
   res.setHeader("Content-Type", "application/pdf");
   res.setHeader(

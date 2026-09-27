@@ -77,7 +77,6 @@ export async function generateProofOfTradingPDF(
       const writeStream = fs.createWriteStream(filePath);
       doc.pipe(writeStream);
 
-    
       const allHistories = await getRecentMemories(100);
       const strategyExecutions = allHistories
         .filter(

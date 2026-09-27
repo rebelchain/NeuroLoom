@@ -12,7 +12,7 @@ async function configureVenusOracle() {
   console.log("Menghubungkan Chainlink Oracle ke Yield Farm Vault...");
 
   const pk = process.env.AI_PRIVATE_KEY || process.env.PRIVATE_KEY;
-  if (!pk) throw new Error("AI_PRIVATE_KEY not found in .env");
+  if (!pk) throw new Error("AI_PRIVATE_KEY not found in   .env");
 
   const account = privateKeyToAccount(
     (pk.startsWith("0x") ? pk : `0x${pk}`) as `0x${string}`,

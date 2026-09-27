@@ -30,8 +30,8 @@ export function generateYieldFarmPDF(res: Response) {
   doc
     .font("Courier-Bold")
     .fontSize(22)
-    .text("NEUROLOOM EXECUTIVE ACTION", { align: "center" });
-  doc.fontSize(12).text("YIELD FARM - AI STRATEGY REPORT", { align: "center" });
+    .text("NEUROLOOM", { align: "center" });
+  doc.fontSize(12).text("AI YIELD OPTIMIZER REPORT", { align: "center" });
   doc.moveDown(1);
   doc.moveTo(50, doc.y).lineTo(545, doc.y).strokeColor("#cccccc").stroke();
   doc.moveDown(2);

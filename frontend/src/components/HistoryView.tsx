@@ -80,7 +80,6 @@ export function HistoryView() {
   const [filterType, setFilterType] = useState<string>("ALL");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  
   const [currentPage, setCurrentPage] = useState(1);
 
   const GRAPHQL_ENDPOINT =
@@ -184,7 +183,6 @@ export function HistoryView() {
     fetchMasterLedger();
   }, []);
 
-
   const filteredEvents = events.filter((e) => {
     const searchLower = searchQuery.toLowerCase();
     const matchesSearch =
@@ -193,8 +191,6 @@ export function HistoryView() {
     const matchesType = filterType === "ALL" || e.type === filterType;
     return matchesSearch && matchesType;
   });
-
-
 
   // Pagination
   const totalPages = Math.ceil(filteredEvents.length / ITEMS_PER_PAGE);
@@ -308,7 +304,7 @@ export function HistoryView() {
                     key={option.value}
                     onClick={() => {
                       setFilterType(option.value);
-                      setCurrentPage(1); 
+                      setCurrentPage(1);
                       setIsDropdownOpen(false);
                     }}
                     className={`w-full text-left px-4 py-3 text-[10px] uppercase tracking-widest font-mono transition-colors ${

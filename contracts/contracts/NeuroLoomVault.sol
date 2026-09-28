@@ -139,6 +139,14 @@ contract NeuroLoomVault is
         require(amountOutMin >= minimumAcceptableAmount, "Slippage tolerance exceeded Oracle bounds");
     }
 
+    /**
+     * @dev ERC-4626 inflation attack mitigation, preventing donation attacks
+     * Overrides the default OpenZeppelin value of 0 with 6.
+     */
+    function _decimalsOffset() internal view virtual override returns (uint8) {
+        return 6;
+    }
+
     function pause() public onlyRole(DEFAULT_ADMIN_ROLE) { _pause(); }
     function unpause() public onlyRole(DEFAULT_ADMIN_ROLE) { _unpause(); }
 

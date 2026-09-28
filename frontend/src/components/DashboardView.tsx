@@ -4,7 +4,7 @@ import {
   Activity,
   ArrowRight,
   Coins,
-  Download, 
+  Download,
   Network,
   TrendingUp,
 } from "lucide-react";
@@ -30,7 +30,7 @@ const GRAPHQL_ENDPOINT =
 
 export function DashboardView() {
   const [totalRebalances, setTotalRebalances] = useState(0);
-  const [isPrinting, setIsPrinting] = useState(false); 
+  const [isPrinting, setIsPrinting] = useState(false);
 
   const { data: totalAssetsData, isLoading: isTvlLoading } = useReadContracts({
     contracts: ACTIVE_VAULTS.map((address) => ({
@@ -53,16 +53,22 @@ export function DashboardView() {
 
   const realTVL = tvlYieldFarm + tvlBluechip + tvlDegen;
 
-  const globalAPY =
-    realTVL > 0
-      ? Number(
-          (
-            (tvlYieldFarm * 14.5 + tvlBluechip * 22.4 + tvlDegen * 38.2) /
-            realTVL
-          ).toFixed(1),
-        )
-      : 0;
+ const availableYieldFarm = tvlYieldFarm * 0.1; 
+ const availableBluechip = tvlBluechip * 0.1; 
+ const availableDegen = tvlDegen * 0.15; 
 
+ const trueAvailableLiquidity =
+   availableYieldFarm + availableBluechip + availableDegen;
+
+ const globalAPY =
+   realTVL > 0
+     ? Number(
+         (
+           (tvlYieldFarm * 14.5 + tvlBluechip * 22.4 + tvlDegen * 38.2) /
+           realTVL
+         ).toFixed(1),
+       )
+     : 0;
 
   const handleDownloadPDF = () => {
     setIsPrinting(true);
@@ -172,7 +178,7 @@ export function DashboardView() {
           />
           <KPICard
             title="Available Liquidity"
-            value={realTVL * 0.15}
+            value={trueAvailableLiquidity}
             prefix="$"
             icon={Coins}
             change="Ready"

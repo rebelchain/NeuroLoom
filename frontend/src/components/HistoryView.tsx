@@ -1,14 +1,20 @@
 "use client";
 
 import { formatTimeAgo } from "@/lib/utils";
-import { Activity, Download, ExternalLink, Filter } from "lucide-react";
+import {
+  Activity,
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  ExternalLink,
+  Filter,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { formatUnits } from "viem";
 import { ACTIVE_VAULTS } from "../config/addresses";
 
-
 const VAULT_MAP: Record<string, string> = {
-  [ACTIVE_VAULTS[0].toLowerCase()]: "Yield Farm",
+  [ACTIVE_VAULTS[0].toLowerCase()]: "The Yield Farm",
   [ACTIVE_VAULTS[1].toLowerCase()]: "Bluechip Momentum",
   [ACTIVE_VAULTS[2].toLowerCase()]: "Degen Accumulator",
 };
@@ -40,14 +46,14 @@ interface RawRebalance {
   tokenIn: string;
   tokenOut: string;
   amountIn: string;
-  address: string; 
+  address: string;
   blockTimestamp: string;
   transactionHash: string;
 }
 interface RawDepositWithdraw {
   id: string;
   assets: string;
-  address: string; 
+  address: string;
   blockTimestamp: string;
   transactionHash: string;
 }
@@ -65,6 +71,8 @@ interface RawPause {
   transactionHash: string;
 }
 
+const ITEMS_PER_PAGE = 15;
+
 export function HistoryView() {
   const [events, setEvents] = useState<VaultEvent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -72,6 +80,8 @@ export function HistoryView() {
   const [filterType, setFilterType] = useState<string>("ALL");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
+  
+  const [currentPage, setCurrentPage] = useState(1);
 
   const GRAPHQL_ENDPOINT =
     "https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.6";
@@ -82,10 +92,10 @@ export function HistoryView() {
         setLoading(true);
         const query = `
           {
-            rebalanceExecuteds(first: 20, orderBy: blockTimestamp, orderDirection: desc) { id, tokenIn, tokenOut, amountIn, address, blockTimestamp, transactionHash }
-            deposits(first: 20, orderBy: blockTimestamp, orderDirection: desc) { id, assets, address, blockTimestamp, transactionHash }
-            withdraws(first: 20, orderBy: blockTimestamp, orderDirection: desc) { id, assets, address, blockTimestamp, transactionHash }
-            protocolApproveds(first: 10, orderBy: blockTimestamp, orderDirection: desc) { id, protocol, status, blockTimestamp, transactionHash }
+            rebalanceExecuteds(first: 100, orderBy: blockTimestamp, orderDirection: desc) { id, tokenIn, tokenOut, amountIn, address, blockTimestamp, transactionHash }
+            deposits(first: 100, orderBy: blockTimestamp, orderDirection: desc) { id, assets, address, blockTimestamp, transactionHash }
+            withdraws(first: 100, orderBy: blockTimestamp, orderDirection: desc) { id, assets, address, blockTimestamp, transactionHash }
+            protocolApproveds(first: 20, orderBy: blockTimestamp, orderDirection: desc) { id, protocol, status, blockTimestamp, transactionHash }
             pauseds(first: 5, orderBy: blockTimestamp, orderDirection: desc) { id, account, blockTimestamp, transactionHash }
             unpauseds(first: 5, orderBy: blockTimestamp, orderDirection: desc) { id, account, blockTimestamp, transactionHash }
           }
@@ -107,7 +117,7 @@ export function HistoryView() {
                   id: e.id,
                   type: "AI_REBALANCE" as EventType,
                   amount: `${formatUnits(BigInt(e.amountIn), 6)} USDT`,
-                  route: `[${vaultName}] ${shortenAddress(e.tokenIn)} → ${shortenAddress(e.tokenOut)}`,
+                  route: `[${vaultName}] Reallocated ${shortenAddress(e.tokenIn)} to ${shortenAddress(e.tokenOut)}`,
                   timestamp: Number(e.blockTimestamp),
                   txHash: e.transactionHash,
                 };
@@ -120,7 +130,7 @@ export function HistoryView() {
                 id: e.id,
                 type: "USER_DEPOSIT" as EventType,
                 amount: `+ ${formatUnits(BigInt(e.assets), 6)} USDT`,
-                route: `Inbound to ${getVaultName(e.address)}`,
+                route: `Capital Inbound to ${getVaultName(e.address)}`,
                 timestamp: Number(e.blockTimestamp),
                 txHash: e.transactionHash,
               })),
@@ -132,7 +142,7 @@ export function HistoryView() {
                 id: e.id,
                 type: "USER_WITHDRAWAL" as EventType,
                 amount: `- ${formatUnits(BigInt(e.assets), 6)} USDT`,
-                route: `Outbound from ${getVaultName(e.address)}`,
+                route: `Capital Outbound from ${getVaultName(e.address)}`,
                 timestamp: Number(e.blockTimestamp),
                 txHash: e.transactionHash,
               })),
@@ -144,7 +154,7 @@ export function HistoryView() {
                 id: e.id,
                 type: "ADMIN_WHITELIST" as EventType,
                 amount: e.status ? "APPROVED" : "REVOKED",
-                route: `Target: ${shortenAddress(e.protocol)}`,
+                route: `Target Protocol: ${shortenAddress(e.protocol)}`,
                 timestamp: Number(e.blockTimestamp),
                 txHash: e.transactionHash,
               })),
@@ -156,14 +166,13 @@ export function HistoryView() {
                 id: e.id,
                 type: "SYSTEM_PAUSED" as EventType,
                 amount: "EMERGENCY",
-                route: "Vault Operations Halted",
+                route: "Global Vault Operations Halted",
                 timestamp: Number(e.blockTimestamp),
                 txHash: e.transactionHash,
               })),
             );
           }
         }
-
         normalizedData.sort((a, b) => b.timestamp - a.timestamp);
         setEvents(normalizedData);
       } catch (error) {
@@ -175,15 +184,25 @@ export function HistoryView() {
     fetchMasterLedger();
   }, []);
 
+
   const filteredEvents = events.filter((e) => {
     const searchLower = searchQuery.toLowerCase();
     const matchesSearch =
       e.txHash.toLowerCase().includes(searchLower) ||
       e.route.toLowerCase().includes(searchLower);
-
     const matchesType = filterType === "ALL" || e.type === filterType;
     return matchesSearch && matchesType;
   });
+
+
+
+  // Pagination
+  const totalPages = Math.ceil(filteredEvents.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedEvents = filteredEvents.slice(
+    startIndex,
+    startIndex + ITEMS_PER_PAGE,
+  );
 
   const exportToCSV = () => {
     const headers = "Event Type,Amount,Route,Timestamp,Transaction Hash\n";
@@ -221,16 +240,19 @@ export function HistoryView() {
         </p>
       </div>
 
-      {/* CONTROL PANEL  */}
+      {/* CONTROL PANEL */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 bg-[#0a0a0a] p-4 border border-[#1f1f1f]">
         <div className="flex flex-col sm:flex-row w-full md:w-auto gap-4 flex-grow">
           {/* SEARCH INPUT */}
           <div className="relative w-full sm:w-64">
             <input
               type="text"
-              placeholder="Search Hash or Vault..."
+              placeholder="Search Hash or Route..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
               className="w-full bg-[#121212] border border-[#1f1f1f] py-2.5 px-4 text-xs text-[#f5f5f5] focus:outline-none focus:border-primary transition-colors font-mono placeholder:text-[#333]"
             />
           </div>
@@ -286,6 +308,7 @@ export function HistoryView() {
                     key={option.value}
                     onClick={() => {
                       setFilterType(option.value);
+                      setCurrentPage(1); 
                       setIsDropdownOpen(false);
                     }}
                     className={`w-full text-left px-4 py-3 text-[10px] uppercase tracking-widest font-mono transition-colors ${
@@ -302,7 +325,7 @@ export function HistoryView() {
           </div>
         </div>
 
-        {/*  EXPORT BUTTON */}
+        {/* EXPORT BUTTON */}
         <button
           onClick={exportToCSV}
           className="flex items-center gap-2 bg-primary hover:bg-transparent text-[#0a0a0a] hover:text-primary border border-primary px-6 py-2.5 text-[11px] uppercase tracking-widest font-mono font-bold transition-colors shrink-0 justify-center w-full md:w-auto"
@@ -311,7 +334,7 @@ export function HistoryView() {
         </button>
       </div>
 
-      {/* DATA GRID  */}
+      {/* DATA GRID */}
       <div className="bg-[#0a0a0a] border border-[#1f1f1f] flex-grow flex flex-col min-h-[400px]">
         <div className="overflow-x-auto">
           <table className="w-full text-left whitespace-nowrap">
@@ -334,14 +357,14 @@ export function HistoryView() {
                     </div>
                   </td>
                 </tr>
-              ) : filteredEvents.length === 0 ? (
+              ) : paginatedEvents.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="py-16 text-center text-[#8a8a8a]">
                     {">"} _No events found matching your parameters.
                   </td>
                 </tr>
               ) : (
-                filteredEvents.map((event, idx) => (
+                paginatedEvents.map((event, idx) => (
                   <tr
                     key={`${event.txHash}-${idx}`}
                     className="border-b border-[#1f1f1f] hover:bg-[#121212] transition-colors group"
@@ -373,6 +396,38 @@ export function HistoryView() {
             </tbody>
           </table>
         </div>
+
+        {/* PAGINATION CONTROLS */}
+        {!loading && filteredEvents.length > 0 && (
+          <div className="mt-auto border-t border-[#1f1f1f] bg-[#121212] px-6 py-4 flex items-center justify-between">
+            <div className="text-[10px] font-mono text-[#8a8a8a] uppercase tracking-widest">
+              Showing {startIndex + 1}-
+              {Math.min(startIndex + ITEMS_PER_PAGE, filteredEvents.length)} of{" "}
+              {filteredEvents.length} events
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="p-1.5 border border-[#1f1f1f] text-[#8a8a8a] hover:text-primary hover:border-primary disabled:opacity-30 disabled:hover:border-[#1f1f1f] disabled:hover:text-[#8a8a8a] transition-colors"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <div className="px-3 font-mono text-[10px] text-[#f5f5f5]">
+                {currentPage} / {totalPages}
+              </div>
+              <button
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(totalPages, p + 1))
+                }
+                disabled={currentPage === totalPages}
+                className="p-1.5 border border-[#1f1f1f] text-[#8a8a8a] hover:text-primary hover:border-primary disabled:opacity-30 disabled:hover:border-[#1f1f1f] disabled:hover:text-[#8a8a8a] transition-colors"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -383,9 +438,9 @@ function EventBadge({ type }: { type: EventType }) {
     case "AI_REBALANCE":
       return <span className="text-primary font-bold">[ REBALANCE ]</span>;
     case "USER_DEPOSIT":
-      return <span className="text-[#f5f5f5] font-bold">[ + DEPOSIT ]</span>;
+      return <span className="text-[#f5f5f5] font-bold">[ INBOUND ]</span>;
     case "USER_WITHDRAWAL":
-      return <span className="text-[#8a8a8a] font-bold">[ - WITHDRAW ]</span>;
+      return <span className="text-[#8a8a8a] font-bold">[ OUTBOUND ]</span>;
     case "ADMIN_WHITELIST":
       return <span className="text-[#c5c5c5] font-bold">[ WHITELIST ]</span>;
     case "SYSTEM_PAUSED":

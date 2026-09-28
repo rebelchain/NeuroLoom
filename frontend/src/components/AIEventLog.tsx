@@ -34,22 +34,33 @@ export function AIEventLog() {
   const [events, setEvents] = useState<GraphRebalanceData[]>([]);
   const [isSyncing, setIsSyncing] = useState(true);
   const [visibleLogs, setVisibleLogs] = useState<string[]>([]);
+  const [wibTime, setWibTime] = useState<string>("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // 1. Live WIB Clock Generator
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const now = new Date();
+      const formattedTime = now.toLocaleTimeString("id-ID", {
+        timeZone: "Asia/Jakarta",
+        hour12: false,
+      });
+      setWibTime(`${formattedTime} WIB`);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // 2. Fetch Logs Backend
   useEffect(() => {
     let isMounted = true;
-
     const fetchLogs = async () => {
       try {
         const response = await fetch(
           "https://neuroloom-api.duckdns.org/api/ai-logs",
           { cache: "no-store" },
         );
-
         if (!response.ok) return;
-
         const data = await response.json();
-
         if (isMounted && data.logs) {
           setVisibleLogs(data.logs);
         }
@@ -57,21 +68,20 @@ export function AIEventLog() {
         console.error("Gagal mengambil log AI:", error);
       }
     };
-
     void fetchLogs();
     const interval = setInterval(fetchLogs, 1000);
-
     return () => {
       isMounted = false;
       clearInterval(interval);
     };
   }, []);
 
+  // 3. FIX BUG AUTO-SCROLL: Hanya turun jika ada baris log BARU (menggunakan .length)
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [visibleLogs]);
+  }, [visibleLogs.length]);
 
   const clearLogs = async () => {
     await fetch("https://neuroloom-api.duckdns.org/api/ai-logs", {
@@ -82,6 +92,7 @@ export function AIEventLog() {
     setVisibleLogs([]);
   };
 
+  // 4. Fetch The Graph Data
   useEffect(() => {
     let isMounted = true;
     const fetchGraphData = async () => {
@@ -99,7 +110,6 @@ export function AIEventLog() {
           body: JSON.stringify({ query }),
         });
         const { data } = await res.json();
-
         if (isMounted && data?.rebalanceExecuteds?.length > 0) {
           setEvents(data.rebalanceExecuteds);
         }
@@ -109,10 +119,8 @@ export function AIEventLog() {
         if (isMounted) setIsSyncing(false);
       }
     };
-
     void fetchGraphData();
     const interval = setInterval(fetchGraphData, 10000);
-
     return () => {
       isMounted = false;
       clearInterval(interval);
@@ -131,6 +139,10 @@ export function AIEventLog() {
             </h3>
           </div>
           <div className="flex items-center gap-4">
+            {/* LIVE WIB TIMESTAMP */}
+            <span className="text-[10px] text-[#8a8a8a] font-mono tracking-widest uppercase border border-[#1f1f1f] bg-[#0a0a0a] px-2 py-1">
+              {wibTime || "SYNCING CLOCK..."}
+            </span>
             <button
               onClick={clearLogs}
               className="text-[10px] text-[#8a8a8a] hover:text-primary uppercase font-mono tracking-widest transition-colors"

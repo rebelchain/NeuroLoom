@@ -10,18 +10,22 @@ import {
   type VaultData,
 } from "./VaultAllocationBar";
 import { useMemo, useState } from "react";
-import { erc20Abi, formatUnits } from "viem";
+import { formatUnits } from "viem";
 import { useReadContracts } from "wagmi";
 import { ACTIVE_VAULTS } from "../config/addresses";
 import { VaultChart } from "./VaultChart";
 import { VaultPanel } from "./VaultPanel";
 
-const ADDRESSES = {
-  USDT: "0xA11c8D9DC9b66E209Ef60F0C8D969D3CD988782c",
-  MOCK_WBNB: "0x4856f641715bd527f8d7b70e9ade7da3c38fe52e",
-  MOCK_BTCB: "0x18ecc91ea38ec9c5cd29f2d1e1686d0a63f49960",
-} as const;
 
+const vaultTotalAssetsABI = [
+  {
+    inputs: [],
+    name: "totalAssets",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+] as const;
 
 const generateRealisticEquityCurve = (
   currentTvl: number,
@@ -29,8 +33,6 @@ const generateRealisticEquityCurve = (
 ) => {
   const data = [];
   const now = new Date();
-
-
   const startingValue = currentTvl * (1 - (Math.random() * 0.1 + 0.05));
   let simulatedValue = startingValue;
 
@@ -40,15 +42,11 @@ const generateRealisticEquityCurve = (
 
     const remainingDays = i;
     const distanceToTarget = currentTvl - simulatedValue;
-
-  
     const dailyGrowth =
       remainingDays > 0 ? distanceToTarget / remainingDays : 0;
     const noise = (Math.random() - 0.5) * (currentTvl * 0.008);
 
     simulatedValue += dailyGrowth + noise;
-
-   
     if (i === 0) simulatedValue = currentTvl;
 
     data.push({
@@ -58,7 +56,6 @@ const generateRealisticEquityCurve = (
   }
   return data;
 };
-
 
 function VaultCard({
   vault,
@@ -70,11 +67,14 @@ function VaultCard({
   const { ref, visible } = useSectionReveal<HTMLDivElement>(0.2);
   const [isDownloading, setIsDownloading] = useState(false);
   const [showChart, setShowChart] = useState(false);
-  const [chartData, setChartData] = useState<{ time: string; value: number }[]>([]);
+  const [chartData, setChartData] = useState<{ time: string; value: number }[]>(
+    [],
+  );
   const [isChartLoading, setIsChartLoading] = useState(false);
 
   const totalAllocated = vault.totalBalance - vault.availableBalance;
-  const allocatedPct = vault.totalBalance > 0 ? (totalAllocated / vault.totalBalance) * 100 : 0;
+  const allocatedPct =
+    vault.totalBalance > 0 ? (totalAllocated / vault.totalBalance) * 100 : 0;
 
   const vaultInitials = vault.name
     .replace(/^(The\s+)/i, "")
@@ -88,7 +88,7 @@ function VaultCard({
     if (!showChart && chartData.length === 0) {
       setShowChart(true);
       setIsChartLoading(true);
-      
+
       setTimeout(() => {
         const generatedData = generateRealisticEquityCurve(vault.totalBalance);
         setChartData(generatedData);
@@ -213,87 +213,24 @@ function VaultCard({
   );
 }
 
-
 export function SmartVaultsView() {
   const [selectedVault, setSelectedVault] = useState<VaultData | null>(null);
 
   const { data: onChainData, isLoading: isVaultsLoading } = useReadContracts({
-    contracts: [
-      {
-        address: ADDRESSES.USDT,
-        abi: erc20Abi,
-        functionName: "balanceOf",
-        args: [ACTIVE_VAULTS[0] as `0x${string}`],
-      },
-      {
-        address: ADDRESSES.MOCK_WBNB,
-        abi: erc20Abi,
-        functionName: "balanceOf",
-        args: [ACTIVE_VAULTS[0] as `0x${string}`],
-      },
-      {
-        address: ADDRESSES.MOCK_BTCB,
-        abi: erc20Abi,
-        functionName: "balanceOf",
-        args: [ACTIVE_VAULTS[0] as `0x${string}`],
-      },
-      {
-        address: ADDRESSES.USDT,
-        abi: erc20Abi,
-        functionName: "balanceOf",
-        args: [ACTIVE_VAULTS[1] as `0x${string}`],
-      },
-      {
-        address: ADDRESSES.MOCK_WBNB,
-        abi: erc20Abi,
-        functionName: "balanceOf",
-        args: [ACTIVE_VAULTS[1] as `0x${string}`],
-      },
-      {
-        address: ADDRESSES.MOCK_BTCB,
-        abi: erc20Abi,
-        functionName: "balanceOf",
-        args: [ACTIVE_VAULTS[1] as `0x${string}`],
-      },
-      {
-        address: ADDRESSES.USDT,
-        abi: erc20Abi,
-        functionName: "balanceOf",
-        args: [ACTIVE_VAULTS[2] as `0x${string}`],
-      },
-      {
-        address: ADDRESSES.MOCK_WBNB,
-        abi: erc20Abi,
-        functionName: "balanceOf",
-        args: [ACTIVE_VAULTS[2] as `0x${string}`],
-      },
-      {
-        address: ADDRESSES.MOCK_BTCB,
-        abi: erc20Abi,
-        functionName: "balanceOf",
-        args: [ACTIVE_VAULTS[2] as `0x${string}`],
-      },
-    ],
+    contracts: ACTIVE_VAULTS.map((address) => ({
+      address: address as `0x${string}`,
+      abi: vaultTotalAssetsABI,
+      functionName: "totalAssets",
+    })),
     query: { refetchInterval: 10000 },
   });
 
   const strategyVaults = useMemo<VaultData[]>(() => {
     const getVaultData = (index: number) => {
-      const base = index * 3;
+      const totalAssetsWei =
+        (onChainData?.[index]?.result as bigint) || BigInt(0);
+      const realTotalUsd = Number(formatUnits(totalAssetsWei, 6));
 
-      const usdtWei = (onChainData?.[base]?.result as bigint) || BigInt(0);
-      const wbnbWei = (onChainData?.[base + 1]?.result as bigint) || BigInt(0);
-      const btcbWei = (onChainData?.[base + 2]?.result as bigint) || BigInt(0);
-
-      const usdtRaw = Number(formatUnits(usdtWei, 6));
-      const wbnbRaw = Number(formatUnits(wbnbWei, 18));
-      const btcbRaw = Number(formatUnits(btcbWei, 18));
-
-
-      const wbnbUsd = wbnbRaw * 776;
-      const btcbUsd = btcbRaw * 64000;
-
-      const realTotalUsd = usdtRaw + wbnbUsd + btcbUsd;
       const allocations: AIAllocation[] = [];
       let availableBalance = 0;
 

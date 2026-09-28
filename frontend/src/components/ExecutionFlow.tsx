@@ -119,19 +119,19 @@ export function ExecutionFlow() {
     if (!isAutoPlaying) return;
     const interval = setInterval(() => {
       setActiveStep((prev) => (prev + 1) % STEPS.length);
-    }, 5000); 
+    }, 5000);
     return () => clearInterval(interval);
   }, [isAutoPlaying]);
 
   const handleStepClick = (index: number) => {
     setActiveStep(index);
-    setIsAutoPlaying(false); 
+    setIsAutoPlaying(false);
   };
 
   return (
     <Reveal>
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch mt-12">
-        {/*  DAFTAR STEP */}
+        {/* DAFTAR STEP */}
         <div className="lg:col-span-5 flex flex-col gap-4">
           {STEPS.map((step, index) => {
             const isActive = activeStep === index;
@@ -139,21 +139,21 @@ export function ExecutionFlow() {
               <div
                 key={step.id}
                 onClick={() => handleStepClick(index)}
-                className={`relative border border-[#1f1f1f] p-6 cursor-pointer transition-all duration-500 overflow-hidden tick-frame ${
+                className={`relative border p-6 cursor-pointer rounded-2xl transition-all duration-500 overflow-hidden ${
                   isActive
-                    ? "bg-[#121212] border-primary/50"
-                    : "bg-[#0a0a0a] opacity-50 hover:opacity-100"
+                    ? "bg-[#0a0a0a] border-primary/50 shadow-[0_10px_30px_rgba(0,0,0,0.5)]"
+                    : "bg-[#0a0a0a] border-[#1f1f1f] opacity-60 hover:opacity-100 hover:border-[#333]"
                 }`}
               >
-                {/* Indikator Vertikal Aktif */}
+                {/* Indikator Vertikal Aktif  */}
                 {isActive && (
-                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary shadow-[0_0_15px_rgba(139,92,246,0.6)]" />
+                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-12 rounded-r-md bg-primary shadow-[0_0_15px_rgba(139,92,246,0.6)]" />
                 )}
 
-                <div className="text-[10px] font-mono text-primary mb-2 tracking-widest uppercase">
+                <div className="text-[10px] font-mono text-primary mb-2.5 tracking-widest uppercase font-bold">
                   Step {step.id}
                 </div>
-                <h3 className="text-sm font-bold text-[#f5f5f5] mb-2 uppercase tracking-wide font-mono">
+                <h3 className="text-[15px] font-bold text-[#f5f5f5] mb-2.5 uppercase tracking-wide font-mono">
                   {step.title}
                 </h3>
                 <p className="text-xs text-[#8a8a8a] leading-relaxed">
@@ -164,19 +164,19 @@ export function ExecutionFlow() {
           })}
         </div>
 
-        {/*  TERMINAL AI LIVESYNC */}
         <div className="lg:col-span-7">
-          <div className="border border-[#1f1f1f] bg-[#0a0a0a] flex flex-col h-full min-h-[340px] tick-frame relative shadow-2xl">
+          <div className="border border-[#1f1f1f] bg-[#0a0a0a] rounded-2xl flex flex-col h-full min-h-[340px] relative shadow-[0_24px_48px_rgba(0,0,0,0.4)] overflow-hidden">
             {/* Header Terminal */}
-            <div className="border-b border-[#1f1f1f] bg-[#121212]/80 px-5 py-4 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] uppercase font-mono text-[#8a8a8a] tracking-widest">
+            <div className="border-b border-[#1f1f1f] bg-[#121212] px-6 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="text-[10.5px] uppercase font-mono text-[#8a8a8a] tracking-widest">
                   [ System_Terminal ]
                 </span>
               </div>
-              <div className="flex items-center gap-2 border border-primary/30 bg-primary/10 px-2 py-1">
-                <span className="w-1.5 h-1.5 bg-primary animate-pulse"></span>
-                <span className="text-[9px] uppercase font-mono text-primary tracking-widest">
+              {/* Badge Jaringan */}
+              <div className="flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_var(--color-primary)]"></span>
+                <span className="text-[9.5px] uppercase font-mono text-primary tracking-widest font-bold">
                   Node: BSC-Testnet
                 </span>
               </div>
@@ -185,22 +185,20 @@ export function ExecutionFlow() {
             {/* Body Terminal */}
             <div
               key={activeStep}
-              className="p-6 font-mono text-[11px] md:text-xs flex flex-col gap-4 overflow-hidden flex-grow relative"
+              className="p-6 md:p-8 font-mono text-[11.5px] md:text-[12.5px] flex flex-col gap-4 overflow-hidden flex-grow relative"
             >
               {STEPS[activeStep].logs.map((log, i) => (
                 <div
                   key={i}
-                  className="animate-fade-in-up flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4"
+                  className="animate-fade-in-up flex flex-col sm:flex-row sm:items-start gap-1.5 sm:gap-4"
                   style={{
                     animationDelay: log.delay,
                     animationFillMode: "both",
                   }}
                 >
-                  <span className="text-[#8a8a8a] shrink-0 opacity-50">
-                    [{log.time}]
-                  </span>
+                  <span className="text-[#6a6a6a] shrink-0">[{log.time}]</span>
                   <span
-                    className={`${log.color} shrink-0 uppercase tracking-widest`}
+                    className={`${log.color} shrink-0 uppercase tracking-widest font-semibold`}
                   >
                     [{log.label}]
                   </span>
@@ -210,16 +208,15 @@ export function ExecutionFlow() {
                 </div>
               ))}
 
+              {/* Blinking Cursor */}
               <div
-                className="animate-fade-in-up flex items-center gap-2 mt-2"
+                className="animate-fade-in-up flex items-center gap-2.5 mt-2"
                 style={{ animationDelay: "1500ms", animationFillMode: "both" }}
               >
-                <span className="text-[#8a8a8a] opacity-50">{">"}</span>
-                <span className="w-2 h-3.5 bg-primary animate-pulse"></span>
+                <span className="text-[#6a6a6a]">{">"}</span>
+                <span className="w-2.5 h-3.5 bg-primary animate-pulse rounded-[1px] shadow-[0_0_8px_var(--color-primary)]"></span>
               </div>
             </div>
-
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#1f1f1f] to-transparent"></div>
           </div>
         </div>
       </div>

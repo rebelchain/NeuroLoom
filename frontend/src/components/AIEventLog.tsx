@@ -37,7 +37,7 @@ export function AIEventLog() {
   const [wibTime, setWibTime] = useState<string>("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // 1. Live WIB Clock Generator
+
   useEffect(() => {
     const timer = setInterval(() => {
       const now = new Date();
@@ -50,7 +50,7 @@ export function AIEventLog() {
     return () => clearInterval(timer);
   }, []);
 
-  // 2. Fetch Logs Backend
+
   useEffect(() => {
     let isMounted = true;
     const fetchLogs = async () => {
@@ -76,7 +76,7 @@ export function AIEventLog() {
     };
   }, []);
 
-  // 3. FIX BUG AUTO-SCROLL: Hanya turun jika ada baris log BARU (menggunakan .length)
+
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -92,7 +92,7 @@ export function AIEventLog() {
     setVisibleLogs([]);
   };
 
-  // 4. Fetch The Graph Data
+
   useEffect(() => {
     let isMounted = true;
     const fetchGraphData = async () => {
@@ -129,27 +129,30 @@ export function AIEventLog() {
 
   return (
     <section className="flex flex-col h-full w-full">
-      {/* TOP PANEL AI THINKING PROCESS */}
-      <div className="border-b border-[#1f1f1f] bg-transparent relative">
-        <header className="flex justify-between items-center px-5 py-4 border-b border-[#1f1f1f] bg-[#121212]/50">
-          <div className="flex items-center gap-3">
-            <TerminalSquare className="w-[18px] h-[18px] text-primary" />
-            <h3 className="text-xs font-mono font-bold text-[#f5f5f5] uppercase tracking-widest">
+
+      <div className="bg-transparent relative">
+        <header className="flex justify-between items-center px-6 py-4 border-b border-white/[0.08] bg-white/[0.02]">
+          <div className="flex items-center gap-4">
+            <div className="w-8 h-8 rounded-lg bg-white/[0.03] border border-white/[0.08] flex items-center justify-center">
+              <TerminalSquare className="w-4 h-4 text-primary" />
+            </div>
+            <h3 className="text-[13.5px] font-mono font-bold text-[#f5f5f5] uppercase tracking-widest">
               Agent Orchestrator Log
             </h3>
           </div>
           <div className="flex items-center gap-4">
-            {/* LIVE WIB TIMESTAMP */}
-            <span className="text-[10px] text-[#8a8a8a] font-mono tracking-widest uppercase border border-[#1f1f1f] bg-[#0a0a0a] px-2 py-1">
+
+            <span className="hidden sm:inline-block text-[10px] text-[#c5c5c5] font-mono tracking-widest uppercase border border-white/[0.1] bg-white/[0.03] rounded-md px-3 py-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
               {wibTime || "SYNCING CLOCK..."}
             </span>
             <button
               onClick={clearLogs}
-              className="text-[10px] text-[#8a8a8a] hover:text-primary uppercase font-mono tracking-widest transition-colors"
+              className="text-[10px] text-[#8a8a8a] hover:text-[#f5f5f5] hover:bg-white/[0.05] rounded-md px-2.5 py-1.5 uppercase font-mono tracking-widest transition-colors"
             >
               [ Reset ]
             </button>
-            <span className="text-[10px] text-primary font-mono tracking-widest uppercase animate-pulse border border-primary/30 bg-primary/10 px-2 py-1">
+            <span className="flex items-center gap-1.5 text-[10px] text-primary font-mono tracking-widest uppercase border border-primary/30 bg-primary/10 rounded-full px-3 py-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_var(--color-primary)]"></span>
               Processing
             </span>
           </div>
@@ -157,7 +160,7 @@ export function AIEventLog() {
 
         <div
           ref={scrollRef}
-          className="h-[220px] p-5 font-mono text-xs text-[#c5c5c5] overflow-y-auto leading-relaxed scroll-smooth text-left"
+          className="h-[250px] p-6 font-mono text-[12px] text-[#c5c5c5] overflow-y-auto leading-relaxed scroll-smooth text-left"
         >
           {visibleLogs.length === 0 ? (
             <div className="text-[#8a8a8a] italic">
@@ -169,9 +172,9 @@ export function AIEventLog() {
               return (
                 <div
                   key={index}
-                  className="mb-1.5 animate-fade-in-up flex items-start gap-2"
+                  className="mb-2 animate-fade-in-up flex items-start gap-2.5"
                 >
-                  <span className="text-[#8a8a8a] mt-0.5">{">"}</span>
+                  <span className="text-[#6a6a6a] mt-0.5">{">"}</span>
                   <span
                     className={
                       log.includes("WARNING") || log.includes("REJECTING")
@@ -191,31 +194,32 @@ export function AIEventLog() {
               );
             })
           )}
-          <div className="mt-2 flex items-center gap-2">
-            <span className="text-[#8a8a8a]">{">"}</span>
-            <span className="w-2.5 h-3.5 bg-primary animate-pulse inline-block"></span>
+          <div className="mt-3 flex items-center gap-2.5 pl-1">
+            <span className="text-[#6a6a6a]">{">"}</span>
+            <span className="w-2.5 h-3.5 bg-primary animate-pulse inline-block shadow-[0_0_8px_var(--color-primary)]"></span>
           </div>
         </div>
       </div>
 
-      {/* BOTTOM PANEL: LIVE ON-CHAIN SETTLEMENT */}
-      <header className="flex justify-between items-center px-5 py-4 border-b border-[#1f1f1f] bg-[#121212]/80">
-        <div className="flex items-center gap-3">
-          <Activity className="w-[18px] h-[18px] text-primary" />
-          <div className="text-left flex flex-col gap-1">
-            <h2 className="text-xs font-bold font-mono text-[#f5f5f5] uppercase tracking-widest">
+      <header className="flex justify-between items-center px-6 py-4 border-y border-white/[0.08] bg-white/[0.01]">
+        <div className="flex items-center gap-4">
+          <div className="w-8 h-8 rounded-lg bg-white/[0.03] border border-white/[0.08] flex items-center justify-center">
+            <Activity className="w-4 h-4 text-primary" />
+          </div>
+          <div className="text-left flex flex-col gap-0.5">
+            <h2 className="text-[13.5px] font-bold font-mono text-[#f5f5f5] uppercase tracking-widest">
               Live On-Chain Settlement
             </h2>
-            <span className="text-[9px] text-[#8a8a8a] font-mono tracking-[0.2em] uppercase">
+            <span className="text-[9.5px] text-[#8a8a8a] font-mono tracking-[0.2em] uppercase">
               Indexed by The Graph
             </span>
           </div>
         </div>
-        <div className="flex items-center gap-2 text-[10px] font-mono border border-primary/30 bg-primary/10 px-3 py-1.5 tick-frame">
+        <div className="flex items-center gap-2 text-[10px] font-mono border border-primary/30 bg-primary/10 rounded-md px-3 py-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
           <span
-            className={`w-1.5 h-1.5 bg-primary ${isSyncing ? "animate-pulse" : ""}`}
+            className={`w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_8px_var(--color-primary)] ${isSyncing ? "animate-pulse" : ""}`}
           ></span>
-          <span className="text-primary tracking-widest uppercase">
+          <span className="text-primary tracking-widest uppercase font-bold">
             {isSyncing ? "Syncing..." : "Synced"}
           </span>
         </div>
@@ -224,19 +228,19 @@ export function AIEventLog() {
       <div className="overflow-x-auto flex-grow bg-transparent">
         <table className="w-full text-left whitespace-nowrap">
           <thead>
-            <tr className="bg-[#121212]/50 text-[#8a8a8a] font-mono text-[10px] uppercase tracking-widest border-b border-[#1f1f1f]">
+            <tr className="bg-white/[0.02] text-[#8a8a8a] font-mono text-[10.5px] uppercase tracking-widest border-b border-white/[0.08]">
               <th className="px-6 py-4 font-normal">Event Action</th>
               <th className="px-6 py-4 font-normal">Rebalance Flow</th>
               <th className="px-6 py-4 font-normal">Timestamp</th>
               <th className="px-6 py-4 font-normal">Tx Hash</th>
             </tr>
           </thead>
-          <tbody className="font-mono text-[11px]">
+          <tbody className="font-mono text-[11.5px]">
             {events.length === 0 && !isSyncing ? (
               <tr>
                 <td
                   colSpan={4}
-                  className="px-6 py-8 text-center text-[#8a8a8a]"
+                  className="px-6 py-8 text-center text-[#8a8a8a] italic"
                 >
                   {">"} _Waiting for AI intents...
                 </td>
@@ -248,35 +252,39 @@ export function AIEventLog() {
                 return (
                   <tr
                     key={event.id}
-                    className="hover:bg-[#121212]/80 border-b border-[#1f1f1f] transition-colors"
+                    className="hover:bg-white/[0.02] border-b border-white/[0.06] transition-colors"
                   >
                     <td className="px-6 py-4">
-                      <div className="flex flex-col gap-1">
-                        <strong className="text-[#f5f5f5] font-normal uppercase tracking-wider">
+                      <div className="flex flex-col gap-1.5">
+                        <strong className="text-[#e8e8e8] font-bold uppercase tracking-wider text-[12.5px]">
                           {vaultName}
                         </strong>
-                        <small className="text-[#8a8a8a] text-[10px] uppercase tracking-widest">
-                          {">"} AI Rebalance Executed
+                        <small className="text-[#8a8a8a] text-[10px] uppercase tracking-widest flex items-center gap-1.5">
+                          <span className="w-1 h-1 rounded-full bg-primary" />
+                          AI Rebalance Executed
                         </small>
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <span className="text-primary font-bold tnum">
+                        <span className="text-primary font-bold tnum text-[13px]">
                           {Number(
                             formatUnits(BigInt(event.amountIn), 6),
                           ).toFixed(4)}
                         </span>
-                        <span className="text-[#8a8a8a] text-[10px] bg-[#1a1a1a] px-2 py-1 border border-[#1f1f1f]">
+
+
+                        <span className="text-[#a0a0a0] text-[10.5px] bg-white/[0.03] rounded-md px-2.5 py-1 border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.02)]">
                           {event.tokenIn.slice(0, 4)}...
                           {event.tokenIn.slice(-4)}
                         </span>
-                        <span className="text-[#333]">→</span>
-                        <span className="text-[#8a8a8a] text-[10px] bg-[#1a1a1a] px-2 py-1 border border-[#1f1f1f]">
+                        <span className="text-[#555]">→</span>
+                        <span className="text-[#a0a0a0] text-[10.5px] bg-white/[0.03] rounded-md px-2.5 py-1 border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.02)]">
                           {event.tokenOut.slice(0, 4)}...
                           {event.tokenOut.slice(-4)}
                         </span>
-                        <span className="text-primary font-normal text-[10px] uppercase tracking-widest border border-primary/20 px-2 py-0.5 ml-2">
+
+                        <span className="text-primary font-bold text-[9px] uppercase tracking-widest border border-primary/30 rounded-md bg-primary/5 px-2 py-1 ml-2">
                           Executed
                         </span>
                       </div>
@@ -289,7 +297,7 @@ export function AIEventLog() {
                         href={`https://testnet.bscscan.com/tx/${event.transactionHash}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-[#8a8a8a] hover:text-primary hover:underline transition-colors"
+                        className="text-[#8a8a8a] hover:text-primary transition-colors border-b border-dashed border-white/[0.2] hover:border-primary pb-[1px]"
                       >
                         {event.transactionHash.slice(0, 6)}...
                         {event.transactionHash.slice(-4)}

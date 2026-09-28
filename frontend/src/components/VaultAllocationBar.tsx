@@ -20,41 +20,35 @@ export interface VaultData {
   apy: number;
 }
 
-
 const getProtocolStyles = (protocolName: string) => {
-  if (protocolName.includes("Venus")) {
+  if (protocolName.includes("Venus"))
     return {
       bar: "bg-[#03337f]",
       glow: "hover:shadow-[0_0_20px_rgba(3,51,127,0.6)]",
-      text: "text-[#03337f]",
+      text: "text-[#4a84e6]",
       dot: "bg-[#03337f]",
     };
-  }
-  if (protocolName.includes("Pancake")) {
+  if (protocolName.includes("Pancake"))
     return {
       bar: "bg-[#4cdae6]",
       glow: "hover:shadow-[0_0_20px_rgba(76,218,230,0.6)]",
       text: "text-[#4cdae6]",
       dot: "bg-[#4cdae6]",
     };
-  }
-  if (protocolName.includes("Kinza")) {
+  if (protocolName.includes("Kinza"))
     return {
       bar: "bg-[#e7c034]",
       glow: "hover:shadow-[0_0_20px_rgba(231,192,52,0.6)]",
       text: "text-[#e7c034]",
       dot: "bg-[#e7c034]",
     };
-  }
-  if (protocolName.includes("Radiant")) {
+  if (protocolName.includes("Radiant"))
     return {
       bar: "bg-[#0be5b5]",
       glow: "hover:shadow-[0_0_20px_rgba(11,229,181,0.6)]",
       text: "text-[#0be5b5]",
       dot: "bg-[#0be5b5]",
     };
-  }
-  // Warna Default Fallback
   return {
     bar: "bg-primary",
     glow: "hover:shadow-[0_0_20px_rgba(139,92,246,0.6)]",
@@ -84,7 +78,6 @@ export function VaultAllocationBar({
   const allocatedUsd = Math.max(0, realTvlUsd - usdtIdle);
   const allocatedPercent =
     realTvlUsd > 0 ? (allocatedUsd / realTvlUsd) * 100 : 0;
-
   const width = (amount: number) => {
     if (!mounted || !visible || realTvlUsd === 0) return "0%";
     return `${Math.min(Math.max((amount / realTvlUsd) * 100, 0), 100)}%`;
@@ -102,62 +95,64 @@ export function VaultAllocationBar({
     <div
       ref={ref}
       className={cn(
-        "group relative bg-[#0a0a0a] border border-[#1f1f1f] p-6 transition-all duration-500 hover:border-primary/50 tick-frame overflow-hidden",
+        "group relative rounded-[12px] border border-white/[0.12] bg-gradient-to-br from-white/[0.045] via-white/[0.01] to-primary/[0.02] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] p-6 md:p-8 transition-all duration-500 hover:border-primary/40 tick-frame overflow-hidden",
         visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6",
       )}
     >
-      <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#1f1f1f] group-hover:bg-primary transition-colors"></div>
+      {/* Animated Glowing Left Border */}
+      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-[60%] rounded-r-md bg-white/[0.08] group-hover:bg-primary shadow-[0_0_12px_transparent] group-hover:shadow-[0_0_15px_var(--color-primary)] transition-all duration-500" />
 
       <div className="relative z-10 pl-2">
-        {/*  HEADER VAULT  */}
-        <div className="flex items-center justify-between gap-4 mb-6">
-          <div className="flex items-center gap-4 min-w-0">
-            <div className="w-12 h-12 bg-[#121212] border border-[#1f1f1f] shrink-0 flex items-center justify-center">
-              <span className="text-primary font-mono text-sm uppercase tracking-widest">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8">
+          <div className="flex items-center gap-5 min-w-0">
+            <div className="w-14 h-14 rounded-xl bg-white/[0.02] border border-white/[0.08] shrink-0 flex items-center justify-center">
+              <span className="text-primary font-mono text-base uppercase tracking-widest">
                 {vaultInitials}
               </span>
             </div>
             <div className="min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <h3 className="text-sm font-bold text-[#f5f5f5] tracking-wide uppercase truncate font-mono">
+              <div className="flex items-center gap-3 mb-1.5">
+                <h3 className="text-[15px] font-bold text-[#f5f5f5] tracking-wide uppercase truncate font-mono">
                   {vault.name}
                 </h3>
-                <span className="px-2 py-0.5 text-[9px] font-mono text-[#0a0a0a] bg-primary uppercase tracking-widest">
+                <span className="px-2.5 py-1 rounded-md text-[9px] font-mono text-[#0a0a0a] bg-primary uppercase tracking-widest shadow-[0_0_10px_var(--color-primary)]">
                   {vault.symbol}
                 </span>
               </div>
-              <span className="text-[11px] font-mono text-[#8a8a8a] uppercase tracking-widest">
+              <span className="text-[11.5px] font-mono text-[#8a8a8a] uppercase tracking-widest">
                 Total Value:{" "}
-                <span className="text-[#c5c5c5] font-bold">
+                <span className="text-[#e8e8e8] font-bold">
                   {formatCurrency(realTvlUsd)}
                 </span>
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-4 shrink-0">
-            <div className="text-right mr-2 hidden sm:block">
-              <div className="text-primary font-bold font-mono text-lg leading-none">
+          <div className="flex items-center gap-5 shrink-0">
+            <div className="text-right hidden md:block">
+              <div className="text-primary font-bold font-mono text-xl leading-none">
                 {vault.apy}%
               </div>
-              <div className="text-[#8a8a8a] text-[9px] font-mono uppercase tracking-widest">
+              <div className="text-[#8a8a8a] text-[9.5px] mt-1.5 font-mono uppercase tracking-widest">
                 Target Yield
               </div>
             </div>
+
+            {/* White Metal Button */}
             <button
               onClick={() => {
                 if (onDeposit) onDeposit(vault);
               }}
-              className="px-6 py-2 border border-[#1f1f1f] bg-[#121212] text-primary text-[10px] font-bold font-mono uppercase tracking-widest flex items-center gap-2 hover:bg-primary hover:text-[#0a0a0a] hover:border-primary transition-all duration-300"
+              className="relative flex items-center gap-2 h-10 px-6 rounded-md bg-gradient-to-b from-white via-[#e7e7e7] to-[#cfcfcf] text-[#111] font-mono font-bold text-[10.5px] uppercase tracking-[0.15em] border border-white shadow-[inset_0_1px_0_rgba(255,255,255,0.95)] hover:from-white hover:via-[#f3f6ff] hover:to-[#d5def2] hover:shadow-[inset_0_1px_0_#fff,0_0_20px_rgba(186,208,255,0.3)] transition-all duration-300 w-full sm:w-auto justify-center"
             >
               Deposit / Withdraw
             </button>
           </div>
         </div>
 
-        {/* TELEMETRY BAR AREA */}
-        <div className="mb-6">
-          <div className="flex justify-between text-[#444] text-[9px] font-mono mb-1.5 px-1 uppercase tracking-widest">
+        {/* TELEMETRY BAR */}
+        <div className="mb-8">
+          <div className="flex justify-between text-[#555] text-[10px] font-mono mb-2 px-1 uppercase tracking-widest">
             <span>0%</span>
             <span>25%</span>
             <span>50%</span>
@@ -165,10 +160,11 @@ export function VaultAllocationBar({
             <span>100%</span>
           </div>
 
-          <div className="relative h-6 flex bg-[#121212] border border-[#1f1f1f] shadow-inner">
+          {/* Glass Bar Container */}
+          <div className="relative h-7 rounded-md flex bg-black/60 border border-white/[0.08] shadow-[inset_0_2px_8px_rgba(0,0,0,0.6)] overflow-hidden">
             {realTvlUsd === 0 ? (
               <div className="w-full h-full flex items-center justify-center">
-                <span className="text-[10px] uppercase tracking-widest text-[#444] font-mono">
+                <span className="text-[10px] uppercase tracking-widest text-[#555] font-mono">
                   [ Awaiting Capital Injection ]
                 </span>
               </div>
@@ -180,7 +176,7 @@ export function VaultAllocationBar({
                     <div
                       key={alloc.protocolName}
                       className={cn(
-                        "h-full cursor-crosshair relative transition-all duration-1000 ease-out border-r border-[#0a0a0a] z-10",
+                        "h-full cursor-crosshair relative transition-all duration-1000 ease-out border-r border-black/50 z-10",
                         style.bar,
                         style.glow,
                       )}
@@ -189,15 +185,17 @@ export function VaultAllocationBar({
                       onMouseLeave={() => setHovered(null)}
                     >
                       {hovered === alloc.protocolName && (
-                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-[#0a0a0a] border border-[#1f1f1f] p-3 text-[10px] font-mono whitespace-nowrap z-50 shadow-2xl animate-fade-in-up">
-                          <div className="text-[#8a8a8a] uppercase tracking-widest mb-1 border-b border-[#1f1f1f] pb-1">
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 rounded-md bg-[#0a0a0a]/95 backdrop-blur-sm border border-white/[0.12] p-3 text-[10px] font-mono whitespace-nowrap z-50 shadow-[0_10px_20px_rgba(0,0,0,0.8)] animate-fade-in-up">
+                          <div className="text-[#8a8a8a] uppercase tracking-widest mb-1.5 border-b border-white/[0.08] pb-1.5">
                             {">"} {alloc.protocolName}
                           </div>
-                          <div className={cn("font-bold text-xs", style.text)}>
+                          <div
+                            className={cn("font-bold text-[13px]", style.text)}
+                          >
                             {formatCurrency(alloc.amount)}
                           </div>
                           {alloc.rawAmount && alloc.symbol && (
-                            <div className="text-[#8a8a8a] mt-0.5">
+                            <div className="text-[#6a6a6a] mt-1">
                               {alloc.rawAmount.toFixed(4)} {alloc.symbol}
                             </div>
                           )}
@@ -206,27 +204,26 @@ export function VaultAllocationBar({
                     </div>
                   );
                 })}
-
                 {usdtIdle > 0 && (
                   <div
-                    className="h-full cursor-crosshair relative transition-all duration-1000 ease-out border-l border-[#1f1f1f] opacity-60 hover:opacity-100"
+                    className="h-full cursor-crosshair relative transition-all duration-1000 ease-out border-l border-white/[0.05] opacity-50 hover:opacity-90"
                     style={{
                       width: width(usdtIdle),
                       backgroundImage:
-                        "repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(255,255,255,0.1) 4px, rgba(255,255,255,0.1) 8px)",
+                        "repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(255,255,255,0.15) 4px, rgba(255,255,255,0.15) 8px)",
                     }}
                     onMouseEnter={() => setHovered("available")}
                     onMouseLeave={() => setHovered(null)}
                   >
                     {hovered === "available" && (
-                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-[#0a0a0a] border border-[#1f1f1f] p-3 text-[10px] font-mono whitespace-nowrap z-50 shadow-2xl animate-fade-in-up">
-                        <div className="text-[#8a8a8a] uppercase tracking-widest mb-1 border-b border-[#1f1f1f] pb-1">
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 rounded-md bg-[#0a0a0a]/95 backdrop-blur-sm border border-white/[0.12] p-3 text-[10px] font-mono whitespace-nowrap z-50 shadow-[0_10px_20px_rgba(0,0,0,0.8)] animate-fade-in-up">
+                        <div className="text-[#8a8a8a] uppercase tracking-widest mb-1.5 border-b border-white/[0.08] pb-1.5">
                           {">"} Idle Liquidity
                         </div>
-                        <div className="text-[#c5c5c5] font-bold text-xs">
+                        <div className="text-[#c5c5c5] font-bold text-[13px]">
                           {formatCurrency(usdtIdle)}
                         </div>
-                        <div className="text-[#8a8a8a] mt-0.5">
+                        <div className="text-[#6a6a6a] mt-1">
                           Ready for routing
                         </div>
                       </div>
@@ -238,19 +235,19 @@ export function VaultAllocationBar({
           </div>
         </div>
 
-        {/*  DATA MATRIX LEGEND */}
-        <div className="border-t border-[#1f1f1f] pt-4">
-          <div className="flex justify-between items-center mb-4">
-            <span className="text-[9px] font-mono uppercase tracking-widest text-[#8a8a8a]">
-              Allocation Matrix Breakdown
+        {/* DATA MATRIX */}
+        <div className="border-t border-white/[0.08] pt-5">
+          <div className="flex justify-between items-center mb-5">
+            <span className="text-[10px] font-mono uppercase tracking-widest text-[#8a8a8a]">
+              Allocation Matrix
             </span>
-            <span className="text-[9px] font-mono uppercase tracking-widest text-[#00ED64] flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 bg-[#00ED64] animate-pulse"></span>
+            <span className="text-[10px] font-mono uppercase tracking-widest text-primary flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_var(--color-primary)]"></span>
               {allocatedPercent.toFixed(1)}% Deployed
             </span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-3.5">
             {vault.allocations.map((alloc) => {
               const style = getProtocolStyles(alloc.protocolName);
               const percentage =
@@ -258,42 +255,47 @@ export function VaultAllocationBar({
               return (
                 <div
                   key={alloc.protocolName}
-                  className="flex items-center justify-between text-[10px] font-mono border-b border-[#1f1f1f]/50 pb-2"
+                  className="flex items-center justify-between text-[10.5px] font-mono border-b border-white/[0.05] pb-2.5"
                 >
-                  <div className="flex items-center gap-2">
-                    <span className={cn("w-1.5 h-1.5", style.dot)} />
+                  <div className="flex items-center gap-2.5">
+                    <span
+                      className={cn(
+                        "w-1.5 h-1.5 rounded-full",
+                        style.dot,
+                        style.glow,
+                      )}
+                    />
                     <span className="text-[#c5c5c5] uppercase">
                       {alloc.protocolName}
                     </span>
                   </div>
                   <div className="text-right">
-                    <span className={cn("font-bold", style.text)}>
+                    <span className={cn("font-bold text-[11.5px]", style.text)}>
                       {percentage.toFixed(1)}%
                     </span>
-                    <span className="text-[#444] ml-2 block sm:inline">
+                    <span className="text-[#555] ml-2 hidden sm:inline-block">
                       ({formatCurrency(alloc.amount)})
                     </span>
                   </div>
                 </div>
               );
             })}
-
             {usdtIdle > 0 && (
-              <div className="flex items-center justify-between text-[10px] font-mono border-b border-[#1f1f1f]/50 pb-2 opacity-70">
-                <div className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 border border-[#444] bg-transparent" />
+              <div className="flex items-center justify-between text-[10.5px] font-mono border-b border-white/[0.05] pb-2.5 opacity-70">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-1.5 h-1.5 rounded-full border border-[#555] bg-transparent" />
                   <span className="text-[#8a8a8a] uppercase">
                     Idle / Buffer
                   </span>
                 </div>
                 <div className="text-right">
-                  <span className="font-bold text-[#c5c5c5]">
+                  <span className="font-bold text-[11.5px] text-[#c5c5c5]">
                     {realTvlUsd > 0
                       ? ((usdtIdle / realTvlUsd) * 100).toFixed(1)
                       : 0}
                     %
                   </span>
-                  <span className="text-[#444] ml-2 block sm:inline">
+                  <span className="text-[#555] ml-2 hidden sm:inline-block">
                     ({formatCurrency(usdtIdle)})
                   </span>
                 </div>

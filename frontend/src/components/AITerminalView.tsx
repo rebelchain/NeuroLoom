@@ -3,25 +3,20 @@ import { AIEventLog } from "./AIEventLog";
 
 export function AITerminalView() {
   return (
-    <div className="space-y-6">
-      <div className="absolute inset-0 z-0 pointer-events-none bg-[#0a0a0a]">
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(139,92,246,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(139,92,246,0.04)_1px,transparent_1px)] bg-[size:40px_40px]" />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0a] via-transparent to-[#0a0a0a] opacity-90" />
-      </div>
-
-
+    <div className="space-y-8 relative">
       <div className="relative z-10 flex flex-col flex-grow">
         <div className="-mt-6">
           <PageHero
             badge="Platform · Quant Optimizer"
             title="Live AI"
             accent="Execution Stream"
-            media={{ kind: "video", src: "/bg/aiterminal.mp4", opacity: 60 }}
+            media={{ kind: "video", src: "/bg/aiterminal.mp4", opacity: 40 }}
             subtitle="Real-time execution logs of the NeuroLoom agent. Watch the AI index the graph and find optimal yield routes."
           />
         </div>
 
-        <div className="mt-8 border border-[#1f1f1f] bg-[#0a0a0a]/80 backdrop-blur-md shadow-[0_0_30px_rgba(139,92,246,0.03)] flex-grow flex flex-col">
+        {/* GLASSMORPHISM TERMINAL CONTAINER */}
+        <div className="mt-4 rounded-[12px] border border-white/[0.12] bg-gradient-to-br from-white/[0.045] via-white/[0.01] to-primary/[0.01] shadow-[inset_0_1px_0_rgba(255,255,255,0.05),_0_24px_48px_rgba(0,0,0,0.4)] backdrop-blur-md flex-grow flex flex-col overflow-hidden">
           <AIEventLog />
         </div>
       </div>

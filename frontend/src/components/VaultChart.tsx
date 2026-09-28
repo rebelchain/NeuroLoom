@@ -1,39 +1,33 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { createChart, ColorType, LineSeries } from "lightweight-charts"; 
+import { createChart, ColorType, LineSeries } from "lightweight-charts";
 
 export function VaultChart({
   data,
 }: {
-  data: { time: string; value: number }[]; 
+  data: { time: string; value: number }[];
 }) {
-  const chartContainerRef = useRef<HTMLDivElement>(null); 
+  const chartContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!chartContainerRef.current) return; 
+    if (!chartContainerRef.current) return;
 
     const chart = createChart(chartContainerRef.current, {
-      
       layout: {
-        background: { type: ColorType.Solid, color: "transparent" }, 
-        textColor: "#8a8a8a", 
+        background: { type: ColorType.Solid, color: "transparent" },
+        textColor: "#6a6a6a",
         fontFamily:
-          "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace", 
+          "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
       },
       grid: {
-        vertLines: { color: "rgba(31, 31, 31, 0.5)" }, 
-        horzLines: { color: "rgba(31, 31, 31, 0.5)" }, 
+        vertLines: { color: "rgba(255, 255, 255, 0.04)" },
+        horzLines: { color: "rgba(255, 255, 255, 0.04)" },
       },
-      width: chartContainerRef.current.clientWidth, 
-      height: 200, 
-      rightPriceScale: {
-        borderVisible: false, 
-      },
-      timeScale: {
-        borderVisible: false, 
-        timeVisible: true, 
-      },
+      width: chartContainerRef.current.clientWidth,
+      height: 200,
+      rightPriceScale: { borderVisible: false },
+      timeScale: { borderVisible: false, timeVisible: true },
       localization: {
         priceFormatter: (price: number) =>
           new Intl.NumberFormat("en-US", {
@@ -45,29 +39,26 @@ export function VaultChart({
     });
 
     const lineSeries = chart.addSeries(LineSeries, {
-      
-      color: "#8b5cf6", 
-      lineWidth: 2, 
-      crosshairMarkerVisible: true, 
-      crosshairMarkerRadius: 4, 
+      color: "#8b5cf6",
+      lineWidth: 2,
+      crosshairMarkerVisible: true,
+      crosshairMarkerRadius: 4,
     });
 
-    lineSeries.setData(data); 
+    lineSeries.setData(data);
 
     const handleResize = () => {
-      
       if (chartContainerRef.current) {
-        
-        chart.applyOptions({ width: chartContainerRef.current.clientWidth }); 
+        chart.applyOptions({ width: chartContainerRef.current.clientWidth });
       }
     };
 
-    window.addEventListener("resize", handleResize); 
+    window.addEventListener("resize", handleResize);
     return () => {
-      window.removeEventListener("resize", handleResize); 
-      chart.remove(); 
+      window.removeEventListener("resize", handleResize);
+      chart.remove();
     };
-  }, [data]); 
+  }, [data]);
 
-  return <div ref={chartContainerRef} className="w-full h-[200px]" />; 
+  return <div ref={chartContainerRef} className="w-full h-[200px]" />;
 }

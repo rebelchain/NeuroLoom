@@ -16,7 +16,6 @@ import { ACTIVE_VAULTS } from "../config/addresses";
 import { VaultChart } from "./VaultChart";
 import { VaultPanel } from "./VaultPanel";
 
-
 const vaultTotalAssetsABI = [
   {
     inputs: [],
@@ -88,7 +87,6 @@ function VaultCard({
     if (!showChart && chartData.length === 0) {
       setShowChart(true);
       setIsChartLoading(true);
-
       setTimeout(() => {
         const generatedData = generateRealisticEquityCurve(vault.totalBalance);
         setChartData(generatedData);
@@ -112,20 +110,21 @@ function VaultCard({
     <div
       ref={ref}
       className={cn(
-        "group relative bg-[#121212] border border-[#1f1f1f] p-6 transition-all duration-500 flex flex-col hover:border-primary/50 tick-frame",
+        "group relative rounded-[12px] border border-white/[0.12] bg-gradient-to-br from-white/[0.045] via-white/[0.01] to-primary/[0.02] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] p-6 transition-all duration-500 flex flex-col hover:border-primary/40 overflow-hidden tick-frame",
         visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6",
       )}
     >
-      <ArrowUpRight className="absolute top-4 right-4 w-5 h-5 text-[#333] opacity-0 group-hover:opacity-100 group-hover:text-primary transition-all duration-300" />
+      <ArrowUpRight className="absolute top-4 right-4 w-5 h-5 text-white/[0.2] group-hover:text-primary transition-all duration-300" />
+
       <div className="relative z-10 flex-grow">
         <div className="flex items-center gap-4 mb-6">
-          <div className="w-12 h-12 bg-[#0a0a0a] border border-[#1f1f1f] flex items-center justify-center text-primary group-hover:border-primary transition-colors">
+          <div className="w-12 h-12 rounded-lg bg-white/[0.02] border border-white/[0.08] flex items-center justify-center text-primary group-hover:border-primary/70 group-hover:bg-primary/[0.05] transition-colors">
             <span className="font-mono text-sm uppercase tracking-widest">
               {vaultInitials}
             </span>
           </div>
           <div className="min-w-0">
-            <div className="text-sm font-bold text-[#f5f5f5] uppercase tracking-wide truncate font-mono">
+            <div className="text-[14.5px] font-bold text-[#f5f5f5] uppercase tracking-wide truncate font-mono">
               {vault.name}
             </div>
             <div className="text-[10px] font-mono text-[#8a8a8a] uppercase tracking-widest mt-1">
@@ -133,7 +132,8 @@ function VaultCard({
             </div>
           </div>
         </div>
-        <div className="space-y-3 mb-6">
+
+        <div className="space-y-3.5 mb-6">
           <div className="flex justify-between items-center text-[11px] uppercase tracking-widest font-mono">
             <span className="text-[#8a8a8a]">Total TVL</span>
             <span className="text-[#f5f5f5] font-bold tnum">
@@ -161,21 +161,23 @@ function VaultCard({
             </span>
           </div>
         </div>
-        <div className="h-1 bg-[#0a0a0a] border-b border-[#1f1f1f] flex mb-6">
+
+        {/* Glass Progress Bar */}
+        <div className="h-1.5 rounded-full bg-black/50 border border-white/[0.05] shadow-[inset_0_1px_2px_rgba(0,0,0,0.5)] flex mb-6 overflow-hidden">
           <div
-            className="h-full bg-primary transition-all duration-1000"
+            className="h-full bg-primary transition-all duration-1000 shadow-[0_0_10px_var(--color-primary)]"
             style={{ width: `${allocatedPct}%` }}
           />
           <div
-            className="h-full bg-[#333] transition-all duration-1000"
+            className="h-full bg-transparent transition-all duration-1000"
             style={{ width: `${100 - allocatedPct}%` }}
           />
         </div>
       </div>
 
       {showChart && (
-        <div className="mb-4 border-t border-[#1f1f1f] pt-4 animate-fade-in-up">
-          <div className="text-[10px] font-mono text-[#8a8a8a] uppercase tracking-widest mb-2">
+        <div className="mb-5 border-t border-white/[0.08] pt-5 animate-fade-in-up">
+          <div className="text-[10px] font-mono text-[#8a8a8a] uppercase tracking-widest mb-3">
             {">"} 30-Day Equity Curve
           </div>
           {isChartLoading ? (
@@ -188,18 +190,17 @@ function VaultCard({
         </div>
       )}
 
-      <div className="mt-auto pt-4 border-t border-[#1f1f1f] flex gap-2">
+      <div className="mt-auto pt-5 border-t border-white/[0.08] flex gap-3">
         <button
           onClick={handleToggleChart}
-          className="flex-1 flex items-center justify-center gap-2 py-3 bg-[#0a0a0a] border border-[#1f1f1f] text-[#8a8a8a] text-[10px] uppercase tracking-widest font-mono hover:text-primary hover:border-primary transition-colors"
+          className="flex-1 flex items-center justify-center gap-2 h-10 rounded-md bg-gradient-to-br from-white/[0.05] to-transparent border border-white/[0.08] text-[#c5c5c5] text-[10px] uppercase tracking-widest font-mono shadow-[inset_0_1px_0_rgba(255,255,255,0.02)] hover:text-[#f5f5f5] hover:bg-white/[0.02] hover:border-white/[0.15] transition-all"
         >
-          <LineChart className="w-3.5 h-3.5" />{" "}
-          {showChart ? "HIDE" : "CHART"}{" "}
+          <LineChart className="w-3.5 h-3.5" /> {showChart ? "HIDE" : "CHART"}
         </button>
         <button
           onClick={handleDownloadProof}
           disabled={isDownloading}
-          className="flex-[2] flex items-center justify-center gap-2 py-3 bg-[#0a0a0a] border border-[#1f1f1f] text-[#c5c5c5] text-[10px] uppercase tracking-widest font-mono hover:text-primary hover:border-primary transition-colors disabled:opacity-50"
+          className="flex-[2] flex items-center justify-center gap-2 h-10 rounded-md bg-gradient-to-br from-white/[0.05] to-transparent border border-white/[0.08] text-[#c5c5c5] text-[10px] uppercase tracking-widest font-mono shadow-[inset_0_1px_0_rgba(255,255,255,0.02)] hover:text-[#f5f5f5] hover:bg-white/[0.02] hover:border-white/[0.15] transition-all disabled:opacity-50"
         >
           {isDownloading ? (
             <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -215,7 +216,6 @@ function VaultCard({
 
 export function SmartVaultsView() {
   const [selectedVault, setSelectedVault] = useState<VaultData | null>(null);
-
   const { data: onChainData, isLoading: isVaultsLoading } = useReadContracts({
     contracts: ACTIVE_VAULTS.map((address) => ({
       address: address as `0x${string}`,
@@ -230,7 +230,6 @@ export function SmartVaultsView() {
       const totalAssetsWei =
         (onChainData?.[index]?.result as bigint) || BigInt(0);
       const realTotalUsd = Number(formatUnits(totalAssetsWei, 6));
-
       const allocations: AIAllocation[] = [];
       let availableBalance = 0;
 
@@ -274,11 +273,7 @@ export function SmartVaultsView() {
         }
       }
 
-      return {
-        availableBalance,
-        totalBalance: realTotalUsd,
-        allocations,
-      };
+      return { availableBalance, totalBalance: realTotalUsd, allocations };
     };
 
     const v1 = getVaultData(0);
@@ -321,33 +316,36 @@ export function SmartVaultsView() {
 
   return (
     <div className="space-y-8 relative">
-      <div className="-mt-6">
+      <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[150%] h-[70vh] pointer-events-none bg-[radial-gradient(ellipse_at_50%_0%,_rgba(139,92,246,0.12),_transparent_60%)] z-0"></div>
+
+      <div className="relative z-10 -mt-6">
         <PageHero
           badge="Platform · Strategy Vaults"
           title="Autonomous"
           accent="Strategies"
-          media={{ kind: "video", src: "/bg/smartvaults.mp4", opacity: 60 }}
+          media={{ kind: "video", src: "/bg/smartvaults.mp4", opacity: 40 }}
           subtitle="Live oversight of your AI-managed vaults — tracking total liquidity, active execution routes, and idle assets across the BSC ecosystem."
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {strategyVaults.map((vault) => (
           <VaultCard key={vault.id} vault={vault} isLoading={isVaultsLoading} />
         ))}
       </div>
 
-      <div className="space-y-6 pt-6 border-t border-[#1f1f1f]">
+      <div className="relative z-10 space-y-6 pt-6 border-t border-white/[0.08]">
         <div className="flex items-end justify-between gap-4">
           <div>
-            <h2 className="text-sm font-bold tracking-widest uppercase font-mono text-[#f5f5f5]">
+            <h2 className="text-[14px] font-bold tracking-widest uppercase font-mono text-[#f5f5f5]">
               AI Routing Breakdown
             </h2>
-            <p className="text-[10px] font-mono uppercase tracking-widest text-[#8a8a8a] mt-1.5">
+            <p className="text-[10.5px] font-mono uppercase tracking-widest text-[#8a8a8a] mt-2">
               {">"} Live allocation visualization per smart vault
             </p>
           </div>
-          <span className="text-[10px] uppercase tracking-widest font-mono text-primary tick-frame bg-primary/10 border border-primary/20 px-3 py-1.5">
+          <span className="inline-flex items-center gap-1.5 h-7 px-3 rounded-md border border-primary/40 bg-primary/10 text-[10px] text-primary font-mono uppercase tracking-widest shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_var(--color-primary)]" />
             {strategyVaults.length} Active
           </span>
         </div>
@@ -361,7 +359,7 @@ export function SmartVaultsView() {
       </div>
 
       {selectedVault && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in-up">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in-up">
           <div className="relative w-full max-w-md">
             <VaultPanel
               vaultAddress={selectedVault.contractAddress}

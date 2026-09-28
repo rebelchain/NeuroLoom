@@ -95,7 +95,6 @@ export function VaultPanel({
     args: address ? [address] : undefined,
     query: { enabled: !!address, refetchInterval: 3000 },
   });
-
   const { data: maxWithdrawData } = useReadContract({
     address: vaultAddress,
     abi: vaultABI,
@@ -103,7 +102,6 @@ export function VaultPanel({
     args: address ? [address] : undefined,
     query: { enabled: !!address, refetchInterval: 3000 },
   });
-
   const { data: allowance, refetch: refetchAllowance } = useReadContract({
     address: USDT_ADDRESS,
     abi: erc20ABI,
@@ -177,8 +175,6 @@ export function VaultPanel({
 
   let buttonText = "Enter Amount";
   let isButtonDisabled = true;
-
-
   const hasInsufficientDeposit =
     userBalance !== undefined && (userBalance as bigint) < parsedAmount;
   const hasInsufficientWithdraw =
@@ -188,7 +184,7 @@ export function VaultPanel({
     buttonText = "Connect Wallet First";
   } else if (amount && parsedAmount > BigInt(0)) {
     if (action === "deposit" && hasInsufficientDeposit) {
-      buttonText = "Insufficient USDT Balance";
+      buttonText = "Insufficient USDT";
       isButtonDisabled = true;
     } else if (action === "withdraw" && hasInsufficientWithdraw) {
       buttonText = "Exceeds Vault Balance";
@@ -233,32 +229,34 @@ export function VaultPanel({
         : "0";
 
   return (
-    <div className="bg-[#121212] border border-[#1f1f1f] p-6 flex flex-col gap-6 relative w-full max-w-md mx-auto shadow-2xl">
-      <div className="flex justify-between items-start border-b border-[#1f1f1f] pb-4">
+    <div className="rounded-[16px] bg-[#0a0a0a]/95 backdrop-blur-xl border border-white/[0.12] p-7 flex flex-col gap-7 relative w-full max-w-md mx-auto shadow-[inset_0_1px_0_rgba(255,255,255,0.05),_0_24px_48px_rgba(0,0,0,0.8)]">
+      <div className="flex justify-between items-start border-b border-white/[0.08] pb-4">
         <div>
-          <h2 className="text-sm font-bold font-mono uppercase tracking-widest text-[#f5f5f5]">
+          <h2 className="text-[14px] font-bold font-mono uppercase tracking-widest text-[#f5f5f5]">
             Target: {vaultName}
           </h2>
-          <p className="text-[10px] font-mono text-[#8a8a8a] mt-1">
-            {">"} Contract: {vaultAddress.slice(0, 6)}...
-            {vaultAddress.slice(-4)}
+          <p className="text-[10px] font-mono text-[#8a8a8a] mt-1.5">
+            {">"} Contract:{" "}
+            <span className="text-[#a0a0a0]">
+              {vaultAddress.slice(0, 6)}...{vaultAddress.slice(-4)}
+            </span>
           </p>
         </div>
         <button
           onClick={onClose}
-          className="text-[#8a8a8a] hover:text-primary font-mono text-xs"
+          className="w-8 h-8 rounded-md bg-white/[0.02] border border-white/[0.08] text-[#8a8a8a] hover:text-[#f5f5f5] hover:bg-white/[0.05] transition-colors flex items-center justify-center font-mono text-xs shadow-[inset_0_1px_0_rgba(255,255,255,0.02)]"
         >
-          [ X ]
+          X
         </button>
       </div>
 
-      <div className="flex gap-6 border-b border-[#1f1f1f] pb-0 font-mono text-[11px] uppercase tracking-widest">
+      <div className="flex gap-6 border-b border-white/[0.08] font-mono text-[11px] uppercase tracking-widest">
         <button
           onClick={() => {
             setAction("deposit");
             setAmount("");
           }}
-          className={`pb-3 border-b-2 transition-colors ${action === "deposit" ? "text-primary border-primary" : "text-[#8a8a8a] border-transparent hover:text-[#c5c5c5]"}`}
+          className={`pb-3 border-b-2 transition-all duration-300 ${action === "deposit" ? "text-[#f5f5f5] border-primary text-[11.5px]" : "text-[#6a6a6a] border-transparent hover:text-[#a0a0a0]"}`}
         >
           Deposit
         </button>
@@ -267,7 +265,7 @@ export function VaultPanel({
             setAction("withdraw");
             setAmount("");
           }}
-          className={`pb-3 border-b-2 transition-colors ${action === "withdraw" ? "text-primary border-primary" : "text-[#8a8a8a] border-transparent hover:text-[#c5c5c5]"}`}
+          className={`pb-3 border-b-2 transition-all duration-300 ${action === "withdraw" ? "text-[#f5f5f5] border-primary text-[11.5px]" : "text-[#6a6a6a] border-transparent hover:text-[#a0a0a0]"}`}
         >
           Withdraw
         </button>
@@ -277,14 +275,16 @@ export function VaultPanel({
         <div className="flex justify-between items-center text-[10px] font-mono uppercase tracking-widest">
           <label className="text-[#8a8a8a]">{">"} Asset Amount</label>
           <span
-            className="text-primary cursor-pointer hover:underline"
+            className="text-[#a0a0a0] cursor-pointer hover:text-primary transition-colors border-b border-dashed border-[#555] pb-[1px]"
             onClick={() => setAmount(displayBalance)}
           >
             {action === "deposit" ? "Wallet" : "Vault"}:{" "}
             {Number(displayBalance).toFixed(2)} USDT
           </span>
         </div>
-        <div className="flex items-center justify-between bg-[#0a0a0a] border border-[#1f1f1f] p-3 focus-within:border-primary transition-colors">
+
+        {/* Inset Glass Input */}
+        <div className="flex items-center justify-between bg-black/40 border border-white/[0.08] rounded-md p-3.5 focus-within:border-primary/60 shadow-[inset_0_2px_5px_rgba(0,0,0,0.5)] transition-colors">
           <input
             type="number"
             placeholder="0.00"
@@ -298,14 +298,15 @@ export function VaultPanel({
               isWithdrawPending ||
               isWithdrawConfirming
             }
-            className="bg-transparent text-xl text-[#f5f5f5] outline-none w-full font-mono placeholder:text-[#333] disabled:opacity-50"
+            className="bg-transparent text-[22px] font-medium text-[#f5f5f5] outline-none w-full font-mono placeholder:text-[#333] disabled:opacity-50"
           />
-          <span className="font-mono text-xs text-primary bg-primary/10 px-3 py-1.5 border border-primary/20">
+          <span className="font-mono text-[11px] font-bold text-primary bg-white/[0.04] px-3 py-1.5 rounded-md border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
             {vaultSymbol.split("/")[0]}
           </span>
         </div>
       </div>
 
+      {/* Solid Primary Button styling */}
       <button
         onClick={handleExecute}
         disabled={
@@ -317,7 +318,16 @@ export function VaultPanel({
           isWithdrawPending ||
           isWithdrawConfirming
         }
-        className={`w-full py-4 font-mono text-xs uppercase tracking-[0.2em] transition-all border ${isButtonDisabled ? "bg-[#0a0a0a] border-[#1f1f1f] text-[#8a8a8a] cursor-not-allowed" : isDepositSuccess || isWithdrawSuccess ? "bg-primary text-[#0a0a0a] border-primary font-bold" : needsApproval && action === "deposit" ? "bg-[#1f1f1f] border-[#c5c5c5] text-[#f5f5f5] hover:bg-[#333]" : "bg-primary border-primary text-[#0a0a0a] hover:bg-transparent hover:text-primary font-bold"}`}
+        className={`w-full h-12 rounded-md font-mono text-[11.5px] uppercase tracking-[0.2em] font-bold transition-all duration-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] border 
+          ${
+            isButtonDisabled
+              ? "bg-white/[0.02] border-white/[0.05] text-[#555] cursor-not-allowed shadow-none"
+              : isDepositSuccess || isWithdrawSuccess
+                ? "bg-primary text-[#0a0a0a] border-primary shadow-[0_0_20px_rgba(139,92,246,0.3)]"
+                : needsApproval && action === "deposit"
+                  ? "bg-white/[0.1] border-white/[0.2] text-[#f5f5f5] hover:bg-white/[0.15]"
+                  : "bg-primary border-primary text-[#0a0a0a] hover:bg-primary/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.4),_0_0_20px_rgba(139,92,246,0.25)] hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.5),_0_0_30px_rgba(139,92,246,0.4)]"
+          }`}
       >
         {isApprovePending ||
         isApproveConfirming ||
@@ -325,7 +335,7 @@ export function VaultPanel({
         isDepositConfirming ||
         isWithdrawPending ||
         isWithdrawConfirming ? (
-          <span className="flex items-center justify-center gap-3 animate-pulse">
+          <span className="flex items-center justify-center gap-3 animate-pulse text-[#0a0a0a]">
             [ EXECUTING... ]
           </span>
         ) : (
@@ -338,9 +348,12 @@ export function VaultPanel({
           href={`https://testnet.bscscan.com/tx/${activeHash}`}
           target="_blank"
           rel="noreferrer"
-          className="text-[10px] text-center text-primary hover:underline font-mono truncate"
+          className="text-[10px] text-center text-primary hover:text-[#a78bfa] transition-colors font-mono truncate px-4"
         >
-          {">"} TX: {activeHash.slice(0, 14)}...
+          {">"} TX:{" "}
+          <span className="border-b border-primary/30 pb-[1px]">
+            {activeHash.slice(0, 14)}...
+          </span>
         </a>
       )}
     </div>

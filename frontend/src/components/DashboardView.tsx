@@ -52,23 +52,21 @@ export function DashboardView() {
     : 0;
 
   const realTVL = tvlYieldFarm + tvlBluechip + tvlDegen;
+  const availableYieldFarm = tvlYieldFarm * 0.1;
+  const availableBluechip = tvlBluechip * 0.1;
+  const availableDegen = tvlDegen * 0.15;
+  const trueAvailableLiquidity =
+    availableYieldFarm + availableBluechip + availableDegen;
 
- const availableYieldFarm = tvlYieldFarm * 0.1; 
- const availableBluechip = tvlBluechip * 0.1; 
- const availableDegen = tvlDegen * 0.15; 
-
- const trueAvailableLiquidity =
-   availableYieldFarm + availableBluechip + availableDegen;
-
- const globalAPY =
-   realTVL > 0
-     ? Number(
-         (
-           (tvlYieldFarm * 14.5 + tvlBluechip * 22.4 + tvlDegen * 38.2) /
-           realTVL
-         ).toFixed(1),
-       )
-     : 0;
+  const globalAPY =
+    realTVL > 0
+      ? Number(
+          (
+            (tvlYieldFarm * 14.5 + tvlBluechip * 22.4 + tvlDegen * 38.2) /
+            realTVL
+          ).toFixed(1),
+        )
+      : 0;
 
   const handleDownloadPDF = () => {
     setIsPrinting(true);
@@ -115,94 +113,99 @@ export function DashboardView() {
   }, []);
 
   return (
-    <div className="space-y-8">
-      {/* HERO BANNER */}
-      <div className="-mt-6">
-        <PageHero
-          badge="Overview · Global State"
-          title="On-Chain"
-          accent="Oversight"
-          subtitle="Live global state across all AI-managed strategies. Monitor aggregated TVL, total yields, and system-wide routing."
-          media={{ kind: "video", src: "/bg/plexuspurple.mp4", opacity: 60 }}
-          actions={
-            <div className="flex flex-wrap items-center gap-4">
-              <button
-                onClick={() => {
-                  window.dispatchEvent(
-                    new CustomEvent("app-navigate", { detail: "vaults" }),
-                  );
-                }}
-                className="px-6 py-3 bg-primary text-[#0a0a0a] border border-primary font-mono text-[11px] uppercase tracking-widest font-bold hover:bg-transparent hover:text-primary transition-colors flex items-center gap-2"
-              >
-                EXPLORE STRATEGIES
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
+    <div className="relative space-y-8">
+      <div className="absolute top-[-25%] left-1/2 -translate-x-1/2 w-[150%] h-[75vh] pointer-events-none bg-[radial-gradient(ellipse_at_50%_0%,_rgba(139,92,246,0.12),_transparent_60%)] z-0"></div>
 
-              <button
-                onClick={handleDownloadPDF}
-                disabled={isPrinting}
-                className="px-6 py-3 bg-[#121212] text-[#f5f5f5] border border-[#1f1f1f] font-mono text-[11px] uppercase tracking-widest hover:border-primary hover:text-primary transition-colors flex items-center gap-2 disabled:opacity-50"
-              >
-                <Download className="w-3.5 h-3.5" />
-                {isPrinting ? " GENERATING PDF... " : " EXPORT GLOBAL REPORT "}
-              </button>
-            </div>
-          }
-        />
-      </div>
+      <div className="relative z-10 space-y-8">
+        {/* HERO BANNER */}
+        <div className="-mt-6">
+          <PageHero
+            badge="Overview · Global State"
+            title="On-Chain"
+            accent="Oversight"
+            subtitle="Live global state across all AI-managed strategies. Monitor aggregated TVL, total yields, and system-wide routing."
+            media={{ kind: "video", src: "/bg/plexuspurple.mp4", opacity: 40 }}
+            actions={
+              <div className="flex flex-wrap items-center gap-3.5">
+                <button
+                  onClick={() => {
+                    window.dispatchEvent(
+                      new CustomEvent("app-navigate", { detail: "vaults" }),
+                    );
+                  }}
+                  className="relative flex items-center gap-2 h-[42px] px-6 rounded-md bg-gradient-to-b from-white via-[#e7e7e7] to-[#cfcfcf] text-[#111] font-medium text-[13.5px] border border-white shadow-[inset_0_1px_0_rgba(255,255,255,0.95)] hover:from-white hover:via-[#f3f6ff] hover:to-[#d5def2] hover:shadow-[inset_0_1px_0_#fff,0_0_22px_rgba(186,208,255,0.35),0_8px_18px_rgba(255,255,255,0.12)] transition-all duration-300"
+                >
+                  Explore Strategies
+                  <ArrowRight className="w-4 h-4" />
+                </button>
 
-      <div id="vault-report-content" className="space-y-8 pb-4">
-        {/* KPI METRICS */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-          <KPICard
-            title="Total Value Locked"
-            value={realTVL}
-            prefix="$"
-            icon={Activity}
-            change="Live On-Chain"
-            changeType="positive"
-            subtext="Aggregated across 3 Vaults"
-            delay={0}
-            isLoading={isTvlLoading}
-          />
-          <KPICard
-            title="Global Average APY"
-            value={globalAPY}
-            prefix=""
-            suffix="%"
-            icon={TrendingUp}
-            change="Optimal"
-            changeType="positive"
-            subtext="Dynamic Multi-Routing"
-            delay={80}
-          />
-          <KPICard
-            title="Available Liquidity"
-            value={trueAvailableLiquidity}
-            prefix="$"
-            icon={Coins}
-            change="Ready"
-            changeType="neutral"
-            subtext="Awaiting new routes"
-            delay={160}
-            isLoading={isTvlLoading}
-          />
-          <KPICard
-            title="Total AI Rebalances"
-            value={totalRebalances}
-            prefix=""
-            suffix=""
-            icon={Network}
-            change="Synced"
-            changeType="positive"
-            subtext="Immutably stored on BSC"
-            delay={240}
+   
+                <button
+                  onClick={handleDownloadPDF}
+                  disabled={isPrinting}
+                  className="relative flex items-center gap-2 h-[42px] px-5 rounded-md bg-gradient-to-br from-white/[0.1] to-black/[0.45] text-white border border-white/[0.45] shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] font-medium text-[13.5px] hover:border-primary/75 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.22),0_0_20px_rgba(139,92,246,0.3)] transition-all duration-300 disabled:opacity-50"
+                >
+                  <Download className="w-4 h-4" />
+                  {isPrinting ? "Generating PDF..." : "Export Global Report"}
+                </button>
+              </div>
+            }
           />
         </div>
 
-        {/* EVENT LOG  */}
-        <div className="w-full h-full">
-          <EventLog maxHeight="max-h-[600px]" />
+        <div id="vault-report-content" className="space-y-8 pb-4">
+          {/* KPI METRICS */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+            <KPICard
+              title="Total Value Locked"
+              value={realTVL}
+              prefix="$"
+              icon={Activity}
+              change="Live On-Chain"
+              changeType="positive"
+              subtext="Aggregated across 3 Vaults"
+              delay={0}
+              isLoading={isTvlLoading}
+            />
+            <KPICard
+              title="Global Average APY"
+              value={globalAPY}
+              prefix=""
+              suffix="%"
+              icon={TrendingUp}
+              change="Optimal"
+              changeType="positive"
+              subtext="Dynamic Multi-Routing"
+              delay={80}
+            />
+            <KPICard
+              title="Available Liquidity"
+              value={trueAvailableLiquidity}
+              prefix="$"
+              icon={Coins}
+              change="Ready"
+              changeType="neutral"
+              subtext="Awaiting new routes"
+              delay={160}
+              isLoading={isTvlLoading}
+            />
+            <KPICard
+              title="Total AI Rebalances"
+              value={totalRebalances}
+              prefix=""
+              suffix=""
+              icon={Network}
+              change="Synced"
+              changeType="positive"
+              subtext="Immutably stored on BSC"
+              delay={240}
+            />
+          </div>
+
+          {/* EVENT LOG  */}
+          <div className="w-full h-full">
+            <EventLog maxHeight="max-h-[600px]" />
+          </div>
         </div>
       </div>
     </div>

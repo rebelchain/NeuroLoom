@@ -127,7 +127,7 @@ export default function NeuroLoomApp() {
             <nav
               className={`fixed top-0 left-0 right-0 w-full z-50 transition-all duration-500 ease-out  ${
                 isScrolled
-                  ? "bg-[#0a0a0a]/40 border-[#1f1f1f]/30 py-2" 
+                  ? "bg-[#0a0a0a]/40 border-[#1f1f1f]/30 py-2"
                   : "bg-transparent border-transparent mix-blend-difference py-3"
               }`}
             >
@@ -214,15 +214,19 @@ export default function NeuroLoomApp() {
             <main className="flex-grow flex flex-col z-10 pt-20">
               {/* HERO SECTION */}
               <section className="flex flex-col items-center justify-center text-center px-6 min-h-[84vh] relative pointer-events-none">
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 mb-8 border border-[#1f1f1f] bg-[#1a1a1a] text-[#8a8a8a] text-[10px] uppercase tracking-widest tick-frame pointer-events-auto">
+                <div className="inline-flex items-center gap-3 px-5 py-2 mb-8 rounded-full bg-white/[0.02] border border-white/[0.08] text-[#e8e8e8] text-[11px] uppercase tracking-widest font-mono shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] pointer-events-auto backdrop-blur-md hover:bg-white/[0.05] transition-all">
                   <Image
                     src="/bnbcoin.png"
                     alt="BNB Chain"
-                    width={14}
-                    height={14}
-                    className="w-3.5 h-3.5 object-contain"
+                    width={16}
+                    height={16}
+                    className="w-4 h-4 object-contain"
                   />
-                  BSC Testnet Live
+                  <span className="flex items-center gap-2">
+                    BSC Testnet
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_var(--color-primary)]"></span>
+                    Live
+                  </span>
                 </div>
 
                 <HeroWordmark />
@@ -239,9 +243,22 @@ export default function NeuroLoomApp() {
                 <div className="mt-16 pointer-events-auto relative z-20">
                   <button
                     onClick={() => setShowGate(true)}
-                    className="px-8 py-3 bg-primary text-[#0a0a0a] border border-primary font-mono text-sm font-bold uppercase tracking-widest hover:bg-transparent hover:text-primary transition-all duration-300 shadow-[0_0_15px_rgba(139,92,246,0.2)] hover:shadow-[0_0_25px_rgba(139,92,246,0.4)]"
+                    className="relative inline-flex items-center justify-center gap-3 h-[52px] px-10 rounded-md bg-gradient-to-b from-white via-[#e7e7e7] to-[#cfcfcf] text-[#111] font-mono font-bold text-[13px] uppercase tracking-[0.2em] border border-white shadow-[inset_0_1px_0_rgba(255,255,255,0.95),_0_10px_20px_rgba(0,0,0,0.4)] hover:from-white hover:via-[#f3f6ff] hover:to-[#d5def2] hover:shadow-[inset_0_1px_0_#fff,0_0_30px_rgba(186,208,255,0.5),0_10px_20px_rgba(0,0,0,0.5)] transition-all duration-300"
                   >
                     Launch Dashboard
+                    <svg
+                      className="w-4 h-4 opacity-70"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2.5}
+                        d="M14 5l7 7m0 0l-7 7m7-7H3"
+                      />
+                    </svg>
                   </button>
                 </div>
               </section>
@@ -253,12 +270,13 @@ export default function NeuroLoomApp() {
               {/* THE PROBLEM & FEATURES */}
               <section
                 id="features"
-                className=" mx-auto w-full max-w-6xl px-8 py-[10vh]"
+                className="mx-auto w-full max-w-6xl px-8 py-[10vh]"
                 data-figure="left"
               >
                 <Reveal>
                   <div className="text-left mb-14 border-l-2 border-[#1f1f1f] pl-6">
-                    <p className="font-mono text-[#8a8a8a] mb-2 tracking-widest text-[10px] uppercase">
+                    <p className="font-mono text-[#8a8a8a] mb-2 tracking-widest text-[10px] uppercase flex items-center gap-2">
+                      <span className="w-1 h-1 rounded-full bg-primary animate-pulse shadow-[0_0_8px_var(--color-primary)]"></span>
                       01 / The Problem
                     </p>
                     <h2 className="serif text-3xl md:text-5xl text-[#f5f5f5] mb-5 leading-tight">
@@ -276,14 +294,14 @@ export default function NeuroLoomApp() {
                 <Reveal>
                   <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-stretch mt-12">
                     <div className="lg:col-span-3 flex flex-col gap-6">
-                      <div className="border border-[#1f1f1f] bg-[#121212] p-6 md:p-8 flex-1 tick-frame">
-                        <div className="text-[10px] uppercase tracking-[0.2em] text-[#8a8a8a] font-mono mb-5">
-                          [ Human Execution Bottleneck ]
+                      <div className="border border-[#1f1f1f] bg-[#0a0a0a] rounded-2xl p-6 md:p-8 flex-1 transition-colors hover:border-[#333]">
+                        <div className="text-[10px] uppercase tracking-[0.2em] text-[#8a8a8a] font-mono mb-6 bg-[#121212] border border-[#1f1f1f] px-3 py-1.5 rounded-full inline-block">
+                          Human Execution Bottleneck
                         </div>
+
                         <div className="flex flex-col gap-2.5 font-mono text-xs">
                           <div className="flex items-center justify-between border-b border-[#1f1f1f] pb-3">
                             <span className="text-[#8a8a8a]">
-                              {" "}
                               Market Shift Detected
                             </span>
                             <span className="text-[#c5c5c5]">
@@ -292,7 +310,6 @@ export default function NeuroLoomApp() {
                           </div>
                           <div className="flex items-center justify-between border-b border-[#1f1f1f] py-3">
                             <span className="text-[#8a8a8a]">
-                              {" "}
                               Manual Withdraw & Swap
                             </span>
                             <span className="text-[#ffd75f]">
@@ -301,7 +318,6 @@ export default function NeuroLoomApp() {
                           </div>
                           <div className="flex items-center justify-between py-3">
                             <span className="text-[#8a8a8a]">
-                              {" "}
                               Resulting Yield
                             </span>
                             <span className="text-[#ff5f5f]">
@@ -309,13 +325,14 @@ export default function NeuroLoomApp() {
                             </span>
                           </div>
                         </div>
-                        <p className="mt-5 text-[11px] font-mono text-[#8a8a8a] leading-relaxed">
+
+                        <p className="mt-6 text-[11px] font-mono text-[#8a8a8a] leading-relaxed">
                           In a market that operates 24/7 at the speed of code,
                           human execution is the ultimate bottleneck.
                         </p>
                       </div>
 
-                      <figure className="border-l-2 border-primary pl-6 py-4">
+                      <figure className="border-l-2 border-primary pl-6 py-4 mt-2">
                         <blockquote className="text-lg md:text-2xl font-light text-[#f5f5f5] serif leading-snug">
                           &quot;The biggest risk in modern DeFi isn&apos;t smart
                           contract failure, it&apos;s inefficient capital
@@ -324,7 +341,7 @@ export default function NeuroLoomApp() {
                       </figure>
                     </div>
 
-                    <div className="lg:col-span-2 flex flex-col gap-6">
+                    <div className="lg:col-span-2 flex flex-col gap-4">
                       <FeatureCard
                         featured
                         icon={
@@ -364,15 +381,16 @@ export default function NeuroLoomApp() {
                 </Reveal>
               </section>
 
-              {/*  EXECUTION FLOW */}
+              {/* EXECUTION FLOW */}
               <section
                 id="how-it-works"
                 className="mx-auto w-full max-w-6xl px-8 py-[10vh] border-t border-[#1f1f1f]"
                 data-figure="right"
               >
                 <Reveal>
-                  <div className="text-left mb-4 border-l-2 border-[#1f1f1f] pl-6">
-                    <p className="font-mono text-[#8a8a8a] mb-2 tracking-widest text-[10px] uppercase">
+                  <div className="text-left mb-10 border-l-2 border-primary/40 pl-6">
+                    <p className="font-mono text-[#8a8a8a] mb-2 tracking-widest text-[10px] uppercase flex items-center gap-2">
+                      <span className="w-1 h-1 rounded-full bg-primary animate-pulse shadow-[0_0_8px_var(--color-primary)]"></span>
                       02 / The Execution Pipeline
                     </p>
                     <h2 className="serif text-3xl md:text-5xl text-[#f5f5f5] mb-5 leading-tight">
@@ -390,6 +408,7 @@ export default function NeuroLoomApp() {
 
                 <ExecutionFlow />
               </section>
+
               {/* THE LIQUIDITY MATRIX */}
               <section
                 id="protocols"
@@ -397,8 +416,9 @@ export default function NeuroLoomApp() {
                 data-figure="left"
               >
                 <Reveal>
-                  <div className="text-left mb-14 border-l-2 border-[#1f1f1f] pl-6">
-                    <p className="font-mono text-[#8a8a8a] mb-2 tracking-widest text-[10px] uppercase">
+                  <div className="text-left mb-14 border-l-2 border-primary/40 pl-6">
+                    <p className="font-mono text-[#8a8a8a] mb-2 tracking-widest text-[10px] uppercase flex items-center gap-2">
+                      <span className="w-1 h-1 rounded-full bg-primary animate-pulse shadow-[0_0_8px_var(--color-primary)]"></span>
                       03 / The Liquidity Matrix
                     </p>
                     <h2 className="serif text-3xl md:text-5xl text-[#f5f5f5] mb-5 leading-tight">
@@ -418,184 +438,184 @@ export default function NeuroLoomApp() {
                 <Reveal>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-12">
                     {/* VENUS PROTOCOL */}
-                    <div className="group border border-[#1f1f1f] bg-[#121212] p-6 transition-all duration-500 hover:border-primary/50 flex flex-col justify-between tick-frame">
+                    <div className="group border border-[#1f1f1f] bg-[#121212] rounded-2xl p-6 md:p-8 transition-all duration-500 hover:border-primary/50 flex flex-col justify-between">
                       <div>
-                        <div className="flex items-start justify-between mb-6">
+                        <div className="flex items-start justify-between mb-8">
                           <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 flex items-center justify-center overflow-hidden grayscale group-hover:grayscale-0 transition-all duration-500">
+                            <div className="w-14 h-14 rounded-xl border border-[#1f1f1f] bg-[#0a0a0a] p-2 flex items-center justify-center overflow-hidden grayscale group-hover:grayscale-0 transition-all duration-500">
                               <Image
                                 src="/protocolcard/venus.jpg"
                                 alt="Venus"
                                 width={48}
                                 height={48}
-                                className="w-full h-full object-contain"
+                                className="w-full h-full object-contain rounded-md"
                               />
                             </div>
                             <div>
-                              <h3 className="text-[#f5f5f5] font-bold uppercase tracking-wide font-mono">
+                              <h3 className="text-[#f5f5f5] font-bold uppercase tracking-wide font-mono text-[15px]">
                                 Venus Protocol
                               </h3>
-                              <p className="text-[#8a8a8a] text-[10px] uppercase tracking-widest font-mono">
+                              <p className="text-[#8a8a8a] text-[10px] uppercase tracking-widest font-mono mt-1">
                                 Core Lending Market
                               </p>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2 border border-primary/30 bg-primary/10 px-2 py-1">
-                            <span className="w-1.5 h-1.5 bg-primary animate-pulse"></span>
-                            <span className="text-[9px] uppercase font-mono text-primary tracking-widest">
+                          <div className="flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 shrink-0">
+                            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_var(--color-primary)]"></span>
+                            <span className="text-[9px] uppercase font-mono text-primary tracking-widest font-bold">
                               Active
                             </span>
                           </div>
                         </div>
-                        <p className="text-sm text-[#c5c5c5] leading-relaxed mb-6">
+                        <p className="text-sm text-[#c5c5c5] leading-relaxed mb-8">
                           Acts as the baseline yield generator. The Orchestrator
                           deposits single-sided stablecoins (vUSDT) to secure
                           low-risk, over-collateralized base APY.
                         </p>
                       </div>
-                      <div className="border-t border-[#1f1f1f] pt-4 flex items-center justify-between font-mono">
+                      <div className="border-t border-[#1f1f1f] pt-5 flex items-center justify-between font-mono">
                         <span className="text-xs text-[#8a8a8a] uppercase tracking-widest">
                           Target Yield
                         </span>
-                        <span className="text-primary font-bold">
+                        <span className="text-primary font-bold text-[13px]">
                           7.5% - 14.5% APY
                         </span>
                       </div>
                     </div>
 
                     {/* PANCAKESWAP */}
-                    <div className="group border border-[#1f1f1f] bg-[#121212] p-6 transition-all duration-500 hover:border-primary/50 flex flex-col justify-between tick-frame">
+                    <div className="group border border-[#1f1f1f] bg-[#121212] rounded-2xl p-6 md:p-8 transition-all duration-500 hover:border-primary/50 flex flex-col justify-between">
                       <div>
-                        <div className="flex items-start justify-between mb-6">
+                        <div className="flex items-start justify-between mb-8">
                           <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 flex items-center justify-center overflow-hidden grayscale group-hover:grayscale-0 transition-all duration-500">
+                            <div className="w-14 h-14 rounded-xl border border-[#1f1f1f] bg-[#0a0a0a] p-2 flex items-center justify-center overflow-hidden grayscale group-hover:grayscale-0 transition-all duration-500">
                               <Image
                                 src="/protocolcard/pancakeswap.jpg"
                                 alt="PancakeSwap"
                                 width={48}
                                 height={48}
-                                className="w-full h-full object-contain"
+                                className="w-full h-full object-contain rounded-md"
                               />
                             </div>
                             <div>
-                              <h3 className="text-[#f5f5f5] font-bold uppercase tracking-wide font-mono">
+                              <h3 className="text-[#f5f5f5] font-bold uppercase tracking-wide font-mono text-[15px]">
                                 PancakeSwap V3
                               </h3>
-                              <p className="text-[#8a8a8a] text-[10px] uppercase tracking-widest font-mono">
+                              <p className="text-[#8a8a8a] text-[10px] uppercase tracking-widest font-mono mt-1">
                                 Concentrated AMM
                               </p>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2 border border-primary/30 bg-primary/10 px-2 py-1">
-                            <span className="w-1.5 h-1.5 bg-primary animate-pulse"></span>
-                            <span className="text-[9px] uppercase font-mono text-primary tracking-widest">
+                          <div className="flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 shrink-0">
+                            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_var(--color-primary)]"></span>
+                            <span className="text-[9px] uppercase font-mono text-primary tracking-widest font-bold">
                               Active
                             </span>
                           </div>
                         </div>
-                        <p className="text-sm text-[#c5c5c5] leading-relaxed mb-6">
+                        <p className="text-sm text-[#c5c5c5] leading-relaxed mb-8">
                           The AI routes capital here during high-volume market
                           shifts, providing concentrated liquidity to WBNB pools
                           for maximum fee capture.
                         </p>
                       </div>
-                      <div className="border-t border-[#1f1f1f] pt-4 flex items-center justify-between font-mono">
+                      <div className="border-t border-[#1f1f1f] pt-5 flex items-center justify-between font-mono">
                         <span className="text-xs text-[#8a8a8a] uppercase tracking-widest">
                           Target Yield
                         </span>
-                        <span className="text-primary font-bold">
+                        <span className="text-primary font-bold text-[13px]">
                           12.0% - 38.0% APY
                         </span>
                       </div>
                     </div>
 
                     {/* RADIANT CAPITAL */}
-                    <div className="group border border-[#1f1f1f] bg-[#0a0a0a] p-6 transition-all duration-500 opacity-60 hover:opacity-100 flex flex-col justify-between">
+                    <div className="group border border-[#1f1f1f] bg-[#0a0a0a] rounded-2xl p-6 md:p-8 transition-all duration-500 opacity-60 hover:opacity-100 flex flex-col justify-between">
                       <div>
-                        <div className="flex items-start justify-between mb-6">
+                        <div className="flex items-start justify-between mb-8">
                           <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 flex items-center justify-center overflow-hidden grayscale group-hover:grayscale-0 transition-all duration-500">
+                            <div className="w-14 h-14 rounded-xl border border-[#1f1f1f] bg-[#121212] p-2 flex items-center justify-center overflow-hidden grayscale group-hover:grayscale-0 transition-all duration-500">
                               <Image
                                 src="/protocolcard/radiant.jpg"
                                 alt="Radiant"
                                 width={48}
                                 height={48}
-                                className="w-full h-full object-contain"
+                                className="w-full h-full object-contain rounded-md"
                               />
                             </div>
                             <div>
-                              <h3 className="text-[#8a8a8a] font-bold uppercase tracking-wide font-mono">
+                              <h3 className="text-[#8a8a8a] group-hover:text-[#c5c5c5] transition-colors font-bold uppercase tracking-wide font-mono text-[15px]">
                                 Radiant Capital
                               </h3>
-                              <p className="text-[#444] text-[10px] uppercase tracking-widest font-mono">
+                              <p className="text-[#555] group-hover:text-[#8a8a8a] transition-colors text-[10px] uppercase tracking-widest font-mono mt-1">
                                 Omni-Chain Market
                               </p>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2 border border-[#1f1f1f] bg-[#1a1a1a] px-2 py-1">
-                            <span className="w-1.5 h-1.5 bg-[#444]"></span>
-                            <span className="text-[9px] uppercase font-mono text-[#8a8a8a] tracking-widest">
+                          <div className="flex items-center gap-2 rounded-full border border-[#1f1f1f] bg-[#121212] px-3 py-1.5 shrink-0">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#555]"></span>
+                            <span className="text-[9px] uppercase font-mono text-[#8a8a8a] tracking-widest font-bold">
                               In Queue
                             </span>
                           </div>
                         </div>
-                        <p className="text-sm text-[#8a8a8a] leading-relaxed mb-6">
+                        <p className="text-sm text-[#7a7a7a] leading-relaxed mb-8">
                           Upcoming cross-chain liquidity routing integration.
                           Will expand the AI&apos;s execution reach to Arbitrum
                           and Ethereum mainnets.
                         </p>
                       </div>
-                      <div className="border-t border-[#1f1f1f] pt-4 flex items-center justify-between font-mono">
-                        <span className="text-xs text-[#444] uppercase tracking-widest">
+                      <div className="border-t border-[#1f1f1f] pt-5 flex items-center justify-between font-mono">
+                        <span className="text-xs text-[#555] uppercase tracking-widest">
                           Target Yield
                         </span>
-                        <span className="text-[#8a8a8a] font-bold">
+                        <span className="text-[#8a8a8a] font-bold text-[13px]">
                           Evaluating Model
                         </span>
                       </div>
                     </div>
 
                     {/* KINZA FINANCE */}
-                    <div className="group border border-[#1f1f1f] bg-[#0a0a0a] p-6 transition-all duration-500 opacity-60 hover:opacity-100 flex flex-col justify-between">
+                    <div className="group border border-[#1f1f1f] bg-[#0a0a0a] rounded-2xl p-6 md:p-8 transition-all duration-500 opacity-60 hover:opacity-100 flex flex-col justify-between">
                       <div>
-                        <div className="flex items-start justify-between mb-6">
+                        <div className="flex items-start justify-between mb-8">
                           <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 flex items-center justify-center overflow-hidden grayscale group-hover:grayscale-0 transition-all duration-500">
+                            <div className="w-14 h-14 rounded-xl border border-[#1f1f1f] bg-[#121212] p-2 flex items-center justify-center overflow-hidden grayscale group-hover:grayscale-0 transition-all duration-500">
                               <Image
                                 src="/protocolcard/kinza.jpg"
                                 alt="Kinza"
                                 width={48}
                                 height={48}
-                                className="w-full h-full object-contain"
+                                className="w-full h-full object-contain rounded-md"
                               />
                             </div>
                             <div>
-                              <h3 className="text-[#8a8a8a] font-bold uppercase tracking-wide font-mono">
+                              <h3 className="text-[#8a8a8a] group-hover:text-[#c5c5c5] transition-colors font-bold uppercase tracking-wide font-mono text-[15px]">
                                 Kinza Finance
                               </h3>
-                              <p className="text-[#444] text-[10px] uppercase tracking-widest font-mono">
+                              <p className="text-[#555] group-hover:text-[#8a8a8a] transition-colors text-[10px] uppercase tracking-widest font-mono mt-1">
                                 ve-Tokenomics
                               </p>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2 border border-[#1f1f1f] bg-[#1a1a1a] px-2 py-1">
-                            <span className="w-1.5 h-1.5 bg-[#444]"></span>
-                            <span className="text-[9px] uppercase font-mono text-[#8a8a8a] tracking-widest">
+                          <div className="flex items-center gap-2 rounded-full border border-[#1f1f1f] bg-[#121212] px-3 py-1.5 shrink-0">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#555]"></span>
+                            <span className="text-[9px] uppercase font-mono text-[#8a8a8a] tracking-widest font-bold">
                               In Queue
                             </span>
                           </div>
                         </div>
-                        <p className="text-sm text-[#8a8a8a] leading-relaxed mb-6">
+                        <p className="text-sm text-[#7a7a7a] leading-relaxed mb-8">
                           Next-generation lending protocol integration. Targeted
                           for high-yield farming loops and governance token
                           accumulation strategies.
                         </p>
                       </div>
-                      <div className="border-t border-[#1f1f1f] pt-4 flex items-center justify-between font-mono">
-                        <span className="text-xs text-[#444] uppercase tracking-widest">
+                      <div className="border-t border-[#1f1f1f] pt-5 flex items-center justify-between font-mono">
+                        <span className="text-xs text-[#555] uppercase tracking-widest">
                           Target Yield
                         </span>
-                        <span className="text-[#8a8a8a] font-bold">
+                        <span className="text-[#8a8a8a] font-bold text-[13px]">
                           Evaluating Model
                         </span>
                       </div>
@@ -604,15 +624,16 @@ export default function NeuroLoomApp() {
                 </Reveal>
               </section>
 
-              {/*  STRATEGY VAULTS  */}
+              {/* STRATEGY VAULTS */}
               <section
                 id="vaults"
                 className="mx-auto w-full max-w-6xl px-8 py-[10vh] border-t border-[#1f1f1f]"
                 data-figure="right"
               >
                 <Reveal>
-                  <div className="text-left mb-14 border-l-2 border-[#1f1f1f] pl-6">
-                    <p className="font-mono text-[#8a8a8a] mb-2 tracking-widest text-[10px] uppercase">
+                  <div className="text-left mb-14 border-l-2 border-primary/40 pl-6">
+                    <p className="font-mono text-[#8a8a8a] mb-2 tracking-widest text-[10px] uppercase flex items-center gap-2">
+                      <span className="w-1 h-1 rounded-full bg-primary animate-pulse shadow-[0_0_8px_var(--color-primary)]"></span>
                       04 / Vault Architecture
                     </p>
                     <h2 className="serif text-3xl md:text-5xl text-[#f5f5f5] mb-5 leading-tight">
@@ -631,42 +652,44 @@ export default function NeuroLoomApp() {
 
                 <Reveal>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-                    {/* VAULT 1: THE YIELD FARM */}
-                    <div className="group border border-[#1f1f1f] bg-[#121212] p-6 hover:border-primary/50 transition-all duration-500 cursor-pointer tick-frame flex flex-col">
-                      <div className="flex justify-between items-start mb-6">
+                    {/* THE YIELD FARM */}
+                    <div className="group border border-[#1f1f1f] bg-[#0a0a0a] rounded-2xl p-6 md:p-8 hover:border-[#333] transition-all duration-500 cursor-pointer flex flex-col relative overflow-hidden">
+                      <div className="flex justify-between items-start mb-8">
                         <div>
                           <div className="text-[#8a8a8a] font-mono text-[10px] tracking-widest uppercase mb-1">
                             Base Strategy
                           </div>
-                          <h3 className="text-[#f5f5f5] font-bold font-mono tracking-wide">
+                          <h3 className="text-[#f5f5f5] font-bold font-mono tracking-wide text-[15px]">
                             THE YIELD FARM
                           </h3>
                         </div>
-                        <div className="border border-[#1f1f1f] bg-[#0a0a0a] px-2 py-1 text-[9px] font-mono uppercase tracking-widest text-[#00ED64]">
+                        <div className="border border-[#00ED64]/30 bg-[#00ED64]/10 rounded-full px-3 py-1.5 text-[9px] font-mono uppercase tracking-widest text-[#00ED64] font-bold">
                           Low Risk
                         </div>
                       </div>
 
                       {/* Metrik */}
-                      <div className="grid grid-cols-2 gap-4 mb-6">
+                      <div className="grid grid-cols-2 gap-4 mb-8">
                         <div>
-                          <div className="text-[#8a8a8a] text-[10px] uppercase font-mono tracking-widest mb-1">
+                          <div className="text-[#8a8a8a] text-[10px] uppercase font-mono tracking-widest mb-1.5">
                             Target APY
                           </div>
-                          <div className="text-[#f5f5f5] font-mono">14.5%</div>
+                          <div className="text-[#f5f5f5] font-mono font-bold text-sm">
+                            14.5%
+                          </div>
                         </div>
                         <div>
-                          <div className="text-[#8a8a8a] text-[10px] uppercase font-mono tracking-widest mb-1">
+                          <div className="text-[#8a8a8a] text-[10px] uppercase font-mono tracking-widest mb-1.5">
                             Max Drawdown
                           </div>
-                          <div className="text-[#f5f5f5] font-mono">
+                          <div className="text-[#f5f5f5] font-mono font-bold text-sm">
                             &lt; 1.0%
                           </div>
                         </div>
                       </div>
 
                       {/* Mockup Equity Curve  */}
-                      <div className="h-16 w-full mt-auto relative overflow-hidden border-b border-[#1f1f1f]">
+                      <div className="h-16 w-full mt-auto relative overflow-hidden rounded-b-xl border-b border-transparent">
                         <svg
                           viewBox="0 0 100 30"
                           className="w-full h-full preserve-3d opacity-50 group-hover:opacity-100 transition-opacity"
@@ -680,45 +703,48 @@ export default function NeuroLoomApp() {
                             vectorEffect="non-scaling-stroke"
                           />
                         </svg>
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#121212] via-transparent to-transparent"></div>
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent"></div>
                       </div>
                     </div>
 
-                    {/* BLUECHIP MOMENTUM */}
-                    <div className="group border border-primary/30 bg-[#121212] p-6 hover:border-primary transition-all duration-500 cursor-pointer tick-frame flex flex-col relative overflow-hidden">
-                      <div className="absolute top-0 left-0 w-full h-1 bg-primary"></div>
-                      <div className="flex justify-between items-start mb-6">
+                    {/* BLUECHIP MOMENTUM*/}
+                    <div className="group border border-primary/40 bg-[#0a0a0a] rounded-2xl p-6 md:p-8 hover:border-primary hover:shadow-[0_10px_30px_rgba(139,92,246,0.15)] transition-all duration-500 cursor-pointer flex flex-col relative overflow-hidden">
+                      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-80"></div>
+
+                      <div className="flex justify-between items-start mb-8 mt-1">
                         <div>
                           <div className="text-primary font-mono text-[10px] tracking-widest uppercase mb-1">
                             Core Strategy
                           </div>
-                          <h3 className="text-[#f5f5f5] font-bold font-mono tracking-wide">
+                          <h3 className="text-[#f5f5f5] font-bold font-mono tracking-wide text-[15px]">
                             BLUECHIP MOMENTUM
                           </h3>
                         </div>
-                        <div className="border border-[#1f1f1f] bg-[#0a0a0a] px-2 py-1 text-[9px] font-mono uppercase tracking-widest text-[#ffd75f]">
+                        <div className="border border-[#ffd75f]/30 bg-[#ffd75f]/10 rounded-full px-3 py-1.5 text-[9px] font-mono uppercase tracking-widest text-[#ffd75f] font-bold">
                           Med Risk
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-4 mb-6">
+                      <div className="grid grid-cols-2 gap-4 mb-8">
                         <div>
-                          <div className="text-[#8a8a8a] text-[10px] uppercase font-mono tracking-widest mb-1">
+                          <div className="text-[#8a8a8a] text-[10px] uppercase font-mono tracking-widest mb-1.5">
                             Target APY
                           </div>
-                          <div className="text-primary font-mono font-bold">
+                          <div className="text-primary font-mono font-bold text-sm">
                             22.4%
                           </div>
                         </div>
                         <div>
-                          <div className="text-[#8a8a8a] text-[10px] uppercase font-mono tracking-widest mb-1">
+                          <div className="text-[#8a8a8a] text-[10px] uppercase font-mono tracking-widest mb-1.5">
                             Max Drawdown
                           </div>
-                          <div className="text-[#f5f5f5] font-mono">~ 4.5%</div>
+                          <div className="text-[#f5f5f5] font-mono font-bold text-sm">
+                            ~ 4.5%
+                          </div>
                         </div>
                       </div>
 
-                      <div className="h-16 w-full mt-auto relative overflow-hidden border-b border-[#1f1f1f]">
+                      <div className="h-16 w-full mt-auto relative overflow-hidden rounded-b-xl border-b border-transparent">
                         <svg
                           viewBox="0 0 100 30"
                           className="w-full h-full preserve-3d opacity-70 group-hover:opacity-100 transition-opacity"
@@ -732,44 +758,46 @@ export default function NeuroLoomApp() {
                             vectorEffect="non-scaling-stroke"
                           />
                         </svg>
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#121212] via-transparent to-transparent"></div>
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent"></div>
                       </div>
                     </div>
 
-                    {/* VAULT 3: DEGEN ACCUMULATOR */}
-                    <div className="group border border-[#1f1f1f] bg-[#0a0a0a] p-6 hover:border-primary/50 transition-all duration-500 cursor-pointer tick-frame flex flex-col">
-                      <div className="flex justify-between items-start mb-6">
+                    {/* DEGEN ACCUMULATOR */}
+                    <div className="group border border-[#1f1f1f] bg-[#0a0a0a] rounded-2xl p-6 md:p-8 hover:border-[#333] transition-all duration-500 cursor-pointer flex flex-col relative overflow-hidden">
+                      <div className="flex justify-between items-start mb-8">
                         <div>
                           <div className="text-[#8a8a8a] font-mono text-[10px] tracking-widest uppercase mb-1">
                             Alpha Strategy
                           </div>
-                          <h3 className="text-[#f5f5f5] font-bold font-mono tracking-wide">
+                          <h3 className="text-[#f5f5f5] font-bold font-mono tracking-wide text-[15px]">
                             DEGEN ACCUMULATOR
                           </h3>
                         </div>
-                        <div className="border border-[#1f1f1f] bg-[#0a0a0a] px-2 py-1 text-[9px] font-mono uppercase tracking-widest text-[#ff5f5f]">
+                        <div className="border border-[#ff5f5f]/30 bg-[#ff5f5f]/10 rounded-full px-3 py-1.5 text-[9px] font-mono uppercase tracking-widest text-[#ff5f5f] font-bold">
                           High Risk
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-4 mb-6">
+                      <div className="grid grid-cols-2 gap-4 mb-8">
                         <div>
-                          <div className="text-[#8a8a8a] text-[10px] uppercase font-mono tracking-widest mb-1">
+                          <div className="text-[#8a8a8a] text-[10px] uppercase font-mono tracking-widest mb-1.5">
                             Target APY
                           </div>
-                          <div className="text-[#f5f5f5] font-mono">38.2%</div>
+                          <div className="text-[#f5f5f5] font-mono font-bold text-sm">
+                            38.2%
+                          </div>
                         </div>
                         <div>
-                          <div className="text-[#8a8a8a] text-[10px] uppercase font-mono tracking-widest mb-1">
+                          <div className="text-[#8a8a8a] text-[10px] uppercase font-mono tracking-widest mb-1.5">
                             Max Drawdown
                           </div>
-                          <div className="text-[#f5f5f5] font-mono">
+                          <div className="text-[#f5f5f5] font-mono font-bold text-sm">
                             ~ 15.0%
                           </div>
                         </div>
                       </div>
 
-                      <div className="h-16 w-full mt-auto relative overflow-hidden border-b border-[#1f1f1f]">
+                      <div className="h-16 w-full mt-auto relative overflow-hidden rounded-b-xl border-b border-transparent">
                         <svg
                           viewBox="0 0 100 30"
                           className="w-full h-full preserve-3d opacity-40 group-hover:opacity-100 transition-opacity"

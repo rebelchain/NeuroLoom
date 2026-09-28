@@ -16,12 +16,12 @@ export function Header({
   pageTitle = "Dashboard",
 }: HeaderProps) {
   return (
-    <header className="relative h-16 shrink-0 flex items-center justify-between gap-4 px-4 md:px-6 bg-[#0a0a0a] border-b border-[#1f1f1f] z-40 sticky top-0">
+    <header className="relative h-16 shrink-0 flex items-center justify-between gap-4 px-4 md:px-6 bg-[#0a0a0a]/80 backdrop-blur-md border-b border-white/[0.08] z-40 sticky top-0">
       <div className="flex items-center gap-4 min-w-0">
-        {/*  MENU MOBILE  */}
+        {/* MENU MOBILE */}
         <button
           onClick={onOpenMobile}
-          className="lg:hidden w-10 h-10 bg-[#121212] border border-[#1f1f1f] flex items-center justify-center text-[#8a8a8a] hover:text-primary transition-colors"
+          className="lg:hidden w-10 h-10 rounded-lg bg-white/[0.02] border border-white/[0.08] flex items-center justify-center text-[#8a8a8a] hover:text-[#f5f5f5] hover:bg-white/[0.05] transition-colors"
           aria-label="Open menu"
         >
           <Menu className="w-[18px] h-[18px]" strokeWidth={1.5} />
@@ -29,35 +29,35 @@ export function Header({
 
         <button
           onClick={onBackToLanding}
-          className="hidden sm:flex items-center gap-3 hover:opacity-80 transition-opacity shrink-0"
+          className="hidden sm:flex items-center gap-3 hover:opacity-80 transition-opacity shrink-0 group"
         >
-          <div className="w-10 h-10 bg-primary/10 border border-primary/20 rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(139,92,246,0.3)] overflow-hidden p-0">
-                      <Image
-                        src="/neuroloom2.png"
-                        alt="NeuroLoom Logo"
-                        width={40}
-                        height={40}
-                        className="w-full h-full object-contain scale-110"
-                        priority
-                      />
-                    </div>
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/[0.15] to-transparent border border-primary/20 flex items-center justify-center shadow-[0_0_15px_rgba(139,92,246,0.2)] group-hover:shadow-[0_0_20px_rgba(139,92,246,0.4)] transition-all overflow-hidden p-0">
+            <Image
+              src="/neuroloom2.png"
+              alt="NeuroLoom Logo"
+              width={40}
+              height={40}
+              className="w-full h-full object-contain scale-110"
+              priority
+            />
+          </div>
           <span className="font-mono font-bold text-[#f5f5f5] text-sm uppercase tracking-widest">
             NeuroLoom
           </span>
         </button>
 
-        <ChevronRight className="hidden sm:block w-3.5 h-3.5 text-[#333]" />
-        
+        <ChevronRight className="hidden sm:block w-3.5 h-3.5 text-[#444]" />
+
         {/* JUDUL HALAMAN */}
         <div className="flex items-center gap-2 min-w-0">
-          <span className="text-[11px] md:text-xs font-mono text-[#8a8a8a] uppercase tracking-widest truncate">
+          <span className="text-[11.5px] md:text-[12px] font-mono text-[#8a8a8a] uppercase tracking-[0.15em] truncate">
             {">"} {pageTitle}
           </span>
         </div>
       </div>
 
       <div className="flex items-center gap-3 shrink-0">
-        {/* RAINBOWKIT CUSTOM BUTTON  */}
+        {/* RAINBOWKIT CUSTOM BUTTON */}
         <ConnectButton.Custom>
           {({
             account,
@@ -93,11 +93,11 @@ export function Header({
                       <button
                         onClick={openConnectModal}
                         type="button"
-                        className="px-5 py-2.5 bg-primary text-[#0a0a0a] border border-primary text-[10px] font-mono font-bold uppercase tracking-widest hover:bg-transparent hover:text-primary transition-colors flex items-center gap-2"
+                        className="relative flex items-center gap-2 h-9 sm:h-[40px] px-4 sm:px-5 rounded-md bg-gradient-to-b from-white via-[#e7e7e7] to-[#cfcfcf] text-[#111] font-mono font-bold text-[10.5px] uppercase tracking-widest border border-white shadow-[inset_0_1px_0_rgba(255,255,255,0.95)] hover:from-white hover:via-[#f3f6ff] hover:to-[#d5def2] hover:shadow-[inset_0_1px_0_#fff,0_0_20px_rgba(186,208,255,0.3)] transition-all duration-300"
                       >
-                        <Wallet className="w-3.5 h-3.5" strokeWidth={2} />
-                        <span className="hidden sm:inline">[ CONNECT WALLET ]</span>
-                        <span className="sm:hidden">[ CONNECT ]</span>
+                        <Wallet className="w-3.5 h-3.5" strokeWidth={2.5} />
+                        <span className="hidden sm:inline">Connect Wallet</span>
+                        <span className="sm:hidden">Connect</span>
                       </button>
                     );
                   }
@@ -107,9 +107,9 @@ export function Header({
                       <button
                         onClick={openChainModal}
                         type="button"
-                        className="px-5 py-2.5 bg-[#ff5f5f]/10 text-[#ff5f5f] border border-[#ff5f5f] text-[10px] font-mono font-bold uppercase tracking-widest hover:bg-[#ff5f5f]/20 transition-colors flex items-center gap-2"
+                        className="relative flex items-center gap-2 h-9 sm:h-[40px] px-4 sm:px-5 rounded-md bg-gradient-to-br from-[#ff5f5f]/[0.15] to-black/[0.45] text-[#ff5f5f] font-mono font-bold text-[10.5px] uppercase tracking-widest border border-[#ff5f5f]/[0.45] shadow-[inset_0_1px_0_rgba(255,95,95,0.12)] hover:border-[#ff5f5f] hover:shadow-[0_0_20px_rgba(255,95,95,0.25)] transition-all duration-300"
                       >
-                        [ WRONG NETWORK ]
+                        Wrong Network
                       </button>
                     );
                   }
@@ -118,13 +118,18 @@ export function Header({
                     <button
                       onClick={openAccountModal}
                       type="button"
-                      className="px-5 py-2.5 bg-[#121212] text-primary border border-[#1f1f1f] text-[10px] font-mono font-bold uppercase tracking-widest hover:border-primary transition-colors flex items-center gap-2"
+                      className="relative flex items-center gap-2 h-9 sm:h-[40px] px-4 sm:px-5 rounded-md bg-gradient-to-br from-white/[0.1] to-black/[0.45] text-[#f5f5f5] font-mono font-bold text-[10.5px] uppercase tracking-widest border border-white/[0.3] shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] hover:border-primary/75 hover:text-primary hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.22),0_0_20px_rgba(139,92,246,0.25)] transition-all duration-300 group"
                     >
                       <span className="hidden sm:inline">
-                        [ {account.displayName} ]
+                        {account.displayName}
                       </span>
-                      <span className="sm:hidden">[ {account.displayName.slice(0,4)}... ]</span>
-                      <LogOut className="w-3.5 h-3.5 ml-1 opacity-70" strokeWidth={2} />
+                      <span className="sm:hidden">
+                        {account.displayName.slice(0, 4)}...
+                      </span>
+                      <LogOut
+                        className="w-3.5 h-3.5 ml-1 opacity-60 group-hover:opacity-100 transition-opacity"
+                        strokeWidth={2}
+                      />
                     </button>
                   );
                 })()}

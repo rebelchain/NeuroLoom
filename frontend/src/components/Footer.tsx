@@ -1,5 +1,11 @@
 "use client";
 import Image from "next/image";
+import { useEffect, useState } from "react";
+
+// Komponen
+import { IdentityGateModal } from "@/components/IdentityGateModal";
+
+
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -15,13 +21,12 @@ export function Footer() {
             onClick={() => {
               window.dispatchEvent(new CustomEvent("open-gate"));
             }}
-            className="px-10 py-5 bg-primary text-[#0a0a0a] border border-primary font-mono text-sm font-bold uppercase tracking-widest hover:bg-transparent hover:text-primary transition-all duration-300 shadow-[0_0_15px_rgba(139,92,246,0.2)] hover:shadow-[0_0_25px_rgba(139,92,246,0.4)]"
+            className="gap-3 h-[52px] px-10 rounded-md bg-gradient-to-b from-white via-[#e7e7e7] to-[#cfcfcf] text-[#111] font-mono font-bold text-[13px] uppercase tracking-[0.2em] border border-white shadow-[inset_0_1px_0_rgba(255,255,255,0.95),_0_10px_20px_rgba(0,0,0,0.4)] hover:from-white hover:via-[#f3f6ff] hover:to-[#d5def2] hover:shadow-[inset_0_1px_0_#fff,0_0_30px_rgba(186,208,255,0.5),0_10px_20px_rgba(0,0,0,0.5)] transition-all duration-300"
           >
             Launch Dashboard
           </button>
         </div>
       </div>
-
 
       <div className="w-full max-w-7xl mx-auto px-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 border-t border-[#1f1f1f] pt-10">
@@ -55,7 +60,7 @@ export function Footer() {
             </div>
 
             <div className="text-[#444] text-[10px] font-mono uppercase tracking-widest mt-auto">
-              &copy; {currentYear} NeuroLoom.   Built for Indonesia Web3 Hackathon
+              &copy; {currentYear} NeuroLoom. Built for Indonesia Web3 Hackathon
               2026. BNB Chain.
             </div>
           </div>

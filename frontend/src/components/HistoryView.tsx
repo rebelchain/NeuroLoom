@@ -218,28 +218,32 @@ export function HistoryView() {
   };
 
   return (
-    <div className="w-full h-full flex flex-col p-6 lg:p-10 overflow-y-auto">
+    <div className="w-full h-full flex flex-col p-6 lg:p-10 overflow-y-auto relative">
+      {/* GLOW ATMOSFERIK */}
+      <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[120%] h-[60vh] pointer-events-none bg-[radial-gradient(ellipse_at_50%_0%,_rgba(139,92,246,0.1),_transparent_60%)] z-0"></div>
+
       {/* HEADER */}
-      <div className="mb-8">
-        <div className="flex items-center gap-2 mb-4">
-          <div className="px-3 py-1.5 border border-primary/30 bg-primary/10 text-primary text-[10px] uppercase tracking-widest font-mono tick-frame">
+      <div className="relative z-10 mb-8">
+        <div className="flex items-center gap-2 mb-5">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-white/[0.03] border border-white/[0.08] text-primary text-[10px] uppercase tracking-widest font-mono shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_var(--color-primary)]" />
             Audit • On-Chain Ledger
           </div>
         </div>
-        <h1 className="text-2xl font-bold text-[#f5f5f5] mb-2 font-mono uppercase tracking-widest">
+        <h1 className="text-3xl md:text-[32px] font-bold text-[#f5f5f5] mb-3 font-mono uppercase tracking-widest">
           Master <span className="text-primary">Ledger</span>
         </h1>
-        <p className="text-[#8a8a8a] text-xs max-w-2xl font-mono">
+        <p className="text-[#8a8a8a] text-[13px] max-w-2xl font-mono leading-relaxed">
           {">"} The immutable audit trail of every vault rebalance, user
           deposit, and administrative action, verified directly by the BSC smart
           contracts.
         </p>
       </div>
 
-      {/* CONTROL PANEL */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 bg-[#0a0a0a] p-4 border border-[#1f1f1f]">
+
+      <div className="relative z-30 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 bg-white/[0.02] p-4 rounded-[12px] border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.02)] backdrop-blur-sm">
         <div className="flex flex-col sm:flex-row w-full md:w-auto gap-4 flex-grow">
-          {/* SEARCH INPUT */}
+          {/* SEARCH INPUT - Inset Glass */}
           <div className="relative w-full sm:w-64">
             <input
               type="text"
@@ -249,7 +253,7 @@ export function HistoryView() {
                 setSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full bg-[#121212] border border-[#1f1f1f] py-2.5 px-4 text-xs text-[#f5f5f5] focus:outline-none focus:border-primary transition-colors font-mono placeholder:text-[#333]"
+              className="w-full bg-black/40 border border-white/[0.08] rounded-md py-2.5 px-4 text-[12px] text-[#f5f5f5] focus:outline-none focus:border-primary/60 transition-colors font-mono placeholder:text-[#555] shadow-[inset_0_2px_5px_rgba(0,0,0,0.5)]"
             />
           </div>
 
@@ -257,7 +261,7 @@ export function HistoryView() {
           <div className="relative w-full sm:w-56">
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="flex items-center justify-between w-full bg-[#121212] border border-[#1f1f1f] py-2.5 px-4 text-[11px] uppercase tracking-widest text-[#f5f5f5] focus:outline-none focus:border-primary transition-colors cursor-pointer font-mono"
+              className="flex items-center justify-between w-full bg-black/40 border border-white/[0.08] rounded-md py-2.5 px-4 text-[11.5px] uppercase tracking-widest text-[#d5d5d5] focus:outline-none focus:border-primary/60 transition-colors cursor-pointer font-mono shadow-[inset_0_2px_5px_rgba(0,0,0,0.3)]"
             >
               <div className="flex items-center gap-2.5">
                 <Filter className="w-[14px] h-[14px] text-[#8a8a8a]" />
@@ -270,7 +274,7 @@ export function HistoryView() {
                 </span>
               </div>
               <svg
-                className={`w-3 h-3 text-[#8a8a8a] transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""}`}
+                className={`w-3.5 h-3.5 text-[#8a8a8a] transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""}`}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -292,7 +296,7 @@ export function HistoryView() {
             )}
 
             {isDropdownOpen && (
-              <div className="absolute top-full left-0 mt-1 w-full bg-[#0a0a0a] border border-[#1f1f1f] shadow-2xl z-50 flex flex-col">
+              <div className="absolute top-full left-0 mt-2 w-full bg-[#0a0a0a]/95 backdrop-blur-xl border border-white/[0.12] rounded-md shadow-[0_10px_30px_rgba(0,0,0,0.8)] z-50 flex flex-col overflow-hidden">
                 {[
                   { value: "ALL", label: "All Events" },
                   { value: "AI_REBALANCE", label: "AI Rebalances" },
@@ -307,10 +311,10 @@ export function HistoryView() {
                       setCurrentPage(1);
                       setIsDropdownOpen(false);
                     }}
-                    className={`w-full text-left px-4 py-3 text-[10px] uppercase tracking-widest font-mono transition-colors ${
+                    className={`w-full text-left px-4 py-3 text-[10.5px] uppercase tracking-widest font-mono transition-colors ${
                       filterType === option.value
-                        ? "bg-primary text-[#0a0a0a] font-bold"
-                        : "text-[#8a8a8a] hover:bg-[#121212] hover:text-[#f5f5f5]"
+                        ? "bg-primary/10 text-primary font-bold border-l-2 border-primary"
+                        : "text-[#8a8a8a] hover:bg-white/[0.05] hover:text-[#f5f5f5] border-l-2 border-transparent"
                     }`}
                   >
                     {option.label}
@@ -321,21 +325,20 @@ export function HistoryView() {
           </div>
         </div>
 
-        {/* EXPORT BUTTON */}
+        {/* EXPORT BUTTON - Ghost Style */}
         <button
           onClick={exportToCSV}
-          className="flex items-center gap-2 bg-primary hover:bg-transparent text-[#0a0a0a] hover:text-primary border border-primary px-6 py-2.5 text-[11px] uppercase tracking-widest font-mono font-bold transition-colors shrink-0 justify-center w-full md:w-auto"
+          className="flex items-center gap-2.5 h-[42px] px-6 rounded-md bg-gradient-to-br from-white/[0.05] to-transparent text-[#c5c5c5] border border-white/[0.12] text-[10.5px] uppercase tracking-[0.15em] font-mono font-bold shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] hover:text-[#f5f5f5] hover:border-primary/50 hover:bg-white/[0.02] transition-all duration-300 shrink-0 justify-center w-full md:w-auto"
         >
-          <Download className="w-3.5 h-3.5" />[ Export CSV ]
+          <Download className="w-3.5 h-3.5" /> Export CSV
         </button>
       </div>
 
-      {/* DATA GRID */}
-      <div className="bg-[#0a0a0a] border border-[#1f1f1f] flex-grow flex flex-col min-h-[400px]">
-        <div className="overflow-x-auto">
+      <div className="relative z-10 rounded-[12px] border border-white/[0.12] bg-gradient-to-br from-white/[0.045] via-white/[0.01] to-primary/[0.01] shadow-[inset_0_1px_0_rgba(255,255,255,0.05),_0_24px_48px_rgba(0,0,0,0.2)] flex-grow flex flex-col min-h-[400px] overflow-hidden backdrop-blur-sm">
+        <div className="overflow-x-auto flex-grow">
           <table className="w-full text-left whitespace-nowrap">
             <thead>
-              <tr className="bg-[#121212] border-b border-[#1f1f1f] text-[10px] text-[#8a8a8a] font-mono uppercase tracking-widest">
+              <tr className="bg-white/[0.02] border-b border-white/[0.08] text-[10.5px] text-[#8a8a8a] font-mono uppercase tracking-widest">
                 <th className="py-4 px-6 font-normal">Event Type</th>
                 <th className="py-4 px-6 font-normal">Amount / Status</th>
                 <th className="py-4 px-6 font-normal">Routing / Target</th>
@@ -343,10 +346,10 @@ export function HistoryView() {
                 <th className="py-4 px-6 font-normal">Transaction</th>
               </tr>
             </thead>
-            <tbody className="text-[11px] font-mono">
+            <tbody className="text-[11.5px] font-mono">
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="py-16 text-center text-[#8a8a8a]">
+                  <td colSpan={5} className="py-20 text-center text-[#8a8a8a]">
                     <div className="flex flex-col items-center gap-3">
                       <Activity className="w-5 h-5 text-primary animate-spin" />
                       {">"} _Syncing ledger from The Graph...
@@ -355,7 +358,7 @@ export function HistoryView() {
                 </tr>
               ) : paginatedEvents.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="py-16 text-center text-[#8a8a8a]">
+                  <td colSpan={5} className="py-20 text-center text-[#8a8a8a]">
                     {">"} _No events found matching your parameters.
                   </td>
                 </tr>
@@ -363,12 +366,12 @@ export function HistoryView() {
                 paginatedEvents.map((event, idx) => (
                   <tr
                     key={`${event.txHash}-${idx}`}
-                    className="border-b border-[#1f1f1f] hover:bg-[#121212] transition-colors group"
+                    className="border-b border-white/[0.05] hover:bg-white/[0.03] transition-colors group"
                   >
                     <td className="py-4 px-6">
                       <EventBadge type={event.type} />
                     </td>
-                    <td className="py-4 px-6 text-[#f5f5f5] tnum">
+                    <td className="py-4 px-6 text-[#f5f5f5] tnum font-bold">
                       {event.amount}
                     </td>
                     <td className="py-4 px-6 text-[#c5c5c5]">{event.route}</td>
@@ -380,9 +383,9 @@ export function HistoryView() {
                         href={`https://testnet.bscscan.com/tx/${event.txHash}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-[#8a8a8a] hover:text-primary transition-colors"
+                        className="flex items-center gap-2 text-[#8a8a8a] hover:text-primary transition-colors border-b border-dashed border-white/[0.2] hover:border-primary pb-[1px] w-fit"
                       >
-                        [{shortenAddress(event.txHash)}]
+                        {shortenAddress(event.txHash)}
                         <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                       </a>
                     </td>
@@ -395,29 +398,30 @@ export function HistoryView() {
 
         {/* PAGINATION CONTROLS */}
         {!loading && filteredEvents.length > 0 && (
-          <div className="mt-auto border-t border-[#1f1f1f] bg-[#121212] px-6 py-4 flex items-center justify-between">
+          <div className="mt-auto border-t border-white/[0.08] bg-white/[0.01] px-6 py-4 flex items-center justify-between">
             <div className="text-[10px] font-mono text-[#8a8a8a] uppercase tracking-widest">
               Showing {startIndex + 1}-
               {Math.min(startIndex + ITEMS_PER_PAGE, filteredEvents.length)} of{" "}
               {filteredEvents.length} events
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <button
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="p-1.5 border border-[#1f1f1f] text-[#8a8a8a] hover:text-primary hover:border-primary disabled:opacity-30 disabled:hover:border-[#1f1f1f] disabled:hover:text-[#8a8a8a] transition-colors"
+                className="w-7 h-7 flex items-center justify-center rounded-md border border-white/[0.12] bg-white/[0.02] text-[#8a8a8a] hover:text-[#f5f5f5] hover:bg-white/[0.05] disabled:opacity-30 disabled:hover:bg-white/[0.02] disabled:hover:text-[#8a8a8a] transition-all"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
-              <div className="px-3 font-mono text-[10px] text-[#f5f5f5]">
-                {currentPage} / {totalPages}
+              <div className="px-2 font-mono text-[11px] text-[#f5f5f5]">
+                {currentPage} <span className="text-[#555]">/</span>{" "}
+                {totalPages}
               </div>
               <button
                 onClick={() =>
                   setCurrentPage((p) => Math.min(totalPages, p + 1))
                 }
                 disabled={currentPage === totalPages}
-                className="p-1.5 border border-[#1f1f1f] text-[#8a8a8a] hover:text-primary hover:border-primary disabled:opacity-30 disabled:hover:border-[#1f1f1f] disabled:hover:text-[#8a8a8a] transition-colors"
+                className="w-7 h-7 flex items-center justify-center rounded-md border border-white/[0.12] bg-white/[0.02] text-[#8a8a8a] hover:text-[#f5f5f5] hover:bg-white/[0.05] disabled:opacity-30 disabled:hover:bg-white/[0.02] disabled:hover:text-[#8a8a8a] transition-all"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
@@ -432,23 +436,49 @@ export function HistoryView() {
 function EventBadge({ type }: { type: EventType }) {
   switch (type) {
     case "AI_REBALANCE":
-      return <span className="text-primary font-bold">[ REBALANCE ]</span>;
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-primary/10 border border-primary/30 text-primary text-[10px] font-bold shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+          <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+          REBALANCE
+        </span>
+      );
     case "USER_DEPOSIT":
-      return <span className="text-[#f5f5f5] font-bold">[ INBOUND ]</span>;
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#10b981]/10 border border-[#10b981]/30 text-[#10b981] text-[10px] font-bold shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#10b981]" />
+          INBOUND
+        </span>
+      );
     case "USER_WITHDRAWAL":
-      return <span className="text-[#8a8a8a] font-bold">[ OUTBOUND ]</span>;
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white/[0.05] border border-white/[0.12] text-[#d5d5d5] text-[10px] font-bold shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#6a6a6a]" />
+          OUTBOUND
+        </span>
+      );
     case "ADMIN_WHITELIST":
-      return <span className="text-[#c5c5c5] font-bold">[ WHITELIST ]</span>;
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#0be5b5]/10 border border-[#0be5b5]/30 text-[#0be5b5] text-[10px] font-bold shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+          WHITELIST
+        </span>
+      );
     case "SYSTEM_PAUSED":
       return (
-        <span className="text-[#ff5f5f] font-bold animate-pulse">
-          [ HALTED ]
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#ff5f5f]/10 border border-[#ff5f5f]/30 text-[#ff5f5f] text-[10px] font-bold animate-pulse shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#ff5f5f]" />
+          HALTED
         </span>
       );
     case "SYSTEM_UNPAUSED":
-      return <span className="text-primary font-bold">[ RESUMED ]</span>;
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-primary/10 border border-primary/30 text-primary text-[10px] font-bold shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+          RESUMED
+        </span>
+      );
     default:
-      return <span className="text-[#8a8a8a] font-bold">[ {type} ]</span>;
+      return (
+        <span className="text-[#8a8a8a] font-bold text-[10px]">[ {type} ]</span>
+      );
   }
 }
 

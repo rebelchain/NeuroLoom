@@ -3,14 +3,11 @@
 import { cn, formatTimeAgo } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { formatUnits } from "viem";
-// IMPOR ALAMAT VAULT AKTIF DARI CONFIG
 import { ACTIVE_VAULTS } from "../config/addresses";
 
-// SESUAIKAN DENGAN VERSI DEPLOY TERBARUMU (v0.0.6)
 const GRAPHQL_URL =
   "https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.6";
 
-// KAMUS PEMETAAN ALAMAT KE NAMA VAULT
 const VAULT_MAP: Record<string, string> = {
   [ACTIVE_VAULTS[0].toLowerCase()]: "Yield Farm",
   [ACTIVE_VAULTS[1].toLowerCase()]: "Bluechip Momentum",
@@ -39,7 +36,7 @@ export interface AIEventRow {
 interface GraphEvent {
   id: string;
   assets: string;
-  address?: string; 
+  address?: string;
   blockTimestamp: string;
   transactionHash: string;
 }
@@ -49,11 +46,10 @@ const eventMeta: Record<EventOp, { glyph: string; text: string }> = {
   REBALANCE_EXECUTED: { glyph: "[→]", text: "text-primary" },
   YIELD_HARVESTED: { glyph: "[↑]", text: "text-primary" },
   SLIPPAGE_REJECTED: { glyph: "[✕]", text: "text-[#ff5f5f]" },
-  VAULT_DEPOSITED: { glyph: "[+]", text: "text-[#f5f5f5]" },
+  VAULT_DEPOSITED: { glyph: "[+]", text: "text-[#10b981]" },
   VAULT_WITHDRAWN: { glyph: "[-]", text: "text-[#ff5f5f]" },
 };
 
-// Fungsi pembantu untuk menerjemahkan alamat menjadi nama
 function getVaultName(address?: string) {
   if (!address) return "NeuroLoom Vault";
   return VAULT_MAP[address.toLowerCase()] || "NeuroLoom Vault";
@@ -71,7 +67,6 @@ export function EventLog({
     let isMounted = true;
     const fetchGraphData = async () => {
       try {
-
         const query = `{ 
           deposits(first: 5, orderBy: blockTimestamp, orderDirection: desc) { id assets address blockTimestamp transactionHash } 
           withdraws(first: 5, orderBy: blockTimestamp, orderDirection: desc) { id assets address blockTimestamp transactionHash } 
@@ -94,10 +89,10 @@ export function EventLog({
                 return {
                   id: item.id,
                   type: "VAULT_DEPOSITED" as EventOp,
-                  protocol: vaultName, 
+                  protocol: vaultName,
                   asset: "USDT",
                   amount: Number(formatUnits(BigInt(item.assets), 6)),
-                  detail: `To ${vaultName}`, 
+                  detail: `To ${vaultName}`,
                   timestamp: Number(item.blockTimestamp) * 1000,
                   txHash: item.transactionHash,
                 };
@@ -112,10 +107,10 @@ export function EventLog({
                 return {
                   id: item.id,
                   type: "VAULT_WITHDRAWN" as EventOp,
-                  protocol: vaultName, 
+                  protocol: vaultName,
                   asset: "USDT",
                   amount: Number(formatUnits(BigInt(item.assets), 6)),
-                  detail: `From ${vaultName}`, 
+                  detail: `From ${vaultName}`,
                   timestamp: Number(item.blockTimestamp) * 1000,
                   txHash: item.transactionHash,
                 };
@@ -143,38 +138,38 @@ export function EventLog({
 
   return (
     <div className="animate-fade-in-up h-full flex flex-col">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-4 px-1">
         <div className="flex items-center gap-3">
-          <span className="w-1.5 h-1.5 bg-primary animate-pulse" />
-          <h3 className="text-xs font-mono tracking-widest text-[#f5f5f5] uppercase">
-            Event Ledger
+          <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_var(--color-primary)]" />
+          <h3 className="text-[13px] font-medium tracking-tight text-[#f5f5f5]">
+            Live Event Ledger
           </h3>
         </div>
-        <div className="text-[10px] text-primary font-mono tracking-widest uppercase">
-          {isLoading ? "[ SYNCING ]" : "[ LIVE ]"}
+        <div className="inline-flex items-center h-6 px-2.5 rounded-full border border-primary/40 bg-primary/10 text-[10px] text-primary font-mono uppercase tracking-widest">
+          {isLoading ? "SYNCING..." : "LIVE"}
         </div>
       </div>
 
       <div
         className={cn(
-          "bg-[#0a0a0a] border border-[#1f1f1f] flex-grow flex flex-col",
+          "rounded-[12px] border border-white/[0.12] bg-gradient-to-br from-white/[0.045] via-white/[0.01] to-white/[0.01] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] flex-grow flex flex-col overflow-hidden",
           maxHeight,
         )}
       >
         {/* Header Terminal */}
-        <div className="flex items-center gap-2 px-4 py-3 border-b border-[#1f1f1f] bg-[#121212]">
-          <span className="w-2 h-2 bg-[#1f1f1f]" />
-          <span className="w-2 h-2 bg-[#1f1f1f]" />
-          <span className="w-2 h-2 bg-[#1f1f1f]" />
-          <span className="ml-2 text-[10px] uppercase tracking-[0.2em] text-[#8a8a8a] font-mono">
+        <div className="flex items-center gap-2 px-5 py-3.5 border-b border-white/[0.06] bg-white/[0.02]">
+          <span className="w-2.5 h-2.5 rounded-full bg-white/[0.12]" />
+          <span className="w-2.5 h-2.5 rounded-full bg-white/[0.12]" />
+          <span className="w-2.5 h-2.5 rounded-full bg-white/[0.12]" />
+          <span className="ml-2 text-[10.5px] uppercase tracking-[0.15em] text-[#8a8a8a] font-mono">
             sys.graph.log
           </span>
         </div>
 
         {/* List Transaksi */}
-        <div className="px-4 py-3 font-mono text-[11px] leading-relaxed overflow-y-auto [scrollbar-width:thin] flex-grow">
+        <div className="px-5 py-2 font-mono text-[11.5px] leading-relaxed overflow-y-auto flex-grow">
           {events.length === 0 && !isLoading ? (
-            <div className="text-[#8a8a8a] italic py-4">
+            <div className="text-[#8a8a8a] italic py-6 text-center">
               &gt; _Awaiting network events...
             </div>
           ) : (
@@ -183,40 +178,52 @@ export function EventLog({
               return (
                 <div
                   key={event.id}
-                  className="flex flex-col sm:flex-row sm:items-center gap-3 py-3 border-b border-[#1f1f1f] last:border-0 hover:bg-[#121212] transition-colors -mx-4 px-4"
+                  className="flex flex-col sm:flex-row sm:items-center gap-3 py-4 border-b border-white/[0.06] last:border-0 hover:bg-white/[0.03] transition-colors -mx-5 px-5"
                 >
-                  <div className="flex-grow flex items-center gap-3">
-                    <span className={cn(meta.text, "w-6 text-center")}>
+                  <div className="flex-grow flex items-center gap-4">
+                    <span
+                      className={cn(
+                        meta.text,
+                        "w-6 text-center font-bold text-[14px]",
+                      )}
+                    >
                       {meta.glyph}
                     </span>
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[#c5c5c5]">{event.type}</span>
-                        <span className="text-[#8a8a8a]">::</span>
+                    <div className="flex flex-col gap-1.5">
+                      <div className="flex items-center gap-2 text-[12px]">
+                        <span className="text-[#e8e8e8] font-medium">
+                          {event.type}
+                        </span>
+                        <span className="text-[#555]">::</span>
                         <span className="text-primary">{event.asset}</span>
                       </div>
                       {event.detail && (
-                        <div className="text-[#8a8a8a] text-[10px]">
+                        <div className="text-[#8a8a8a] text-[10.5px]">
                           &gt; {event.detail}
                         </div>
                       )}
                     </div>
                   </div>
 
-                  <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-1 min-w-[120px]">
-                    <span className={cn(meta.text, "whitespace-nowrap")}>
+                  <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-1.5 min-w-[120px]">
+                    <span
+                      className={cn(
+                        meta.text,
+                        "whitespace-nowrap text-[12.5px] font-medium",
+                      )}
+                    >
                       {event.amount > 0 ? "+" : ""}
                       {event.amount.toFixed(2)} USDT
                     </span>
-                    <div className="flex items-center gap-2 text-[9px] text-[#8a8a8a]">
+                    <div className="flex items-center gap-2.5 text-[10px] text-[#8a8a8a]">
                       <span>{formatTimeAgo(event.timestamp)}</span>
                       <a
                         href={`https://testnet.bscscan.com/tx/${event.txHash}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="hover:text-primary hover:underline"
+                        className="hover:text-primary transition-colors border-b border-dashed border-white/[0.2] hover:border-primary pb-[1px]"
                       >
-                        [{event.txHash.slice(0, 6)}]
+                        {event.txHash.slice(0, 6)}...
                       </a>
                     </div>
                   </div>
@@ -224,7 +231,7 @@ export function EventLog({
               );
             })
           )}
-          <div className="mt-4 text-[#8a8a8a]">
+          <div className="mt-5 mb-3 text-[#8a8a8a] pl-2">
             &gt; <span className="text-primary animate-pulse">_</span>
           </div>
         </div>

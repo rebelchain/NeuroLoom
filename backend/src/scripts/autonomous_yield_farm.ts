@@ -166,7 +166,7 @@ async function runAutonomousCycle() {
     // QUERY BALANCE ON-CHAIN
     const vaultUsdtBalance = await publicClient.readContract({
       address: CONFIG.TOKENS.USDT as `0x${string}`,
-      abi: erc20Abi, 
+      abi: erc20Abi,
       functionName: "balanceOf",
       args: [VAULT_ADDRESS],
     });
@@ -327,15 +327,15 @@ async function runAutonomousCycle() {
     }
 
     // LOGGING
-  const logData = {
-    timestamp: Date.now(),
-    action: toolName,
-    status: finalStatus,
-    orchestratorTasks: tasks.map((t) => t.type).join(", "),
-    reasoning: thoughts,
-    evaluatorFeedback: evaluation.feedback, // 
-    hash: txHash,
-  };
+    const logData = {
+      timestamp: Date.now(),
+      action: toolName,
+      status: finalStatus,
+      orchestratorTasks: tasks.map((t) => t.type).join(", "),
+      reasoning: thoughts,
+      evaluatorFeedback: evaluation.feedback, //
+      hash: txHash,
+    };
     let logs = [];
     if (fs.existsSync(LOG_FILE))
       logs = JSON.parse(fs.readFileSync(LOG_FILE, "utf-8"));
@@ -355,5 +355,5 @@ cron.schedule("0 0,12 * * *", () => {
 
 console.log("[SYSTEM] NeuroLoom Autonomous Multi-Agent is ONLINE.");
 
-// --- UNCOMMENT BARIS DI BAWAH INI JIKA INGIN LANGSUNG DRY-RUN TANPA MENUNGGU CRON ---
-runAutonomousCycle();
+// UNCOMMENT IF WANT TO EXECUTE DIRECTLY
+// runAutonomousCycle();

@@ -223,7 +223,7 @@ The NeuroLoom ecosystem is built on a modern, high-performance web3 stack, stric
 
 ---
 
-## Production & Demo Deployment
+## Cloud Architecture & Autonomous Execution
 
 NeuroLoom's architecture cleanly separates the client-facing Web3 UI from the autonomous AI execution engine.
 

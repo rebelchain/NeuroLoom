@@ -234,7 +234,7 @@ The UI is built with Next.js (App Router) and deployed via Vercel.
 ### 2. API Server, PDF Engine & AI Worker (Oracle Cloud)
 To ensure high availability, the Express.js backend and the autonomous AI worker are deployed on an Oracle Cloud Ubuntu VM behind an Nginx reverse proxy with SSL (Let's Encrypt).
 - **Function:** Serves live history data via `/api/history` and dynamically generates Institutional PDF Tear Sheets via `pdfkit`.
-- **Autonomous AI Engine:** The execution script (`autonomous_yield_farm.ts`) runs on a strict 12-hour cron schedule. It ingests live market data from TAAPI, synthesizes strategies through a multi-agent LangChain/Groq pipeline, and executes real on-chain transactions (BSC Testnet) via Viem. 
+- **Autonomous AI Engine:** The execution script (`autonomous_yield_farm.ts`) is architected for 24/7 continuous tick-by-tick execution. However, for this demo deployment, it is throttled to a **strict 12-hour cron schedule** to accommodate Groq's free-tier API rate limits. It ingests live market data from TAAPI, synthesizes strategies through a multi-agent LangChain/Groq pipeline, and executes real on-chain transactions (BSC Testnet) via Viem.
 - **Ledger:** All AI reasoning, risk evaluation outputs, and on-chain transaction hashes are actively written to `autonomous_ai_logs.json`, providing a real-time, transparent audit trail.
 ---
 

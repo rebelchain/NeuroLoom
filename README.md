@@ -7,7 +7,7 @@
 
 > **Autonomous AI-Driven DeFi Yield Optimizer — Multi-Protocol Routing & Hardcoded MEV Resistance.**
 
-roLoom is an institutional-grade Decentralized Finance (DeFi) protocol that fuses multi-agent AI workflows with deterministic on-chain execution. It empowers an autonomous AI engine to analyze market conditions and route capital (via asset swaps and lending) 24/7 across the BNB Chain ecosystem. To ensure absolute security, strict smart contract guardrails—including hard-capped 1% allocation limits and ERC-4626 inflation overrides—protect the Total Value Locked (TVL) from MEV bots, vault exploits, and AI hallucinations.
+NeuroLoom is an institutional-grade Decentralized Finance (DeFi) protocol that fuses multi-agent AI workflows with deterministic on-chain execution. It empowers an autonomous AI engine to analyze market conditions and route capital (via asset swaps and lending) 24/7 across the BNB Chain ecosystem. To ensure absolute security, strict smart contract guardrails—including hard-capped 1% allocation limits and ERC-4626 inflation overrides—protect the Total Value Locked (TVL) from MEV bots, vault exploits, and AI hallucinations.
 
 Built for the **Indonesia Web3 Hackathon 2026**. **BNB Chain**.
 Link: https://indonesiaweb3hack.xyz/en/projects/proj_231bfb01edfeb05edc

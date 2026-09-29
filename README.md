@@ -15,7 +15,7 @@ Link: https://indonesiaweb3hack.xyz/en/projects/proj_231bfb01edfeb05edc
   <img alt="Solidity 0.8.28" src="https://img.shields.io/badge/Solidity-0.8.28-363636?logo=solidity&logoColor=white&style=for-the-badge" />
   <img alt="Next.js" src="https://img.shields.io/badge/Next.js-16-000000?logo=next.js&logoColor=white&style=for-the-badge" />
   <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white&style=for-the-badge" />
-  <img alt="LangChain" src="https://img.shields.io/badge/AI-LangChain%20%7C%20qwen/qwen3.8/%20-27b981?style=for-the-badge" />
+  <img alt="LangChain" src="https://img.shields.io/badge/AI--LangChain%20%7C%20openai%2Fgpt--oss-20b981?style=for-the-badge" />
   <img alt="BSC Testnet" src="https://img.shields.io/badge/Network-BSC%20Testnet-F3BA2F?logo=binance&logoColor=black&style=for-the-badge" />
   <img alt="Tests" src="https://img.shields.io/badge/Tests-7%20passing-10B981?style=for-the-badge" />
 </p>
@@ -89,43 +89,30 @@ NeuroLoom does not rely on a simple, static LLM prompt. It implements rigorous A
 The following is a real execution log from the NeuroLoom AI backend demonstrating the parallel delegation and synthesis process:
 
 ```console
-[SYSTEM] NeuroLoom Orchestrator-Workflow is ONLINE. (Ctrl+C to stop)
-[2026-09-29T02:37:50.646Z] Initializing NeuroLoom Orchestrator-Workflows
+[SYSTEM] NeuroLoom Autonomous Multi-Agent is ONLINE.
+--- CLEARING LOGS ---
+
+[SYSTEM] Initiating AUTONOMOUS AI Cycle - 2026-09-29T05:21:00.767Z
+[DATA] Fetching live market conditions...
 [DATA] Menyedot data teknikal BNB/USDT dari TAAPI.io v2...
+[ORACLE] Live BNB/USD Price Verified: $756.74
+[STATE] Live Vault USDT Balance: 6590.828979 USDT
+[ORCHESTRATOR] Planning strategy & deploying workers...
 [ORCHESTRATOR] Analyzing market and planning tasks.
 
 [ORCHESTRATOR ANALYSIS]:
-The BNB/USDT pair is trading well below its 200‑EMA and shows negative MACD momentum, yet the market structure is identified as ranging/sideways. This suggests that while the overall trend is bearish, short‑term price swings are limited. In such an environment, yield opportunities maystill exist, but providing liquidity could expose the user to significant impermanent loss if the price continues to drift downward. Therefore, both a yield analysis and a liquidity risk assessment are warranted to balance potential returns against downside risk.
+The BNB/USDT pair is in a ranging/sideways market with a neutral RSI (~42.6) and a negative MACD, indicating no strong trend. In such a market, yield opportunities can be attractive because price volatility is low, reducing impermanent loss risk. However, thelack of a clear trend also means liquidity pools may experience higher slippage if traders are uncertain. Therefore, both a YIELD_STRATEGIST to identify the most profitable and low‑risk yield farms, and a LIQUIDITY_RISK worker to assess slippage, depth, and potential impermanent loss, should be deployed to formulate a balanced strategy.
 
-[ORCHESTRATOR] Dynamically deploying 2 workers...
-  -> Dispatching YIELD_STRATEGIST: Analyze current APY and yield opportunities for BNB/USDT pairs, focusing on protocols that offer stable returns in a sideways market and evaluating the impact of the price being below the 200‑EMA.
-
-[WORKER] Yield Strategist is thinking and planning tool execution...
-  -> Dispatching LIQUIDITY_RISK: Assess slippage, liquidity depth, and impermanent loss risk for providing liquidity to BNB/USDT pools, takinginto account the negative MACD momentum and the price’s position relative to the 200‑EMA.
-
-[WORKER] 🛡️ Liquidity Risk Manager is evaluating threats...
-[WORKER] Executing 1 tools in parallel...
-[TOOL] Fetching Venus lending rates for USDT...
-[WORKER] Synthesizing tool results into final report...
-[WORKER] 🛠️ Executing 1 liquidity tools in parallel...
-[TOOL] Checking liquidity depth for BNB/USDT on PancakeSwapV3...
-[WORKER] ✍️ Formulating risk clearance report...
-
-[AGENT] Iteration 1: Generating strategic thesis...
-[AGENT THOUGHTS]:
-The BNB/USDT pair is in a clear ranging/sideways market structure with RSI below 40 and a negative MACD, indicating no strong trend or reversal signals. The Bluechip Momentum strategy requires a clear reversal, which is absent, and the Degen Accumulator strategy demands high volatility, which is also not present. Therefore, the only viable strategy is the Yield Farm deposit, which is a conservative move that preserves capital while earning yield. We should allocate up to 80% of the current yield farm balance to maintain a 20% buffer for potential opportunities or withdrawals. This amounts to 8,000 USDT (80% of 10,000 USDT), which in wei is 8,000 * 10^18 = 8000000000000000000000 wei.
-
-[EVALUATOR] Reviewing the draft: execute_venus_deposit
-[EVALUATOR] Status: PASS
-[EVALUATOR] Feedback: Deposit is 80% of the Yield Farm vault’s 10,000 USDT balance, respecting the 20% liquidity buffer rule, and the vault address matches the intended strategy. No rule is violated.
-[TOOL] AI Executing Venus Deposit (Mint vUSDT) in Vault 0xD00b514048AFC47bFc4DE6a1646D5c63Bd23401a
-[NETWORK] Simulating execution via Vault 0xD00b514048AFC47bFc4DE6a1646D5c63Bd23401a...
-[ERROR] Failed (Revert): The contract function "executeOmnichain" reverted with the following reason:
-Slippage tolerance exceeded Oracle bounds
-ON-CHAIN SUCCESS: Failed (Revert): The contract function "executeOmnichain" reverted with the following reason:
-Slippage tolerance exceeded Oracle bounds
-
-[SYSTEM] Waiting 189 seconds until the next cycle...
+[AGENT] Synthesizing worker reports into action plan...
+[EVALUATOR] Auditing AI Agent draft...
+[EVALUATOR VERDICT] PASS
+Reasoning: Deposit into the Yield Farm vault (0xD00b514048AFC47bFc4DE6a1646D5c63Bd23401a) is a neutral, income‑generating action that aligns with the current ranging/sideways market structure. The tool call correctly targets the available vault address and will allocate 1% of the vault balance, which is a conservative and safe strategy given the market conditions.
+[EXECUTOR] AI Selected Tool: execute_venus_deposit
+[RISK CONTROL] Execution forced to 1% of vault balance: 65.908289 USDT
+[EXECUTION] Signing transaction for execute_venus_deposit...
+[NETWORK] Awaiting confirmation... TxHash: 0x0855f7b50820f9f34c257101fd2f81694797e7406bf9c32a3b6d118012294ca0
+[SUCCESS] Autonomous on-chain execution verified!
+[SYSTEM] Cycle completed. Logs securely stored to D:\About Coding\NeuroLoom\backend\autonomous_ai_logs.json
 
 ```
 
@@ -229,7 +216,7 @@ The NeuroLoom ecosystem is built on a modern, high-performance web3 stack, stric
 | **Frontend (Core & UI)** | Next.js 16.3 (App Router), React 19, Tailwind CSS v4, Three.js (WebGL), GSAP, Framer Motion, tsParticles |
 | **Frontend (Analytics)** | Lightweight Charts (TradingView UI), jsPDF & html-to-image |
 | **Frontend (Web3 & Data)**| Wagmi v2, Viem, RainbowKit, Apollo Client (GraphQL), TanStack React Query, @x402/evm |
-| **Backend (API & AI Engine)** | Express.js (REST API), Node.js (tsx), TypeScript v7, Viem (Tx Signer), LangChain (`@langchain/core`), PDFKit |
+| **Backend (API & AI Engine)** | Express.js (REST API), Node.js (tsx), TypeScript v7, Viem (Tx Signer), LangChain (`@langchain/core`), TAAPI.io (Quant Market Data), PDFKit PDFKit |
 | **AI Model & Memory** | Groq API (openai/gpt-oss-20b) *— Dynamic Orchestrator*, SQLite (Local Agent State) |
 | **On-chain Indexing** | The Graph (Subgraph API for real-time event streaming) |
 | **Infrastructure & Backend Deployment** | Oracle Cloud (Linux VPS), Nginx (Reverse Proxy), DuckDNS (Dynamic DNS), Let's Encrypt (SSL/TLS)|
@@ -238,18 +225,17 @@ The NeuroLoom ecosystem is built on a modern, high-performance web3 stack, stric
 
 ## Production & Demo Deployment
 
-NeuroLoom's architecture cleanly separates the client-facing Web3 UI from the AI execution engine.
+NeuroLoom's architecture cleanly separates the client-facing Web3 UI from the autonomous AI execution engine.
 
 ### 1. Frontend Dashboard (Vercel)
 The UI is built with Next.js (App Router) and deployed via Vercel.
 - **Environment:** Zero-config. All network configurations and proxy contract addresses are hardcoded constants.
 
-### 2. API Server & PDF Engine (Oracle Cloud)
-To ensure high availability for the hackathon, the Express.js server (`server.ts`) is deployed on an Oracle Cloud Ubuntu VM behind an Nginx reverse proxy with SSL (Let's Encrypt).
-- **Function:** Serves the `/api/history` data and dynamically generates the Institutional PDF Tear Sheets via `pdfkit`.
-- **Database:** Reads from a static `yield_journal.json` populated with simulated pre-computed AI behaviors.
-
-*Note: The autonomous AI orchestration loop via `index.ts` is omitted from cloud deployment due to LLM rate limits and is reserved for local demonstration purposes.*
+### 2. API Server, PDF Engine & AI Worker (Oracle Cloud)
+To ensure high availability, the Express.js backend and the autonomous AI worker are deployed on an Oracle Cloud Ubuntu VM behind an Nginx reverse proxy with SSL (Let's Encrypt).
+- **Function:** Serves live history data via `/api/history` and dynamically generates Institutional PDF Tear Sheets via `pdfkit`.
+- **Autonomous AI Engine:** The execution script (`autonomous_yield_farm.ts`) runs on a strict 12-hour cron schedule. It ingests live market data from TAAPI, synthesizes strategies through a multi-agent LangChain/Groq pipeline, and executes real on-chain transactions (BSC Testnet) via Viem. 
+- **Ledger:** All AI reasoning, risk evaluation outputs, and on-chain transaction hashes are actively written to `autonomous_ai_logs.json`, providing a real-time, transparent audit trail.
 ---
 
 ## Getting Started

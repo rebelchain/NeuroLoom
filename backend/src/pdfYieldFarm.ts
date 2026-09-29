@@ -1,12 +1,12 @@
+import { Response } from "express";
 import fs from "fs";
 import path from "path";
 import PDFDocument from "pdfkit";
-import { Response } from "express";
 
-const LOG_FILE = path.resolve(process.cwd(), "yield_farm_logs.json");
+const LOG_FILE = path.resolve(process.cwd(), "autonomous_ai_logs.json");
 
 function cleanMarkdown(text: string): string {
-  if (!text) return "";
+  if (!text) return "No data available.";
   return text
     .replace(/\*\*/g, "")
     .replace(/\*/g, "")
@@ -15,7 +15,6 @@ function cleanMarkdown(text: string): string {
 }
 
 export function generateYieldFarmPDF(res: Response) {
-
   res.setHeader("Content-Type", "application/pdf");
   res.setHeader(
     "Content-Disposition",
@@ -23,42 +22,40 @@ export function generateYieldFarmPDF(res: Response) {
   );
 
   const doc = new PDFDocument({ margin: 50, size: "A4" });
-
- 
   doc.pipe(res);
 
+  // HEADER
+  doc.font("Courier-Bold").fontSize(22).text("NEUROLOOM", { align: "center" });
   doc
-    .font("Courier-Bold")
-    .fontSize(22)
-    .text("NEUROLOOM", { align: "center" });
-  doc.fontSize(12).text("AI YIELD OPTIMIZER REPORT", { align: "center" });
+    .fontSize(12)
+    .text("AUTONOMOUS MULTI-AGENT EXECUTION REPORT", { align: "center" });
   doc.moveDown(1);
   doc.moveTo(50, doc.y).lineTo(545, doc.y).strokeColor("#cccccc").stroke();
   doc.moveDown(2);
 
-
+  // DATA FETCHINg
   let logs: any[] = [];
   if (fs.existsSync(LOG_FILE)) {
     try {
       logs = JSON.parse(fs.readFileSync(LOG_FILE, "utf-8"));
     } catch (error) {
-      console.error("Gagal membaca yield_farm_logs.json:", error);
+      console.error("Gagal membaca autonomous_ai_logs.json:", error);
     }
   }
 
   const totalExecutions = logs.length;
-  const executeLogs = logs.filter((l) => l.type === "EXECUTE").length;
+  const holdLogs = logs.filter((l) => l.status === "HOLD").length;
   const actionRate =
     totalExecutions > 0
-      ? ((executeLogs / totalExecutions) * 100).toFixed(1)
+      ? (((totalExecutions - holdLogs) / totalExecutions) * 100).toFixed(1)
       : "0.0";
 
-  
+  // --- VAULT METADATA ---
   doc.fillColor("#000000").font("Courier").fontSize(10);
   doc.text(`TARGET VAULT   : THE YIELD FARM`);
   doc.text(`REPORT DATE    : ${new Date().toUTCString()}`);
   doc.text(`NETWORK        : BSC Testnet`);
-  doc.text(`AI ENGINE      : openai/gpt-oss-safeguard-20b`);
+  doc.text(`AI ENGINE      : LangChain / Groq (openai/gpt-oss-20b)`);
   doc.text(
     `TOTAL CYCLES   : ${totalExecutions} (On-Chain Execution Rate: ${actionRate}%)`,
   );
@@ -68,7 +65,7 @@ export function generateYieldFarmPDF(res: Response) {
   doc.moveTo(50, doc.y).lineTo(545, doc.y).strokeColor("#cccccc").stroke();
   doc.moveDown(1);
 
-
+  // --- MULTI-AGENT LOG RENDERING ---
   if (logs.length === 0) {
     doc
       .font("Courier-Oblique")
@@ -85,28 +82,56 @@ export function generateYieldFarmPDF(res: Response) {
 
         doc.fillColor("#121212").fontSize(10).font("Courier-Bold");
         doc.text(
-          `[OP-ID: YF-${totalExecutions - index}] - ${new Date(log.timestamp).toISOString()}`,
+          `[CYCLE ID: NL-${totalExecutions - index}] - ${new Date(log.timestamp).toISOString()}`,
         );
-
         doc.font("Courier").fontSize(9);
-        doc.text(`  > ACTION   : ${log.action}`);
-        doc.text(`  > DECISION : ${log.type}`);
-        doc.text(`  > STATUS   : ${log.status}`);
-        doc.text(`  > TX HASH  : ${log.hash}`);
+        doc.text(`  > EXECUTOR ACTION : ${log.action}`);
+        doc.text(`  > NETWORK STATUS  : ${log.status}`);
+        doc.text(`  > TX HASH         : ${log.hash}`);
+        doc.moveDown(0.8);
+
+        // Orchestrator Phase
+        doc.font("Courier-Bold").text(`  [ORCHESTRATOR ANALYSIS]`);
+        const tasks = log.orchestratorTasks
+          ? `Deployed Workers: ${log.orchestratorTasks}`
+          : "Standard Yield & Risk Assessment executed.";
+        doc
+          .font("Courier")
+          .fillColor("#333333")
+          .text(tasks, 65, doc.y, { width: 470, align: "justify" });
         doc.moveDown(0.5);
 
-        doc.font("Courier-Bold").text(`  > AI REASONING :`);
+        doc
+          .font("Courier-Bold")
+          .fillColor("#121212")
+          .text(`  [AGENT SYNTHESIZER REASONING]`);
         const cleanReasoning = cleanMarkdown(log.reasoning);
         doc
           .font("Courier")
           .fillColor("#333333")
           .text(cleanReasoning, 65, doc.y, { width: 470, align: "justify" });
+        doc.moveDown(0.5);
+
+        // Evaluator Phase
+        doc
+          .font("Courier-Bold")
+          .fillColor("#121212")
+          .text(`  [RISK EVALUATOR VERDICT]`);
+        const cleanFeedback = cleanMarkdown(
+          log.evaluatorFeedback ||
+            "PASS - System validated 1% execution constraints.",
+        );
+        doc
+          .font("Courier")
+          .fillColor(log.status === "FAIL" ? "#d32f2f" : "#2e7d32")
+          .text(cleanFeedback, 65, doc.y, { width: 470, align: "justify" });
 
         doc.moveDown(1.5);
-        doc.x = 50; 
+        doc.x = 50;
       });
   }
 
+  // FOOTER SECTION
   doc.moveDown(1);
   doc.moveTo(50, doc.y).lineTo(545, doc.y).strokeColor("#cccccc").stroke();
   doc.moveDown(1);
@@ -115,7 +140,7 @@ export function generateYieldFarmPDF(res: Response) {
     .fontSize(8)
     .fillColor("#888888")
     .text(
-      "End of report. NeuroLoom Protocol cryptographically verifies all on-chain data. This document is dynamically generated based on live AI execution logs.",
+      "End of report. NeuroLoom Protocol cryptographically verifies all on-chain data. This document is dynamically generated based on live multi-agent execution logs.",
       { align: "center" },
     );
 

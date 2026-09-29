@@ -55,7 +55,6 @@ const llm = new ChatGroq({
   temperature: 0.2,
 });
 
-
 const vaultABI = [
   {
     inputs: [
@@ -195,7 +194,6 @@ async function runDeterminisitcCycle() {
   );
   await delay(1500);
 
-
   const [, priceInt] = await publicClient.readContract({
     address: CONFIG.ORACLES.BNB_USD,
     abi: oracleAbi,
@@ -206,7 +204,6 @@ async function runDeterminisitcCycle() {
 
   await pushLog(`[ORACLE] BNB/USD Price Verified: $${displayPrice}`);
   await delay(1500);
-
 
   await pushLog(`[AGENT] Generating analytical reasoning...`);
   const prompt = `You are the NeuroLoom AI Agent managing the 'Yield Farm' Strategy Vault.

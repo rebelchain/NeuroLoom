@@ -28,14 +28,15 @@ export async function generateDecision(
     temperature: 0.1,
   });
 
-  const VAULT_STRATEGIES = `
-1. "The Yield Farm" (Address: ${CONFIG.VAULTS.YIELD_FARM}): execute_venus_deposit. Rule: Max 80% allocation (leave 20% buffer).
-2. "Bluechip Momentum" (Address: ${CONFIG.VAULTS.BLUECHIP}): execute_pancake_swap (BUY_WBNB / SELL_WBNB). Rule: Requires clear reversal Market Structure.
-3. "Degen Accumulator" (Address: ${CONFIG.VAULTS.DEGEN}): execute_pancake_swap (BUY_BTCB / SELL_BTCB). Rule: High volatility strategy.
+const VAULT_STRATEGIES = `
+1. "The Yield Farm" (Address: ${CONFIG.VAULTS.YIELD_FARM}): execute_venus_deposit. 
+2. "Bluechip Momentum" (Address: ${CONFIG.VAULTS.BLUECHIP}): execute_pancake_swap (BUY_WBNB / SELL_WBNB).
+3. "Degen Accumulator" (Address: ${CONFIG.VAULTS.DEGEN}): execute_pancake_swap (BUY_BTCB / SELL_BTCB).
+4. "Capital Preservation" : hold_position. Rule: If market is highly volatile, uncertain, or risking impermanent loss, do nothing.
 
 CRITICAL RULE FOR amountInWei: 
-amountInWei represents the amount of INPUT tokens you are spending, NOT the output you want. 
-If action is BUY_WBNB, you are spending USDT. Therefore, if you want to spend 4,000 USDT, amountInWei MUST be "4000000000000000000000" (4000 * 10^18). Do NOT convert it to WBNB amounts!
+The execution engine will forcibly allocate exactly 1% of the vault's live balance. 
+You do NOT need to calculate wei. Simply output "AUTO" for the amountInWei field.
 `;
 
   const systemPrompt = `You are the NeuroLoom Quant Agent. 

@@ -1,11 +1,5 @@
 "use client";
 import Image from "next/image";
-import { useEffect, useState } from "react";
-
-// Komponen
-import { IdentityGateModal } from "@/components/IdentityGateModal";
-
-
 
 export function Footer() {
   const currentYear = new Date().getFullYear();

@@ -26,7 +26,7 @@ const vaultABI = [
 ] as const;
 
 const GRAPHQL_ENDPOINT =
-  "https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.6";
+  "https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.7";
 
 export function DashboardView() {
   const [totalRebalances, setTotalRebalances] = useState(0);

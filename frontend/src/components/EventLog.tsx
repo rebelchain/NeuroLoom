@@ -6,7 +6,7 @@ import { formatUnits } from "viem";
 import { ACTIVE_VAULTS } from "../config/addresses";
 
 const GRAPHQL_URL =
-  "https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.6";
+  "https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.7";
 
 const VAULT_MAP: Record<string, string> = {
   [ACTIVE_VAULTS[0].toLowerCase()]: "Yield Farm",

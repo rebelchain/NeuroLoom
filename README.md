@@ -210,7 +210,7 @@ The NeuroLoom ecosystem is built on a modern, high-performance web3 stack, stric
 | **Frontend (Analytics)** | Lightweight Charts (TradingView UI), jsPDF & html-to-image |
 | **Frontend (Web3 & Data)**| Wagmi v2, Viem, RainbowKit, Apollo Client (GraphQL), TanStack React Query, @x402/evm |
 | **Backend (API & AI Engine)** | Express.js (REST API), Node.js (tsx), TypeScript v7, Viem (Tx Signer), LangChain (`@langchain/core`), PDFKit |
-| **AI Model & Memory** | Groq API (qwen/qwen3.8-27b) *— Dynamic Orchestrator*, SQLite (Local Agent State) |
+| **AI Model & Memory** | Groq API (llama-3.3-70b-versatile) *— Dynamic Orchestrator*, SQLite (Local Agent State) |
 | **On-chain Indexing** | The Graph (Subgraph API for real-time event streaming) |
 | **Infrastructure & Backend Deployment** | Oracle Cloud (Linux VPS), Nginx (Reverse Proxy), DuckDNS (Dynamic DNS), Let's Encrypt (SSL/TLS)|
 

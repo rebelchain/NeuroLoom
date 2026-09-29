@@ -39,6 +39,9 @@ contract NeuroLoomVault is
     mapping(address => bool) public approvedProtocols;
     mapping(address => mapping(address => address)) public pairPriceFeeds;
 
+    //add this for lending venus, hmmm
+    mapping(address => bool) public isLendingProtocol;
+
     event RebalanceExecuted(address indexed tokenIn, address indexed tokenOut, uint256 amountIn, uint256 timestamp);
     event ProtocolApproved(address indexed protocol, bool status);
 
@@ -79,6 +82,11 @@ contract NeuroLoomVault is
         pairPriceFeeds[tokenIn][tokenOut] = feed;
     }
 
+    function setLendingProtocol(address protocol, bool status) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(protocol != address(0), "Invalid address");
+        isLendingProtocol[protocol] = status;
+    }
+
  
     function executeOmnichain(
         address targetProtocol,
@@ -91,7 +99,9 @@ contract NeuroLoomVault is
         require(amountIn > 0, "Amount must be > 0");
         require(approvedProtocols[targetProtocol], "Protocol not approved");
 
-        _validateSlippageAgainstOracle(tokenIn, tokenOut, amountIn, expectedAmountOutMin);
+        if (!isLendingProtocol[targetProtocol]) {
+            _validateSlippageAgainstOracle(tokenIn, tokenOut, amountIn, expectedAmountOutMin);
+        }
 
         IERC20(tokenIn).forceApprove(targetProtocol, amountIn);
         uint256 balanceBefore = IERC20(tokenOut).balanceOf(address(this));

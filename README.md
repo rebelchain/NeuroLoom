@@ -3,6 +3,7 @@
 </div>
 
 # NEUROLOOM
+  [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 > **Autonomous AI-Driven DeFi Yield Optimizer — Multi-Protocol Routing & Hardcoded MEV Resistance.**
 
@@ -18,6 +19,7 @@ Link: https://indonesiaweb3hack.xyz/en/projects/proj_231bfb01edfeb05edc
   <img alt="LangChain" src="https://img.shields.io/badge/AI--LangChain%20%7C%20openai%2Fgpt--oss-20b981?style=for-the-badge" />
   <img alt="BSC Testnet" src="https://img.shields.io/badge/Network-BSC%20Testnet-F3BA2F?logo=binance&logoColor=black&style=for-the-badge" />
   <img alt="Tests" src="https://img.shields.io/badge/Tests-7%20passing-10B981?style=for-the-badge" />
+
 </p>
 
 ### At a glance
@@ -51,16 +53,18 @@ Link: https://indonesiaweb3hack.xyz/en/projects/proj_231bfb01edfeb05edc
 1. [The Problem](#the-problem)
 2. [The Agentic Workflow Architecture](#the-agentic-workflow-architecture)
 3. [Live Engine Output](#live-engine-output-the-orchestrator-in-action)
-4. [The Vault Model (ERC-4626)](#the-vault-model-erc-4626)
+4. [The Vault Architecture (Factory & ERC-4626)](#the-vault-architecture-factory--erc-4626)
 5. [System Flow](#system-flow)
 6. [Live Deployment (BSC Testnet)](#live-deployment-bsc-testnet)
 7. [Repository Layout](#repository-layout)
 8. [Technology Stack](#technology-stack)
-9. [Getting Started](#getting-started)
-10. [Security & Threat Model](#security--threat-model)
-11. [Deterministic Test Coverage](#deterministic-test-coverage)
-12. [On-Chain Provisioning & Operational Scripts](#on-chain-provisioning--operational-scripts)
-13. [Known Limitations & Production Roadmap](#known-limitations--production-roadmap)
+9. [Cloud Architecture & Autonomous Execution](#cloud-architecture--autonomous-execution)
+10. [Getting Started](#getting-started)
+11. [Security & Threat Model](#security--threat-model)
+12. [Deterministic Test Coverage](#deterministic-test-coverage)
+13. [On-Chain Provisioning & Operational Scripts](#on-chain-provisioning--operational-scripts)
+14. [Known Limitations & Production Roadmap](#known-limitations--production-roadmap)
+15. [License](#license)
 
 ## 
 ---
@@ -369,6 +373,12 @@ To transition this architecture into a production-ready Mainnet environment, the
     - *Production Target — Observability & Harness Stack:*
         - **Framework Migration:** Migrate to the native **Claude Agent SDK**. Utilize the `withStructuredOutput()` paradigm (via Zod schemas) to guarantee type-safe AI responses and eliminate JSON parsing risks.
         - **State & Tracing:** Integrate **LangGraph** as a state manager for the Evaluator-Optimizer cycle, and use **LangSmith** for per-node tracing, latency, and cost monitoring.
+
+---
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 

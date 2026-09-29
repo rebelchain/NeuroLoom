@@ -18,11 +18,13 @@ export async function generateDecision(
   marketData: any,
   vaultState: any,
   recentMemories: any[],
+  yieldReport: string,
   feedbackContext: string = "",
 ): Promise<{ thoughts: string; draft: ToolDraft | null }> {
   const llm = new ChatGroq({
     apiKey: process.env.GROQ_API_KEY,
-    model: "openai/gpt-oss-safeguard-20b",
+    model: "openai/gpt-oss-20b",
+    maxTokens: 800,
     temperature: 0.1,
   });
 
@@ -55,7 +57,13 @@ Output strictly in this XML format:
 
   const replacer = (key: string, value: any) =>
     typeof value === "bigint" ? value.toString() : value;
-  let userContext = `DEFI STATE: ${JSON.stringify(marketData)}\nVAULT BALANCE: ${JSON.stringify(vaultState, replacer)}\nMEMORIES: ${JSON.stringify(recentMemories)}`;
+
+  let userContext = `DEFI STATE: ${JSON.stringify(marketData)}
+VAULT BALANCE: ${JSON.stringify(vaultState, replacer)}
+MEMORIES: ${JSON.stringify(recentMemories)}
+
+YIELD STRATEGIST REPORT:
+${yieldReport}`;
 
   if (feedbackContext) {
     userContext += `\n\nFEEDBACK FROM RISK OFFICER:\n${feedbackContext}\nYou MUST fix your previous draft based on this feedback.`;

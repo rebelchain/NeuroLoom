@@ -4,6 +4,9 @@ dotenvx.config();
 import { ChatGroq } from "@langchain/groq";
 import { generateDecision } from "./ai/agent.js";
 import { evaluateDecision } from "./ai/evaluator.js";
+import { runLiquidityRiskManager } from "./ai/liquidityWorker.js";
+import { runOrchestrator } from "./ai/orchestrator.js";
+import { runYieldStrategist } from "./ai/yieldWorker.js";
 import { getVaultState } from "./chain/vault.js";
 import { getRecentMemories, logAIDecision } from "./data/db.js";
 import { fetchQuantData } from "./data/taapi.js";
@@ -15,7 +18,8 @@ let isRunning = true;
 
 const evaluatorLLM = new ChatGroq({
   apiKey: process.env.GROQ_API_KEY,
-  model: "openai/gpt-oss-safeguard-20b",
+  model: "openai/gpt-oss-20b",
+  maxTokens: 800,
   temperature: 0,
 });
 
@@ -27,11 +31,35 @@ async function neuroLoomCycle() {
     const market = await fetchQuantData("BNB/USDT");
     const vaultData = await getVaultState();
     const memories = await getRecentMemories(3);
+    const marketString = JSON.stringify(market);
+
+    const tasks = await runOrchestrator(market);
+    console.log(
+      `[ORCHESTRATOR] Dynamically deploying ${tasks.length} workers...`,
+    );
+
+    const workerPromises = tasks.map((task) => {
+      console.log(`  -> Dispatching ${task.type}: ${task.description}`);
+
+      if (task.type === "YIELD_STRATEGIST") {
+        return runYieldStrategist(task.description, marketString);
+      }
+      if (task.type === "LIQUIDITY_RISK") {
+        return runLiquidityRiskManager(task.description, marketString);
+      }
+      return null;
+    });
+
+    const workerResults = await Promise.all(workerPromises);
+
+    const combinedWorkerReports = workerResults
+      .filter(Boolean)
+      .join("\n\n====================\n\n");
 
     let feedbackContext = "";
     let currentDraft = null;
     let finalThoughts = "";
-    const MAX_ITERATIONS = 3;
+    const MAX_ITERATIONS = 1;
 
     for (let attempt = 1; attempt <= MAX_ITERATIONS; attempt++) {
       console.log(
@@ -42,6 +70,7 @@ async function neuroLoomCycle() {
         market,
         vaultData,
         memories,
+        combinedWorkerReports,
         feedbackContext,
       );
 
@@ -70,7 +99,7 @@ async function neuroLoomCycle() {
         evaluatorLLM,
         draft,
         market,
-        vaultData.balances, 
+        vaultData.balances,
       );
 
       console.log(`[EVALUATOR] Status: ${evaluation.status}`);
@@ -121,6 +150,8 @@ async function neuroLoomCycle() {
           result = await executePancakeSwap.invoke(currentDraft.args);
         } else if (currentDraft.toolName === "execute_venus_deposit") {
           result = await executeVenusDeposit.invoke(currentDraft.args);
+        } else {
+          throw new Error(`Unknown toolName: ${currentDraft.toolName}`);
         }
 
         const finalOutput =
@@ -141,8 +172,8 @@ async function neuroLoomCycle() {
           market.rsi,
           finalThoughts,
           "SUCCESS",
-          txHash, 
-          targetVault, 
+          txHash,
+          targetVault,
         );
       } catch (chainError) {
         console.error(`[EXECUTION ERROR]Smart contract failed:`, chainError);

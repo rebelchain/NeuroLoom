@@ -14,7 +14,6 @@ import { bscTestnet } from "viem/chains";
 import { clearLogs, pushLog } from "../utils/push-log.js";
 
 dotenvx.config();
-
 const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
 const CONFIG = {

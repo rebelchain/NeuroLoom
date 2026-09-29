@@ -1,13 +1,13 @@
 import cors from "cors";
 import express from "express";
-import PDFDocument from "pdfkit"; 
+import PDFDocument from "pdfkit";
 import { getRecentMemories } from "./data/db.js";
 import { generateYieldFarmPDF } from "./pdfYieldFarm.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 const GRAPHQL_ENDPOINT =
-  "https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.6";
+  "https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.7";
 
 const VAULT_MAP_REVERSE: Record<string, string> = {
   "yield-farm": "0xD00b514048AFC47bFc4DE6a1646D5c63Bd23401a",
@@ -120,8 +120,6 @@ app.get("/api/history", async (req, res) => {
 //   }
 // });
 
-
-
 // GENERATE INSTITUTIONAL PDF REPORT
 
 app.get("/api/report/pdf", (req, res) => {
@@ -145,13 +143,11 @@ app.get("/api/report/pdf", (req, res) => {
   const doc = new PDFDocument({ margin: 50, size: "A4" });
   doc.pipe(res);
 
-
   doc.font("Courier-Bold").fontSize(22).text("NEUROLOOM", { align: "center" });
   doc.fontSize(12).text("AI YIELD OPTIMIZER REPORT", { align: "center" });
   doc.moveDown(1);
   doc.moveTo(50, doc.y).lineTo(545, doc.y).strokeColor("#cccccc").stroke();
   doc.moveDown(2);
-
 
   doc.fillColor("#000000").font("Courier").fontSize(10);
   doc.text(`TARGET VAULT   : ${vaultId.toUpperCase().replace("-", " ")}`);
@@ -160,7 +156,6 @@ app.get("/api/report/pdf", (req, res) => {
   doc.text(`AI ENGINE      : openai/gpt-oss-safeguard-20b`);
   doc.text(`ORACLE         : CHAINLINK DECENTRALIZED DATA FEEDS`);
   doc.moveDown(2);
-
 
   doc
     .font("Courier-Bold")
@@ -249,7 +244,7 @@ app.get("/api/report/pdf", (req, res) => {
     {
       action: isGlobal ? "MACRO_PORTFOLIO_REBALANCE" : "AI_STRATEGY_REBALANCE",
       amount: isGlobal ? "450.00 USDT" : "200.00 USDT",
-      route: dynamicRoute, 
+      route: dynamicRoute,
       status: "ROUTED_SUCCESSFULLY",
       slippage: "0.15% (WITHIN LIMITS)",
       hash: "0x7bce9a8f7d6e5c4b3a2f1e0d9c8b7a6f5e4d3c2b",

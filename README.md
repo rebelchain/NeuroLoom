@@ -105,12 +105,21 @@ The following is a real execution log from the NeuroLoom AI backend demonstratin
 [ORCHESTRATOR] Analyzing market and planning tasks.
 
 [ORCHESTRATOR ANALYSIS]:
-The BNB/USDT pair is in a ranging/sideways market with a neutral RSI (~42.6) and a negative MACD, indicating no strong trend. In such a market, yield opportunities can be attractive because price volatility is low, reducing impermanent loss risk. However, thelack of a clear trend also means liquidity pools may experience higher slippage if traders are uncertain. Therefore, both a YIELD_STRATEGIST to identify the most profitable and low‑risk yield farms, and a LIQUIDITY_RISK worker to assess slippage, depth, and potential impermanent loss, should be deployed to formulate a balanced strategy.
+The BNB/USDT pair is in a ranging/sideways market with a neutral RSI (~42.6) and a negative MACD,
+indicating no strong trend. In such a market, yield opportunities can be attractive because price volatility
+is low, reducing impermanent loss risk. However, thelack of a clear trend also means liquidity pools
+may experience higher slippage if traders are uncertain.
+Therefore, both a YIELD_STRATEGIST to identify the most profitable and low‑risk yield farms,
+and a LIQUIDITY_RISK worker to assess slippage, depth, and potential impermanent loss,
+should be deployed to formulate a balanced strategy.
 
 [AGENT] Synthesizing worker reports into action plan...
 [EVALUATOR] Auditing AI Agent draft...
 [EVALUATOR VERDICT] PASS
-Reasoning: Deposit into the Yield Farm vault (0xD00b514048AFC47bFc4DE6a1646D5c63Bd23401a) is a neutral, income‑generating action that aligns with the current ranging/sideways market structure. The tool call correctly targets the available vault address and will allocate 1% of the vault balance, which is a conservative and safe strategy given the market conditions.
+Reasoning: Deposit into the Yield Farm vault (0xD00b514048AFC47bFc4DE6a1646D5c63Bd23401a) is a neutral,
+income‑generating action that aligns with the current ranging/sideways market structure.
+The tool call correctly targets the available vault address and will allocate 1% of the vault balance,
+which is a conservative and safe strategy given the market conditions.
 [EXECUTOR] AI Selected Tool: execute_venus_deposit
 [RISK CONTROL] Execution forced to 1% of vault balance: 65.908289 USDT
 [EXECUTION] Signing transaction for execute_venus_deposit...

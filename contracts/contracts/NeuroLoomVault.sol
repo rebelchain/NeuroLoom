@@ -12,11 +12,58 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
+import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+
 interface IChainlinkAggregator {
     function latestRoundData() external view returns (
         uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound
     );
     function decimals() external view returns (uint8);
+}
+
+interface IVenusToken {
+    function exchangeRateStored() external view returns (uint256);
+}
+
+interface INonfungiblePositionManager {
+    struct MintParams {
+        address token0;
+        address token1;
+        uint24 fee;
+        int24 tickLower;
+        int24 tickUpper;
+        uint256 amount0Desired;
+        uint256 amount1Desired;
+        uint256 amount0Min;
+        uint256 amount1Min;
+        address recipient;
+        uint256 deadline;
+    }
+    struct DecreaseLiquidityParams {
+        uint256 tokenId;
+        uint128 liquidity;
+        uint256 amount0Min;
+        uint256 amount1Min;
+        uint256 deadline;
+    }
+    struct CollectParams {
+        uint256 tokenId;
+        address recipient;
+        uint128 amount0Max;
+        uint128 amount1Max;
+    }
+
+    function mint(MintParams calldata params) external payable returns (
+        uint256 tokenId, uint128 liquidity, uint256 amount0, uint256 amount1
+    );
+    function decreaseLiquidity(DecreaseLiquidityParams calldata params) external payable returns (uint256 amount0, uint256 amount1);
+    function collect(CollectParams calldata params) external payable returns (uint256 amount0, uint256 amount1);
+    function burn(uint256 tokenId) external payable;
+    function positions(uint256 tokenId) external view returns (
+        uint96 nonce, address operator, address token0, address token1, uint24 fee, int24 tickLower,
+        int24 tickUpper, uint128 liquidity, uint256 feeGrowthInside0LastX128, uint256 feeGrowthInside1LastX128,
+        uint128 tokensOwed0, uint128 tokensOwed1
+    );
 }
 
 /**
@@ -28,18 +75,27 @@ contract NeuroLoomVault is
     AccessControlUpgradeable, 
     PausableUpgradeable, 
     ReentrancyGuard, 
-    UUPSUpgradeable 
+    UUPSUpgradeable,
+    IERC721Receiver 
 {
     using SafeERC20 for IERC20;
 
     bytes32 public constant AI_EXECUTOR_ROLE = keccak256("AI_EXECUTOR_ROLE");
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
+    
     uint256 public constant MAX_SLIPPAGE_BPS = 200; // 2%
+    uint256 public constant MAX_DEPLOYABLE_BPS = 9000; // 90% 
+    uint256 public constant MAX_VELOCITY_BPS = 2000; // 20% 
+
+    address public wbnbToken;
+    address public venusVToken; 
+    INonfungiblePositionManager public nftPositionManager;
+
+    uint256 public lpDeployedPrincipal;
+    uint256 public highestVenusExchangeRate; 
 
     mapping(address => bool) public approvedProtocols;
     mapping(address => mapping(address => address)) public pairPriceFeeds;
-
-    //add this for lending venus, hmmm
     mapping(address => bool) public isLendingProtocol;
 
     event RebalanceExecuted(address indexed tokenIn, address indexed tokenOut, uint256 amountIn, uint256 timestamp);
@@ -87,7 +143,18 @@ contract NeuroLoomVault is
         isLendingProtocol[protocol] = status;
     }
 
- 
+    function setWbnbToken(address _wbnbToken) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        wbnbToken = _wbnbToken;
+    }
+
+    function setVenusVToken(address _venusVToken) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        venusVToken = _venusVToken;
+    }
+
+    function setNftPositionManager(address _manager) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        nftPositionManager = INonfungiblePositionManager(_manager);
+    }
+
     function executeOmnichain(
         address targetProtocol,
         bytes calldata data,
@@ -99,7 +166,25 @@ contract NeuroLoomVault is
         require(amountIn > 0, "Amount must be > 0");
         require(approvedProtocols[targetProtocol], "Protocol not approved");
 
-        if (!isLendingProtocol[targetProtocol]) {
+        uint256 currentTvl = totalAssets();
+
+        require(amountIn <= (currentTvl * MAX_VELOCITY_BPS) / 10000, "VelocityGuard: Amount exceeds 20% per TX");
+
+ 
+        if (tokenIn == asset()) {
+            uint256 currentIdleUsdt = IERC20(asset()).balanceOf(address(this));
+            uint256 alreadyDeployedUsdt = currentTvl - currentIdleUsdt;
+            require(alreadyDeployedUsdt + amountIn <= (currentTvl * MAX_DEPLOYABLE_BPS) / 10000, "NeuroLoomGuard: Exceeds 90% deployment cap");
+        }
+
+    
+        if (isLendingProtocol[targetProtocol] && venusVToken != address(0)) {
+            uint256 currentRate = IVenusToken(venusVToken).exchangeRateStored();
+            require(currentRate >= highestVenusExchangeRate, "RateGuard: Venus Depeg Detected");
+            if (currentRate > highestVenusExchangeRate) {
+                highestVenusExchangeRate = currentRate;
+            }
+        } else {
             _validateSlippageAgainstOracle(tokenIn, tokenOut, amountIn, expectedAmountOutMin);
         }
 
@@ -113,6 +198,24 @@ contract NeuroLoomVault is
         require((balanceAfter - balanceBefore) >= expectedAmountOutMin, "Fatal: Post-execution slippage detected");
 
         emit RebalanceExecuted(tokenIn, tokenOut, amountIn, block.timestamp);
+    }
+
+    /**
+     * @dev OVERRIDE CRITICAL: Calculate real Net Asset Value
+     */
+    function totalAssets() public view virtual override returns (uint256) {
+        uint256 idleCash = IERC20(asset()).balanceOf(address(this));
+
+        uint256 venusValue = 0;
+        if (venusVToken != address(0)) {
+            uint256 vBalance = IERC20(venusVToken).balanceOf(address(this));
+            if (vBalance > 0) {
+                uint256 exchangeRate = IVenusToken(venusVToken).exchangeRateStored();
+                venusValue = (vBalance * exchangeRate) / 1e18;
+            }
+        }
+
+        return idleCash + venusValue + lpDeployedPrincipal;
     }
 
     function _validateSlippageAgainstOracle(
@@ -135,9 +238,8 @@ contract NeuroLoomVault is
         uint8 feedDecimals = feed.decimals(); 
 
         uint256 expectedAmountOut;
-        address WBNB_TESTNET = 0xae13d989daC2f0dEbFf460aC112a837C89BAa7cd; 
 
-        if (tokenOut == WBNB_TESTNET) {
+        if (tokenOut == wbnbToken) {
             expectedAmountOut = (amountIn * (10 ** tokenOutDecimals) * (10 ** feedDecimals)) / 
                                 (uint256(price) * (10 ** tokenInDecimals));
         } else {
@@ -149,12 +251,79 @@ contract NeuroLoomVault is
         require(amountOutMin >= minimumAcceptableAmount, "Slippage tolerance exceeded Oracle bounds");
     }
 
-    /**
-     * @dev ERC-4626 inflation attack mitigation, preventing donation attacks
-     * Overrides the default OpenZeppelin value of 0 with 6.
+   /**
+     * @dev Liquidity Position (ERC-721) PancakeSwap V3.
      */
-    function _decimalsOffset() internal view virtual override returns (uint8) {
-        return 6;
+    function executeLiquidityProvision(
+        address token0,
+        address token1,
+        uint24 fee,
+        int24 tickLower,
+        int24 tickUpper,
+        uint256 amount0Desired,
+        uint256 amount1Desired,
+        uint256 amount0Min,
+        uint256 amount1Min
+    ) external nonReentrant onlyRole(AI_EXECUTOR_ROLE) whenNotPaused returns (uint256 tokenId) {
+        require(address(nftPositionManager) != address(0), "Manager V3 not configured");
+        
+        IERC20(token0).forceApprove(address(nftPositionManager), amount0Desired);
+        IERC20(token1).forceApprove(address(nftPositionManager), amount1Desired);
+
+        INonfungiblePositionManager.MintParams memory params = INonfungiblePositionManager.MintParams({
+            token0: token0,
+            token1: token1,
+            fee: fee,
+            tickLower: tickLower,
+            tickUpper: tickUpper,
+            amount0Desired: amount0Desired,
+            amount1Desired: amount1Desired,
+            amount0Min: amount0Min,
+            amount1Min: amount1Min,
+            recipient: address(this), 
+            deadline: block.timestamp + 300
+        });
+
+        uint256 amount0;
+        uint256 amount1;
+        
+        (tokenId, , amount0, amount1) = nftPositionManager.mint(params);
+
+        if (token0 == asset()) lpDeployedPrincipal += amount0;
+        if (token1 == asset()) lpDeployedPrincipal += amount1;
+    }
+
+    /**
+     * @dev close position LP
+     */
+    function closeLPPosition(uint256 tokenId) external nonReentrant onlyRole(AI_EXECUTOR_ROLE) whenNotPaused {
+        //  get current position from NFT
+        (,,,,,,, uint128 liquidity,,,,) = nftPositionManager.positions(tokenId);
+        require(liquidity > 0, "No liquidity in this NFT");
+
+        // cabut liquidity
+        nftPositionManager.decreaseLiquidity(INonfungiblePositionManager.DecreaseLiquidityParams({
+            tokenId: tokenId,
+            liquidity: liquidity,
+            amount0Min: 0,
+            amount1Min: 0,
+            deadline: block.timestamp + 300
+        }));
+
+        // get pokok token + trading fee
+        nftPositionManager.collect(INonfungiblePositionManager.CollectParams({
+            tokenId: tokenId,
+            recipient: address(this),
+            amount0Max: type(uint128).max,
+            amount1Max: type(uint128).max
+        }));
+
+        // burn nft
+        nftPositionManager.burn(tokenId);
+    }
+
+    function onERC721Received(address, address, uint256, bytes calldata) external pure override returns (bytes4) {
+        return this.onERC721Received.selector;
     }
 
     function pause() public onlyRole(DEFAULT_ADMIN_ROLE) { _pause(); }

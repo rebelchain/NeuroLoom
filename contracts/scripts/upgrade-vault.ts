@@ -26,7 +26,6 @@ const uupsAbi = [
 async function upgradeVault() {
   console.log("starting uups upgrade");
 
-
   const pk = process.env.PRIVATE_KEY;
   if (!pk) throw new Error("no private key");
 

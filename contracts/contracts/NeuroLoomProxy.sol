@@ -5,8 +5,8 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 
 /**
  * @title NeuroLoomProxy
- * @dev A custom UUPS proxy implementation secures the vault's TVL.
+ * @dev 
  */
 contract NeuroLoomProxy is ERC1967Proxy {
-    constructor(address logic, bytes memory data) payable ERC1967Proxy(logic, data) {}
+    constructor(address _logic, bytes memory _data) payable ERC1967Proxy(_logic, _data) {}
 }

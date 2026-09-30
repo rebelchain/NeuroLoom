@@ -3,10 +3,11 @@
 </div>
 
 # NEUROLOOM
+  [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 > **Autonomous AI-Driven DeFi Yield Optimizer — Multi-Protocol Routing & Hardcoded MEV Resistance.**
 
-NeuroLoom is a next-generation Decentralized Finance (DeFi) protocol that fuses advanced **Agentic Workflows** with mathematically guaranteed on-chain execution. It enables an autonomous AI engine to analyze, optimize, and route portfolios (Swap, Lending, Staking) 24/7 across the DeFi ecosystem, while strict Smart Contract guardrails protect the Total Value Locked (TVL) from MEV bots, flash loan attacks, and AI hallucinations.
+NeuroLoom is an institutional-grade Decentralized Finance (DeFi) protocol that fuses multi-agent AI workflows with deterministic on-chain execution. It empowers an autonomous AI engine to analyze market conditions and route capital (via asset swaps and lending) 24/7 across the BNB Chain ecosystem. To ensure absolute security, strict smart contract guardrails—including hard-capped 1% allocation limits and ERC-4626 inflation overrides—protect the Total Value Locked (TVL) from MEV bots, vault exploits, and AI hallucinations.
 
 Built for the **Indonesia Web3 Hackathon 2026**. **BNB Chain**.
 Link: https://indonesiaweb3hack.xyz/en/projects/proj_231bfb01edfeb05edc
@@ -18,6 +19,7 @@ Link: https://indonesiaweb3hack.xyz/en/projects/proj_231bfb01edfeb05edc
   <img alt="LangChain" src="https://img.shields.io/badge/AI--LangChain%20%7C%20openai%2Fgpt--oss-20b981?style=for-the-badge" />
   <img alt="BSC Testnet" src="https://img.shields.io/badge/Network-BSC%20Testnet-F3BA2F?logo=binance&logoColor=black&style=for-the-badge" />
   <img alt="Tests" src="https://img.shields.io/badge/Tests-7%20passing-10B981?style=for-the-badge" />
+
 </p>
 
 ### At a glance
@@ -51,16 +53,18 @@ Link: https://indonesiaweb3hack.xyz/en/projects/proj_231bfb01edfeb05edc
 1. [The Problem](#the-problem)
 2. [The Agentic Workflow Architecture](#the-agentic-workflow-architecture)
 3. [Live Engine Output](#live-engine-output-the-orchestrator-in-action)
-4. [The Vault Model (ERC-4626)](#the-vault-model-erc-4626)
+4. [The Vault Architecture (Factory & ERC-4626)](#the-vault-architecture-factory--erc-4626)
 5. [System Flow](#system-flow)
 6. [Live Deployment (BSC Testnet)](#live-deployment-bsc-testnet)
 7. [Repository Layout](#repository-layout)
 8. [Technology Stack](#technology-stack)
-9. [Getting Started](#getting-started)
-10. [Security & Threat Model](#security--threat-model)
-11. [Deterministic Test Coverage](#deterministic-test-coverage)
-12. [On-Chain Provisioning & Operational Scripts](#on-chain-provisioning--operational-scripts)
-13. [Known Limitations & Production Roadmap](#known-limitations--production-roadmap)
+9. [Cloud Architecture & Autonomous Execution](#cloud-architecture--autonomous-execution)
+10. [Getting Started](#getting-started)
+11. [Security & Threat Model](#security--threat-model)
+12. [Deterministic Test Coverage](#deterministic-test-coverage)
+13. [On-Chain Provisioning & Operational Scripts](#on-chain-provisioning--operational-scripts)
+14. [Known Limitations & Production Roadmap](#known-limitations--production-roadmap)
+15. [License](#license)
 
 ## 
 ---
@@ -101,12 +105,21 @@ The following is a real execution log from the NeuroLoom AI backend demonstratin
 [ORCHESTRATOR] Analyzing market and planning tasks.
 
 [ORCHESTRATOR ANALYSIS]:
-The BNB/USDT pair is in a ranging/sideways market with a neutral RSI (~42.6) and a negative MACD, indicating no strong trend. In such a market, yield opportunities can be attractive because price volatility is low, reducing impermanent loss risk. However, thelack of a clear trend also means liquidity pools may experience higher slippage if traders are uncertain. Therefore, both a YIELD_STRATEGIST to identify the most profitable and low‑risk yield farms, and a LIQUIDITY_RISK worker to assess slippage, depth, and potential impermanent loss, should be deployed to formulate a balanced strategy.
+The BNB/USDT pair is in a ranging/sideways market with a neutral RSI (~42.6) and a negative MACD,
+indicating no strong trend. In such a market, yield opportunities can be attractive because price volatility
+is low, reducing impermanent loss risk. However, thelack of a clear trend also means liquidity pools
+may experience higher slippage if traders are uncertain.
+Therefore, both a YIELD_STRATEGIST to identify the most profitable and low‑risk yield farms,
+and a LIQUIDITY_RISK worker to assess slippage, depth, and potential impermanent loss,
+should be deployed to formulate a balanced strategy.
 
 [AGENT] Synthesizing worker reports into action plan...
 [EVALUATOR] Auditing AI Agent draft...
 [EVALUATOR VERDICT] PASS
-Reasoning: Deposit into the Yield Farm vault (0xD00b514048AFC47bFc4DE6a1646D5c63Bd23401a) is a neutral, income‑generating action that aligns with the current ranging/sideways market structure. The tool call correctly targets the available vault address and will allocate 1% of the vault balance, which is a conservative and safe strategy given the market conditions.
+Reasoning: Deposit into the Yield Farm vault (0xD00b514048AFC47bFc4DE6a1646D5c63Bd23401a) is a neutral,
+income‑generating action that aligns with the current ranging/sideways market structure.
+The tool call correctly targets the available vault address and will allocate 1% of the vault balance,
+which is a conservative and safe strategy given the market conditions.
 [EXECUTOR] AI Selected Tool: execute_venus_deposit
 [RISK CONTROL] Execution forced to 1% of vault balance: 65.908289 USDT
 [EXECUTION] Signing transaction for execute_venus_deposit...
@@ -158,8 +171,10 @@ NeuroLoom utilizes a Factory-Proxy architecture to deploy isolated ERC-4626 stan
 | :--- | :--- |
 | **Chainlink BNB/USD Oracle** | `0x2514895c72f50D8bd4B4F9b1110F0D6bD2c97526` |
 | **Chainlink BTC/USD Oracle** | `0x5741306c21795FdCBb9b265Ea0255F499DFe515C` |
-| **The Graph Subgraph API** | `https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.6` |
+| **Venus Protocol (vUSDT)** | `0xb7526572FFE56AB9D7489838Bf2E18e3323b441A`
 | **PancakeSwap Router (v3)** *(Testnet)* | `0x1b81D678ffb9C0263b24A97847620C99d213eB14` |
+| **Mock Swap Router** *(Hackathon Tesnet)* | `0xf33c30a801720294eba818a143339e487cddf129`
+| **The Graph Subgraph API** | `https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.7` |
 
 ---
 
@@ -234,7 +249,7 @@ The UI is built with Next.js (App Router) and deployed via Vercel.
 ### 2. API Server, PDF Engine & AI Worker (Oracle Cloud)
 To ensure high availability, the Express.js backend and the autonomous AI worker are deployed on an Oracle Cloud Ubuntu VM behind an Nginx reverse proxy with SSL (Let's Encrypt).
 - **Function:** Serves live history data via `/api/history` and dynamically generates Institutional PDF Tear Sheets via `pdfkit`.
-- **Autonomous AI Engine:** The execution script (`autonomous_yield_farm.ts`) runs on a strict 12-hour cron schedule. It ingests live market data from TAAPI, synthesizes strategies through a multi-agent LangChain/Groq pipeline, and executes real on-chain transactions (BSC Testnet) via Viem. 
+- **Autonomous AI Engine:** The execution script (`autonomous_yield_farm.ts`) is architected for 24/7 continuous tick-by-tick execution. However, for this demo deployment, it is throttled to a **strict 12-hour cron schedule** to accommodate Groq's free-tier API rate limits. It ingests live market data from TAAPI, synthesizes strategies through a multi-agent LangChain/Groq pipeline, and executes real on-chain transactions (BSC Testnet) via Viem.
 - **Ledger:** All AI reasoning, risk evaluation outputs, and on-chain transaction hashes are actively written to `autonomous_ai_logs.json`, providing a real-time, transparent audit trail.
 ---
 
@@ -290,25 +305,19 @@ Run these core services from their respective directories in separate terminal w
 
 ## Deterministic Test Coverage
 
-NeuroLoom's core security mechanisms and upgradeable proxy architecture are strictly validated using Hardhat v3, testing both aggressive MEV simulated attacks and multi-protocol happy paths with dynamic decimal mapping.
-
 ```
 $ npx hardhat test
 
-  Deployment & Proxy Upgradeability (smoke-test.ts)
-    ✔ Must deploy ERC1967 Proxy and Vault V2 Implementation (85ms)
-    ✔ Must initialize default admin and grant AI_EXECUTOR_ROLE (62ms)
-    ✔ Must allow Admin to successfully pause and unpause the vault (45ms)
+ Security Audit & Wamia Guards: NeuroLoomVault (Hardhat v3 + Viem)
+    🛡 Core Access Control (RBAC & Whitelist)
+      ✔ Must have a valid AI_EXECUTOR_ROLE. (1029ms)
+      ✔ Must REVERT if the AI ​​targets a non-whitelisted protocol.
+    NeuroLoom Defense Systems 
+      ✔ Velocity Guard: Must REVERT if AI uses > 20% of TVL in a single transaction.
+      ✔ Oracle Guard: Must REVERT if the transaction does not have a valid Oracle Price Feed.
 
-  E2E BSC Testnet Fork: Anti-Sandwich Attack & Multi-Protocol Routing (E2ESlippage.test.ts)
-     🛡️ Security Guards (Negative Paths)
-      ✔ Must revert if called by a non-AI role (Access Control) (295ms)
-      ✔ Must revert if AI targets an unapproved protocol (Protocol Whitelist) (120ms)
-      ✔ Must revert if AI sends an expectedAmountOutMin below the 2% slippage limit (Anti-MEV) (158ms)
-     ⚡ True Multi-Protocol Routing (Happy Path)
-      ✔ Must successfully execute a cross-protocol swap with correct calldata & dynamic decimals (350ms)
 
-  7 passing (3s)
+4 passing (4 nodejs)
 ```
 
 ## On-Chain Provisioning & Operational Scripts
@@ -327,42 +336,59 @@ Targeted network scripts for real-world deployment, security provisioning, and l
 ---
 
 ## Known Limitations & Production Roadmap
-
-NeuroLoom was built as a **zero-cost prototype** for the Indonesia Web3 Hackathon. The current architecture prioritizes secure forward-execution, on-chain safety guards, and lean deployment over global scalability.
-
+ 
+NeuroLoom was built as a zero-cost prototype for the Indonesia Web3 Hackathon. The current architecture prioritizes secure forward-execution, on-chain safety guards, and lean deployment over global scalability.
+ 
 To transition this architecture into a production-ready Mainnet environment, the following infrastructure upgrades are scoped:
+ 
+**True AMM Concentrated Liquidity & Advanced Unwinding (ERC-4626 Completeness)**
+ 
+- *Current Prototype (Lending & Tactical Repositioning):* The current architecture perfectly handles linear ERC-20 execution paths. The AI can successfully deploy funds into Venus Lending (e.g., USDT ↔ vUSDT) to generate passive yield, or execute tactical asset swaps (e.g., USDT ↔ WBNB) via PancakeSwap's `exactInputSingle`. Because these are linear token paths, position unwinding and user `withdraw()` are fully functional by simply reversing the routing logic.
+- *Production Target (Concentrated Liquidity Provision):* While lending and swaps are solved, True AMM Liquidity Provision on PancakeSwap V3 remains pending. True LPing does not return an ERC-20 token; it mints an ERC-721 NFT via `NonfungiblePositionManager` containing specific price tick ranges. The roadmap target is to build a dedicated NFT position-tracking module, allowing the AI to actively manage concentrated liquidity ranges to harvest actual DEX trading fees.
+**Impermanent Loss (IL) Modeling**
+ 
+- *Current Prototype:* Worker agents evaluate APY and qualitative risk signals but do not compute Impermanent Loss exposure mathematically.
+- *Production Target:* Add a dedicated IL calculation module (price divergence vs. pool composition) so LP allocation decisions strictly account for IL mitigation, not just headline APY.
+**AI Executor Key Management**
+ 
+- *Current Prototype:* `AI_PRIVATE_KEY` is loaded from a local `.env` file for rapid hackathon iteration.
+- *Production Target:* Migrate to KMS-backed signing (AWS KMS / HashiCorp Vault) so the raw private key never exists in plaintext or process memory.
+**AI Memory & Database Scaling**
+ 
+- *Current Prototype:* Uses a local JSON ledger (`autonomous_ai_logs.json`) for isolated, high-speed AI memory logging.
+- *Production Target:* Migration to a distributed PostgreSQL architecture coupled with Redis caching to safely handle concurrent state-sharing across hundreds of AI workers.
+**Closed-Loop Execution Learning**
+ 
+- *Current Prototype:* The system successfully captures the final on-chain settlement status (`txHash`, `SUCCESS`, or `FAIL`) and the AI's reasoning into the JSON ledger.
+- *Production Target:* Enable semantic retrieval of past failures. The AI should read its own ledger to dynamically learn from on-chain rejections (e.g., automatically widening slippage tolerance if the last 3 transactions reverted due to liquidity crunches).
+**Oracle Feed Diversity**
+ 
+- *Current Prototype:* The slippage guardrail intercepts data from a single Chainlink aggregator per pair.
+- *Production Target:* Integration of multi-asset Time-Weighted Average Price (TWAP) and redundant decentralized oracle networks (DONs) to neutralize isolated flash-crash vulnerabilities.
+**Dynamic Allocation Sizing (Capital Efficiency)**
+ 
+- *Current Prototype:* To ensure absolute mathematical safety and prevent catastrophic slippage, the execution engine strictly hardcodes trade sizes to 1% of the vault's total live balance. The AI dictates the direction, but the deterministic code dictates the size.
+- *Production Target:* Implement a dynamic sizing module (e.g., Kelly Criterion or Risk-Parity allocation) where the AI safely calculates and proposes the exact allocation percentage based on real-time liquidity depth, bounded by strict smart contract limits.
+**AI Evaluation Framework & Harness Engineering**
+ 
+- *Architectural Clarity:* NeuroLoom's AI system is an Orchestrator-Workers Workflow with an Evaluator-Optimizer cycle — not a loosely prompted autonomous agent. Orchestration flow is controlled by deterministic code; LLMs are called through predefined paths. This limits blast radius and keeps the smart contract as the ultimate source of truth.
+- *Current Prototype:* Relies on prompt-engineered JSON formatting via Groq without formal pipeline evaluation. Worker outputs are accepted if they pass JSON parsing and the Risk Evaluator.
+- *Production Target — Evaluation Stack:*
+  - **Single-turn evals:** Assert that each Worker produces a directionally correct decision against a curated ground-truth dataset. Runnable deterministically on every prompt/model change.
+  - **Regression suite:** A frozen snapshot of `(market_input, expected_action)` pairs that must pass before any prompt or model version is promoted.
+- *Production Target — Observability & Harness Stack:*
+  - **Framework Migration:** Migrate to the native Claude Agent SDK. Utilize the `withStructuredOutput()` paradigm (via Zod schemas) to guarantee type-safe AI responses and eliminate JSON parsing risks.
+  - **State & Tracing:** Integrate LangGraph as a state manager for the Evaluator-Optimizer cycle, and use LangSmith for per-node tracing, latency, and cost monitoring.
+**Gas Cost & Protocol Sustainability**
+ 
+- *Current Prototype:* Execution cycles run at a fixed interval regardless of on-chain conditions or vault TVL. Gas costs are treated as negligible in a testnet environment.
+- *Production Target:* Implement a gas-aware cycle scheduler. The AI should skip or delay execution when estimated gas cost exceeds a defined threshold relative to the projected yield gain of that cycle. Net protocol revenue is a function of `(Performance Fee × TVL) - (Gas Cost per Cycle × Cycle Frequency) - Infrastructure Cost`, making gas efficiency a first-class optimization target for the production system.
 
-1. **True AMM Concentrated Liquidity & Advanced Unwinding (ERC-4626 Completeness):**
-   * **Current Prototype (Lending & Tactical Repositioning):** The current architecture perfectly handles linear ERC-20 execution paths. The AI can successfully deploy funds into Venus Lending (e.g., USDT ↔ vUSDT) to generate passive yield, or execute tactical asset swaps (e.g., USDT ↔ WBNB) via PancakeSwap's `exactInputSingle`. Because these are linear token paths, **position unwinding and user `withdraw()` are fully functional** by simply reversing the routing logic.
-   * **Production Target (Concentrated Liquidity Provision):** While lending and swaps are solved, **True AMM Liquidity Provision** on PancakeSwap V3 remains pending. True LPing does not return an ERC-20 token; it mints an ERC-721 NFT via `NonfungiblePositionManager` containing specific price tick ranges. The roadmap target is to build a dedicated NFT position-tracking module, allowing the AI to actively manage concentrated liquidity ranges to harvest actual DEX trading fees.
-2. **Impermanent Loss (IL) Modeling:**
-    - *Current Prototype:* Worker agents evaluate APY and qualitative risk signals but do not compute Impermanent Loss exposure mathematically.
-    - *Production Target:* Add a dedicated IL calculation module (price divergence vs. pool composition) so LP allocation decisions strictly account for IL mitigation, not just headline APY.
-3. **AI Executor Key Management:**
-    - *Current Prototype:* `AI_PRIVATE_KEY` is loaded from a local `.env` file for rapid hackathon iteration.
-    - *Production Target:* Migrate to KMS-backed signing (AWS KMS / HashiCorp Vault) so the raw private key never exists in plaintext or process memory.
-4. **AI Memory & Database Scaling:**
-    - *Current Prototype:* Uses local `SQLite` for isolated, high-speed AI memory logging.
-    - *Production Target:* Migration to a distributed **PostgreSQL** architecture coupled with **Redis** caching to safely handle concurrent state-sharing across hundreds of AI workers.
-5. **Closed-Loop Execution Memory:**
-    - *Current Prototype:* The AI agents log their intended decisions (action, amount, reasoning) to the local database prior to on-chain execution, but the final on-chain settlement status (success/revert) is not written back.
-    - *Production Target:* Upgrade the database schema to capture `txHash`, `status`, and `errorReason`. This creates a closed feedback loop, allowing the AI to retrieve past failed transactions and dynamically learn from on-chain rejections (e.g., adjusting slippage tolerance after a revert).
-6. **Oracle Feed Diversity:**
-    - *Current Prototype:* The slippage guardrail intercepts data from a single Chainlink aggregator per pair.
-    - *Production Target:* Integration of multi-asset Time-Weighted Average Price (TWAP) and redundant decentralized oracle networks (DONs) to neutralize isolated flash-crash vulnerabilities.
-7. **AI Evaluation Framework & Harness Engineering:**
-    - *Architectural Clarity:* NeuroLoom's AI system is an Orchestrator-Workers Workflow with an Evaluator-Optimizer cycle — not a traditional autonomous agent. Orchestration flow is controlled by deterministic code; LLMs are called through predefined paths, not self-directed tool loops. This limits blast radius and keeps the smart contract as the ultimate source of truth.
-    - *Current Prototype:* Relies on prompt-engineered JSON formatting via Groq without formal evaluation. AI decisions are logged but not evaluated against financial ground truth. Worker outputs are accepted if they pass JSON parsing; there is no automated check that the reasoning is financially sound.
-    - *Production Target — Evaluation Stack:*
-        - **Single-turn evals:** Given a market data snapshot, assert that each Worker produces a directionally correct decision against a curated ground-truth dataset. Runnable deterministically on every prompt/model change.
-        - **End-state evals:** After each on-chain execution, compare vault's actual token balances against the expected post-trade state. On-chain truth is the ground truth.
-        - **Regression suite:** A frozen snapshot of `(market_input, expected_action)` pairs that must pass before any prompt or model version is promoted.
-        - **LLM-as-judge (optional):** Evaluate Evaluator-Optimizer reasoning quality for open-ended financial justifications.
-    - *Production Target — Observability & Harness Stack:*
-        - **Framework Migration:** Migrate to the native **Claude Agent SDK**. Utilize the `withStructuredOutput()` paradigm (via Zod schemas) to guarantee type-safe AI responses and eliminate JSON hallucination.
-        - **Tool Calling:** Equip agents with explicit deterministic tool-calling (e.g., calling a strict `calculate_impermanent_loss()` function) rather than relying on LLM text reasoning for math.
-        - **State & Tracing:** Integrate **LangGraph** as a state manager for the Evaluator-Optimizer cycle (replacing the imperative MAX_ITERATIONS loop), and use **LangSmith** for per-node tracing, latency, and cost monitoring.
-        - **Cost & Drift Control:** Enforce per-cycle cost budgets (aborting if LLM cost > projected yield) and run the regression suite on a weekly schedule to detect upstream model drift.
+---
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 

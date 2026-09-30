@@ -305,25 +305,19 @@ Run these core services from their respective directories in separate terminal w
 
 ## Deterministic Test Coverage
 
-NeuroLoom's core security mechanisms and upgradeable proxy architecture are strictly validated using Hardhat v3, testing both aggressive MEV simulated attacks and multi-protocol happy paths with dynamic decimal mapping.
-
 ```
 $ npx hardhat test
 
-  Deployment & Proxy Upgradeability (smoke-test.ts)
-    ✔ Must deploy ERC1967 Proxy and Vault V2 Implementation (85ms)
-    ✔ Must initialize default admin and grant AI_EXECUTOR_ROLE (62ms)
-    ✔ Must allow Admin to successfully pause and unpause the vault (45ms)
+ Security Audit & Wamia Guards: NeuroLoomVault (Hardhat v3 + Viem)
+    🛡 Core Access Control (RBAC & Whitelist)
+      ✔ Must have a valid AI_EXECUTOR_ROLE. (1029ms)
+      ✔ Must REVERT if the AI ​​targets a non-whitelisted protocol.
+    NeuroLoom Defense Systems 
+      ✔ Velocity Guard: Must REVERT if AI uses > 20% of TVL in a single transaction.
+      ✔ Oracle Guard: Must REVERT if the transaction does not have a valid Oracle Price Feed.
 
-  E2E BSC Testnet Fork: Anti-Sandwich Attack & Multi-Protocol Routing (E2ESlippage.test.ts)
-     🛡️ Security Guards (Negative Paths)
-      ✔ Must revert if called by a non-AI role (Access Control) (295ms)
-      ✔ Must revert if AI targets an unapproved protocol (Protocol Whitelist) (120ms)
-      ✔ Must revert if AI sends an expectedAmountOutMin below the 2% slippage limit (Anti-MEV) (158ms)
-     ⚡ True Multi-Protocol Routing (Happy Path)
-      ✔ Must successfully execute a cross-protocol swap with correct calldata & dynamic decimals (350ms)
 
-  7 passing (3s)
+4 passing (4 nodejs)
 ```
 
 ## On-Chain Provisioning & Operational Scripts

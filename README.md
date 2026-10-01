@@ -5,9 +5,9 @@
 # NEUROLOOM
   [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-> **Autonomous AI-Driven DeFi Yield Optimizer — Multi-Protocol Routing & Hardcoded MEV Resistance.**
+> **Autonomous AI-Driven DeFi Yield Optimizer**
 
-NeuroLoom is an institutional-grade Decentralized Finance (DeFi) protocol that fuses multi-agent AI workflows with deterministic on-chain execution. It empowers an autonomous AI engine to analyze market conditions and route capital (via asset swaps and lending) 24/7 across the BNB Chain ecosystem. To ensure absolute security, strict smart contract guardrails—including hard-capped 1% allocation limits and ERC-4626 inflation overrides—protect the Total Value Locked (TVL) from MEV bots, vault exploits, and AI hallucinations.
+NeuroLoom is a fully autonomous Decentralized Finance (DeFi) protocol that fuses multi-agent AI workflows with deterministic on-chain execution. It empowers an AI engine to analyze market conditions and dynamically route capital—via tactical asset swaps, secure lending, and active concentrated liquidity provision (PancakeSwap V3 NFTs) 24/7 across the BNB Chain ecosystem. To guarantee absolute security, strict smart contract guardrails—including a hard-capped 20% velocity allocation limit, real-time Chainlink oracle validation, and ERC-4626 inflation overrides—protect the Total Value Locked (TVL) from MEV bots, vault exploits, and AI hallucinations.
 
 Built for the **Indonesia Web3 Hackathon 2026**. **BNB Chain**.
 Link: https://indonesiaweb3hack.xyz/en/projects/proj_231bfb01edfeb05edc
@@ -71,13 +71,24 @@ Link: https://indonesiaweb3hack.xyz/en/projects/proj_231bfb01edfeb05edc
 
 ## The Problem
 
-Current Automated Yield Optimizers suffer from two fatal flaws:
-1. **Rigid Automation & Protocol Silos:** Traditional vaults use static, hardcoded logic that locks liquidity into a single, specific pool. By the time a human manually rebalances a position, the alpha is gone.
-2. **MEV Slaughter & AI Hallucination:** If a vault is directly controlled by an AI without circuit breakers, MEV bots will monitor the mempool for sandwich attacks. Furthermore, LLMs can hallucinate decimal places or target addresses, leading to drained TVLs.
+Standard DeFi yield optimization is currently trapped between two catastrophic extremes: passive rigidity and blind automation.
+1. The Danger of Passive Vaults. Traditional yield architectures are dangerously slow. In August 2026, a sudden 9-minute market manipulation caused $37.35 million in unfair liquidations because static vaults and passive oracles could not react in time. When the market crashes, rigid systems simply watch your capital burn.
+2. The Vulnerability of Blind Automation. Conversely, handing capital to fast, automated bots introduces massive smart contract risks. In June 2026, Ethereum's top MEV bot was drained of $7.5 million after its automated logic was tricked into approving malicious routing contracts.
+3. Structural Protocol Exploits (ERC-4626). Even standard vault architectures are under siege. In May 2026, the Inertia protocol lost $152,000 to a classic ERC-4626 inflation attack, manipulating collateral rates by 27x while traditional oracles failed to trigger safety limits.
 
-NeuroLoom bridges this gap by combining dynamic, multi-perspective AI with a multi-layered on-chain Security Guard.
+The ecosystem critically lacks an infrastructure that possesses the active intelligence to navigate market turbulence, bound by the absolute, deterministic security of an immutable smart contract.
 
 ---
+## The Idea
+NeuroLoom is a fully autonomous, AI-driven DeFi Yield Optimizer built natively for the BNB Chain. We bridge the gap by pairing a dynamic "Agentic Harness" with an impenetrable on-chain security layer.Instead of rigid scripts, NeuroLoom’s backend AI continuouy analslyzes on-chain states and delegates yield-hunting to parallel LangChain workers. Every AI proposal must pass a strict "Evaluator Loop" (Chief Risk Officer Agent) before formulating raw calldata.
+However, the ultimate security lies in the NeuroLoomVault Smart Contract, which acts as a deterministic gatekeeper against AI hallucination and market manipulation:
+
+1. Anti-Hallucination Routing. Unlike exploited automated bots, the NeuroLoom AI cannot be tricked into approving malicious contracts. The Vault enforces a strict approvedProtocols whitelist, ensuring capital only flows to vetted platforms.
+2. Real-Time MEV & Flash-Crash Protection. To prevent the passive oracle failures seen in recent attacks, every AI execution is validated against live Chainlink feeds. If the transaction exceeds a strict 2% slippage boundary (MAX_SLIPPAGE_BPS) or the data is older than 1 hour, the Vault forcefully reverts the transaction.
+3. ERC-4626 Inflation Resistance. Leveraging OpenZeppelin v5's virtual offset defense and a custom totalAssets() override, the Vault dynamically tracks idle cash, lending positions, and LP principal, rendering share-price manipulation and donation attacks mathematically impossible.
+4. Deterministic Velocity Guard. The smart contract mathematically hard-caps any single AI execution to a maximum of 20% of the live TVL (MAX_VELOCITY_BPS), completely mitigating catastrophic drain risks.
+
+NeuroLoom dynamically routes capital and executes emergency evacuations to outpace passive benchmarks, while the blockchain mathematically guarantees the safety of the funds.
 
 ## The Agentic Workflow Architecture
 
@@ -335,54 +346,39 @@ Targeted network scripts for real-world deployment, security provisioning, and l
 | **5. Audit Vault** | `npx tsx src/scripts/debug-vault.ts` | `/backend` | Read-only diagnostic utility fetching real-time idle and active TVL. |
 ---
 
-## Known Limitations & Production Roadmap
- 
-NeuroLoom was built as a zero-cost prototype for the Indonesia Web3 Hackathon. The current architecture prioritizes secure forward-execution, on-chain safety guards, and lean deployment over global scalability.
- 
+## Known Limitations
+
+NeuroLoom was built as a highly functional prototype for the Indonesia Web3 Hackathon. The current architecture successfully demonstrates advanced capabilities, including autonomous Concentrated Liquidity (NFT V3) management, on-chain emergency unwinding, and intra-cycle AI self-correction (Multi-Agent Debate). 
+
 To transition this architecture into a production-ready Mainnet environment, the following infrastructure upgrades are scoped:
- 
-**True AMM Concentrated Liquidity & Advanced Unwinding (ERC-4626 Completeness)**
- 
-- *Current Prototype (Lending & Tactical Repositioning):* The current architecture perfectly handles linear ERC-20 execution paths. The AI can successfully deploy funds into Venus Lending (e.g., USDT ↔ vUSDT) to generate passive yield, or execute tactical asset swaps (e.g., USDT ↔ WBNB) via PancakeSwap's `exactInputSingle`. Because these are linear token paths, position unwinding and user `withdraw()` are fully functional by simply reversing the routing logic.
-- *Production Target (Concentrated Liquidity Provision):* While lending and swaps are solved, True AMM Liquidity Provision on PancakeSwap V3 remains pending. True LPing does not return an ERC-20 token; it mints an ERC-721 NFT via `NonfungiblePositionManager` containing specific price tick ranges. The roadmap target is to build a dedicated NFT position-tracking module, allowing the AI to actively manage concentrated liquidity ranges to harvest actual DEX trading fees.
-**Impermanent Loss (IL) Modeling**
- 
-- *Current Prototype:* Worker agents evaluate APY and qualitative risk signals but do not compute Impermanent Loss exposure mathematically.
-- *Production Target:* Add a dedicated IL calculation module (price divergence vs. pool composition) so LP allocation decisions strictly account for IL mitigation, not just headline APY.
+
+**Impermanent Loss (IL) Mathematical Modeling & Simulation**
+- *Current Prototype:* The system currently features a deterministic `simulate_il_risk` module. The AI pre-calculates exact V3 IL exposure and amplification factors against projected volatility bands before committing capital to a liquidity pool.
+- *Production Target:* Evolve the current IL simulation into a continuous, automated dynamic hedging engine. The system will autonomously construct delta-neutral positions (e.g., executing perpetual shorts against the LP base asset) to perfectly offset the simulated IL exposure during high-volatility events.
+
 **AI Executor Key Management**
- 
-- *Current Prototype:* `AI_PRIVATE_KEY` is loaded from a local `.env` file for rapid hackathon iteration.
-- *Production Target:* Migrate to KMS-backed signing (AWS KMS / HashiCorp Vault) so the raw private key never exists in plaintext or process memory.
-**AI Memory & Database Scaling**
- 
-- *Current Prototype:* Uses a local JSON ledger (`autonomous_ai_logs.json`) for isolated, high-speed AI memory logging.
-- *Production Target:* Migration to a distributed PostgreSQL architecture coupled with Redis caching to safely handle concurrent state-sharing across hundreds of AI workers.
-**Closed-Loop Execution Learning**
- 
-- *Current Prototype:* The system successfully captures the final on-chain settlement status (`txHash`, `SUCCESS`, or `FAIL`) and the AI's reasoning into the JSON ledger.
-- *Production Target:* Enable semantic retrieval of past failures. The AI should read its own ledger to dynamically learn from on-chain rejections (e.g., automatically widening slippage tolerance if the last 3 transactions reverted due to liquidity crunches).
-**Oracle Feed Diversity**
- 
-- *Current Prototype:* The slippage guardrail intercepts data from a single Chainlink aggregator per pair.
-- *Production Target:* Integration of multi-asset Time-Weighted Average Price (TWAP) and redundant decentralized oracle networks (DONs) to neutralize isolated flash-crash vulnerabilities.
-**Dynamic Allocation Sizing (Capital Efficiency)**
- 
-- *Current Prototype:* To ensure absolute mathematical safety and prevent catastrophic slippage, the execution engine strictly hardcodes trade sizes to 1% of the vault's total live balance. The AI dictates the direction, but the deterministic code dictates the size.
-- *Production Target:* Implement a dynamic sizing module (e.g., Kelly Criterion or Risk-Parity allocation) where the AI safely calculates and proposes the exact allocation percentage based on real-time liquidity depth, bounded by strict smart contract limits.
-**AI Evaluation Framework & Harness Engineering**
- 
-- *Architectural Clarity:* NeuroLoom's AI system is an Orchestrator-Workers Workflow with an Evaluator-Optimizer cycle — not a loosely prompted autonomous agent. Orchestration flow is controlled by deterministic code; LLMs are called through predefined paths. This limits blast radius and keeps the smart contract as the ultimate source of truth.
-- *Current Prototype:* Relies on prompt-engineered JSON formatting via Groq without formal pipeline evaluation. Worker outputs are accepted if they pass JSON parsing and the Risk Evaluator.
-- *Production Target — Evaluation Stack:*
-  - **Single-turn evals:** Assert that each Worker produces a directionally correct decision against a curated ground-truth dataset. Runnable deterministically on every prompt/model change.
-  - **Regression suite:** A frozen snapshot of `(market_input, expected_action)` pairs that must pass before any prompt or model version is promoted.
-- *Production Target — Observability & Harness Stack:*
-  - **Framework Migration:** Migrate to the native Claude Agent SDK. Utilize the `withStructuredOutput()` paradigm (via Zod schemas) to guarantee type-safe AI responses and eliminate JSON parsing risks.
-  - **State & Tracing:** Integrate LangGraph as a state manager for the Evaluator-Optimizer cycle, and use LangSmith for per-node tracing, latency, and cost monitoring.
-**Gas Cost & Protocol Sustainability**
- 
-- *Current Prototype:* Execution cycles run at a fixed interval regardless of on-chain conditions or vault TVL. Gas costs are treated as negligible in a testnet environment.
-- *Production Target:* Implement a gas-aware cycle scheduler. The AI should skip or delay execution when estimated gas cost exceeds a defined threshold relative to the projected yield gain of that cycle. Net protocol revenue is a function of `(Performance Fee × TVL) - (Gas Cost per Cycle × Cycle Frequency) - Infrastructure Cost`, making gas efficiency a first-class optimization target for the production system.
+- *Current Prototype:* The `AI_PRIVATE_KEY` is loaded from a local `.env` file for rapid hackathon iteration.
+- *Production Target:* Migrate to KMS-backed signing (AWS KMS / HashiCorp Vault). The raw private key must never exist in plaintext or process memory during autonomous execution.
+
+**AI Memory & Long-Term Execution Learning**
+- *Current Prototype:* The system uses a local JSON ledger (`autonomous_ai_logs.json`) for short-term memory, and the Evaluator agent provides immediate, intra-cycle self-correction.
+- *Production Target:* Migrate to a distributed PostgreSQL/Vector database. This enables semantic retrieval of past failures, allowing the AI to dynamically learn from long-term on-chain rejections (e.g., automatically widening its baseline slippage tolerance if the last 30 days of transactions reverted due to liquidity crunches).
+
+**Oracle Feed Diversity & Redundancy**
+- *Current Prototype:* The smart contract's slippage guardrail intercepts data from a single Chainlink aggregator per pair.
+- *Production Target:* Integration of multi-asset Time-Weighted Average Price (TWAP) and redundant decentralized oracle networks (DONs) to neutralize isolated flash-crash vulnerabilities and provide fallback pricing.
+
+**Dynamic Risk-Parity & Allocation Sizing**
+- *Current Prototype:* The AI currently utilizes the Quarter Kelly Criterion (`calculate_optimal_allocation`) to mathematically propose safe trade sizes based on volatility and risk-free rates, which is then strictly capped by the smart contract's 20% Velocity Guard.
+- *Production Target:* Expand the current Kelly sizing module to ingest real-time on-chain mempool liquidity depth and multi-asset covariance matrices, enabling institutional-grade risk-parity portfolio balancing across dozens of vaults simultaneously.
+
+**Evaluation Framework & Observability Stack**
+- *Current Prototype:* Relies on LangChain agents utilizing Zod schemas for tool execution.
+- *Production Target:* Integrate LangGraph as a deterministic state manager for the Evaluator-Optimizer cycle, and deploy LangSmith for per-node tracing, AI token cost optimization, and latency monitoring.
+
+**Gas-Aware Cycle Scheduler**
+- *Current Prototype:* Execution cycles run at a fixed interval or are triggered by simulated events.
+- *Production Target:* Implement a continuous gas-aware scheduler. The AI will autonomously delay execution when estimated gas costs exceed a defined threshold relative to the projected yield gain, ensuring net-positive protocol revenue.
 
 ---
 

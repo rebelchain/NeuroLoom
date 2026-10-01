@@ -33,13 +33,13 @@ Link: https://indonesiaweb3hack.xyz/en/projects/proj_231bfb01edfeb05edc
     <th>Stack</th>
   </tr>
   <tr>
-    <td><b>Agentic Workflow:</b> Orchestrator-Workers & Evaluator-Optimizer LLM loops.</td>
-    <td><b>AI Proposes, Chain Verifies:</b> Raw <code>calldata</code> is validated against live Chainlink USD feeds before execution.</td>
+    <td><b>Agentic Workflow:</b> Orchestrator-Workers & Evaluator-Optimizer LLM loops with intra-cycle self-correction.</td>
+    <td><b>AI Proposes, Chain Verifies:</b> Executions are strictly bounded by a 20% TVL Velocity Guard and live Chainlink USD feeds.</td>
     <td><b>Full-Stack:</b> Next.js (DApp), Node.js (AI Engine), Hardhat (EVM), The Graph (Indexing).</td>
   </tr>
   <tr>
-    <td><b>Multi-Protocol:</b> AI dynamically generates generic <code>calldata</code> for any allowed target protocol (PancakeSwap, Venus, etc).</td>
-    <td><b>MEV Bounded:</b> Slippage is mathematically hardcapped. Over-slippage reverts the transaction entirely.</td>
+    <td><b>Multi-Protocol & NFT LP:</b> AI dynamically routes generic <code>calldata</code> and autonomously manages PancakeSwap V3 Concentrated Liquidity NFTs.</td>
+    <td><b>MEV & Exploit Bounded:</b> Slippage is mathematically hardcapped (2%), and custom ERC-4626 overrides neutralize share-price inflation attacks.</td>
     <td><b>Viem & SQLite:</b> Fast on-chain reads/writes and localized high-speed LLM memory states.</td>
   </tr>
 </table>

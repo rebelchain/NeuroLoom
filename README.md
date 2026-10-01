@@ -7,7 +7,7 @@
 
 > **Autonomous AI-Driven DeFi Yield Optimizer**
 
-NeuroLoom is a fully autonomous Decentralized Finance (DeFi) protocol that fuses multi-agent AI workflows with deterministic on-chain execution. It empowers an AI engine to analyze market conditions and dynamically route capital—via tactical asset swaps, secure lending, and active concentrated liquidity provision (PancakeSwap V3 NFTs) 24/7 across the BNB Chain ecosystem. To guarantee absolute security, strict smart contract guardrails—including a hard-capped 20% velocity allocation limit, real-time Chainlink oracle validation, and ERC-4626 inflation overrides—protect the Total Value Locked (TVL) from MEV bots, vault exploits, and AI hallucinations.
+NeuroLoom is a fully autonomous DeFi protocol that fuses multi-agent AI workflows with deterministic on-chain execution. It empowers an AI engine to analyze market conditions and dynamically route capital, via tactical asset swaps, secure lending, and active concentrated liquidity provision (PancakeSwap V3 NFTs) 24/7 across the BNB Chain ecosystem. To guarantee absolute security, strict smart contract guardrails, including a hard-capped 20% velocity allocation limit, real-time Chainlink oracle validation, and ERC-4626 inflation overrides—protect the Total Value Locked from MEV bots, vault exploits, and AI hallucinations.
 
 Built for the **Indonesia Web3 Hackathon 2026**. **BNB Chain**.
 Link: https://indonesiaweb3hack.xyz/en/projects/proj_231bfb01edfeb05edc
@@ -51,20 +51,21 @@ Link: https://indonesiaweb3hack.xyz/en/projects/proj_231bfb01edfeb05edc
 ## Table of contents
 
 1. [The Problem](#the-problem)
-2. [The Agentic Workflow Architecture](#the-agentic-workflow-architecture)
-3. [Live Engine Output](#live-engine-output-the-orchestrator-in-action)
-4. [The Vault Architecture (Factory & ERC-4626)](#the-vault-architecture-factory--erc-4626)
-5. [System Flow](#system-flow)
-6. [Live Deployment (BSC Testnet)](#live-deployment-bsc-testnet)
-7. [Repository Layout](#repository-layout)
-8. [Technology Stack](#technology-stack)
-9. [Cloud Architecture & Autonomous Execution](#cloud-architecture--autonomous-execution)
-10. [Getting Started](#getting-started)
-11. [Security & Threat Model](#security--threat-model)
-12. [Deterministic Test Coverage](#deterministic-test-coverage)
-13. [On-Chain Provisioning & Operational Scripts](#on-chain-provisioning--operational-scripts)
-14. [Known Limitations & Production Roadmap](#known-limitations--production-roadmap)
-15. [License](#license)
+2. [The Idea](#the-idea)
+3. [The Agentic Workflow Architecture](#the-agentic-workflow-architecture)
+4. [Live Engine Output](#live-engine-output-the-orchestrator-in-action)
+5. [The Vault Architecture (Factory & ERC-4626)](#the-vault-architecture-factory--erc-4626)
+6. [System Flow](#system-flow)
+7. [Live Deployment (BSC Testnet)](#live-deployment-bsc-testnet)
+8. [Repository Layout](#repository-layout)
+9. [Technology Stack](#technology-stack)
+10. [Cloud Architecture & Autonomous Execution](#cloud-architecture--autonomous-execution)
+11. [Getting Started](#getting-started)
+12. [Security & Threat Model](#security--threat-model)
+13. [Deterministic Test Coverage](#deterministic-test-coverage)
+14. [On-Chain Provisioning & Operational Scripts](#on-chain-provisioning--operational-scripts)
+15. [Known Limitations & Production Roadmap](#known-limitations--production-roadmap)
+16. [License](#license)
 
 ## 
 ---

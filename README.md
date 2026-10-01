@@ -51,7 +51,7 @@ Link: https://indonesiaweb3hack.xyz/en/projects/proj_231bfb01edfeb05edc
 ## Table of contents
 
 1. [The Problem](#the-problem)
-2. [The Idea](#the-idea)
+2. [The Idea](#the-solution)
 3. [The Agentic Workflow Architecture](#the-agentic-workflow-architecture)
 4. [Live Engine Output](#live-engine-output-the-orchestrator-in-action)
 5. [The Vault Architecture (Factory & ERC-4626)](#the-vault-architecture-factory--erc-4626)
@@ -72,24 +72,25 @@ Link: https://indonesiaweb3hack.xyz/en/projects/proj_231bfb01edfeb05edc
 
 ## The Problem
 
-Standard DeFi yield optimization is currently trapped between two catastrophic extremes: passive rigidity and blind automation.
-1. The Danger of Passive Vaults. Traditional yield architectures are dangerously slow. In August 2026, a sudden 9-minute market manipulation caused $37.35 million in unfair liquidations because static vaults and passive oracles could not react in time. When the market crashes, rigid systems simply watch your capital burn.
-2. The Vulnerability of Blind Automation. Conversely, handing capital to fast, automated bots introduces massive smart contract risks. In June 2026, Ethereum's top MEV bot was drained of $7.5 million after its automated logic was tricked into approving malicious routing contracts.
-3. Structural Protocol Exploits (ERC-4626). Even standard vault architectures are under siege. In May 2026, the Inertia protocol lost $152,000 to a classic ERC-4626 inflation attack, manipulating collateral rates by 27x while traditional oracles failed to trigger safety limits.
+Delegating asset management within the Web3 ecosystem promises financial freedom, yet its mass adoption is hindered by three structural barriers. Aligned with the vision to make DeFi more efficient, intelligent, and accessible, the current ecosystem faces the following trilemma:
 
-The ecosystem critically lacks an infrastructure that possesses the active intelligence to navigate market turbulence, bound by the absolute, deterministic security of an immutable smart contract.
+1. **The Complexity Bottleneck:** The current DeFi ecosystem demands its users to be financial experts. Setting up smart wallets, calculating gas fee fluctuations, and managing Concentrated Liquidity price ranges create massive UX friction. Retail users need an interface that abstracts all these technical complexities into a single-deposit experience without constant manual intervention.
+2. **Liquidity Fragmentation & Capital Inefficiency:** Early-generation AI delegation models typically operate on isolated individual wallet architectures. This approach locks capital at a small scale, triggers high gas fee inefficiencies for every rebalancing action, and fundamentally prevents retail users from achieving economies of scale ("whale power") to enter advanced liquidity pools. Even when funds are pooled in standard vaults, the infrastructure remains vulnerable. In May 2026, the Inertia protocol lost $152,000 to a share price inflation attack (ERC-4626 donation attack).
+3. **The Vulnerability of Blind Automation:** Handing complete capital control to fast AI without deterministic defensive walls is a fatal security flaw. In June 2026, one of Ethereum's top MEV Bots was drained of $7.5 million after its automated logic was tricked into approving malicious routing contracts. On the other hand, traditional vaults are too passive to react to market dynamics. The ecosystem requires an infrastructure that is not only autonomous but also mathematically secured at the smart contract level.
 
 ---
-## The Idea
-NeuroLoom is a fully autonomous, AI-driven DeFi Yield Optimizer built natively for the BNB Chain. We bridge the gap by pairing a dynamic "Agentic Harness" with an impenetrable on-chain security layer.Instead of rigid scripts, NeuroLoom’s backend AI continuouy analslyzes on-chain states and delegates yield-hunting to parallel LangChain workers. Every AI proposal must pass a strict "Evaluator Loop" (Chief Risk Officer Agent) before formulating raw calldata.
-However, the ultimate security lies in the NeuroLoomVault Smart Contract, which acts as a deterministic gatekeeper against AI hallucination and market manipulation.
+## The Solution
 
-- Unlike exploited automated bots, the NeuroLoom AI cannot be tricked into approving malicious contracts. The Vault enforces a strict approvedProtocols whitelist, ensuring capital only flows to vetted platforms.
-- To prevent the passive oracle failures seen in recent attacks, every AI execution is validated against live Chainlink feeds. If the transaction exceeds a strict 2% slippage boundary (MAX_SLIPPAGE_BPS) or the data is older than 1 hour, the Vault forcefully reverts the transaction.
-- Leveraging OpenZeppelin v5's virtual offset defense and a custom totalAssets() override, the Vault dynamically tracks idle cash, lending positions, and LP principal, rendering share-price manipulation and donation attacks mathematically impossible.
-- The smart contract mathematically hard-caps any single AI execution to a maximum of 20% of the live TVL (MAX_VELOCITY_BPS), completely mitigating catastrophic drain risks.
+NeuroLoom emerges as an intelligent agent connecting artificial intelligence with decentralized execution on the BNB Chain. We bridge this gap by pairing a dynamic "Agentic Harness" with an impenetrable on-chain security layer.
 
-NeuroLoom dynamically routes capital and executes emergency evacuations to outpace passive benchmarks, while the blockchain mathematically guarantees the safety of the funds.
+Through the **ERC-4626 Omni-Vault** architecture, NeuroLoom pools retail user liquidity to eliminate individual gas costs and enable aggregate, institutional-scale Concentrated Liquidity management. Instead of rigid scripts, NeuroLoom’s backend AI continuously analyzes on-chain states and delegates yield-hunting to parallel LangChain workers. Every AI proposal must pass a strict "Evaluator Loop" (Chief Risk Officer Agent) before formulating raw `calldata`. However, the ultimate security lies in the `NeuroLoomVault` Smart Contract, which acts as a deterministic gatekeeper against AI hallucinations and market manipulation:
+
+* - Unlike exploited automated bots, the NeuroLoom AI cannot be tricked into approving malicious contracts. The Vault enforces a strict `approvedProtocols` whitelist, ensuring capital only flows to vetted platforms (such as Thena Fusion and PancakeSwap V3).
+* - To prevent passive oracle failures, every AI execution is validated against live Chainlink feeds. If a transaction exceeds a strict 2% slippage boundary (`MAX_SLIPPAGE_BPS`) or the data is older than 1 hour, the Vault forcefully reverts the transaction.
+* - Leveraging OpenZeppelin v5's virtual offset defense and a custom `totalAssets()` override, the Vault dynamically tracks idle cash, lending positions, and LP principal, rendering share price manipulation and donation attacks (as seen in the Inertia case) mathematically impossible.
+* - The smart contract mathematically hard-caps any single AI execution to a maximum of 20% of the live TVL (`MAX_VELOCITY_BPS`), completely mitigating severe drain risks.
+
+NeuroLoom makes decisions and routes assets autonomously, making decentralized finance efficient and safe for everyone.
 
 ## The Agentic Workflow Architecture
 

@@ -82,12 +82,12 @@ The ecosystem critically lacks an infrastructure that possesses the active intel
 ---
 ## The Idea
 NeuroLoom is a fully autonomous, AI-driven DeFi Yield Optimizer built natively for the BNB Chain. We bridge the gap by pairing a dynamic "Agentic Harness" with an impenetrable on-chain security layer.Instead of rigid scripts, NeuroLoom’s backend AI continuouy analslyzes on-chain states and delegates yield-hunting to parallel LangChain workers. Every AI proposal must pass a strict "Evaluator Loop" (Chief Risk Officer Agent) before formulating raw calldata.
-However, the ultimate security lies in the NeuroLoomVault Smart Contract, which acts as a deterministic gatekeeper against AI hallucination and market manipulation:
+However, the ultimate security lies in the NeuroLoomVault Smart Contract, which acts as a deterministic gatekeeper against AI hallucination and market manipulation.
 
-1. Anti-Hallucination Routing. Unlike exploited automated bots, the NeuroLoom AI cannot be tricked into approving malicious contracts. The Vault enforces a strict approvedProtocols whitelist, ensuring capital only flows to vetted platforms.
-2. Real-Time MEV & Flash-Crash Protection. To prevent the passive oracle failures seen in recent attacks, every AI execution is validated against live Chainlink feeds. If the transaction exceeds a strict 2% slippage boundary (MAX_SLIPPAGE_BPS) or the data is older than 1 hour, the Vault forcefully reverts the transaction.
-3. ERC-4626 Inflation Resistance. Leveraging OpenZeppelin v5's virtual offset defense and a custom totalAssets() override, the Vault dynamically tracks idle cash, lending positions, and LP principal, rendering share-price manipulation and donation attacks mathematically impossible.
-4. Deterministic Velocity Guard. The smart contract mathematically hard-caps any single AI execution to a maximum of 20% of the live TVL (MAX_VELOCITY_BPS), completely mitigating catastrophic drain risks.
+- Unlike exploited automated bots, the NeuroLoom AI cannot be tricked into approving malicious contracts. The Vault enforces a strict approvedProtocols whitelist, ensuring capital only flows to vetted platforms.
+- To prevent the passive oracle failures seen in recent attacks, every AI execution is validated against live Chainlink feeds. If the transaction exceeds a strict 2% slippage boundary (MAX_SLIPPAGE_BPS) or the data is older than 1 hour, the Vault forcefully reverts the transaction.
+- Leveraging OpenZeppelin v5's virtual offset defense and a custom totalAssets() override, the Vault dynamically tracks idle cash, lending positions, and LP principal, rendering share-price manipulation and donation attacks mathematically impossible.
+- The smart contract mathematically hard-caps any single AI execution to a maximum of 20% of the live TVL (MAX_VELOCITY_BPS), completely mitigating catastrophic drain risks.
 
 NeuroLoom dynamically routes capital and executes emergency evacuations to outpace passive benchmarks, while the blockchain mathematically guarantees the safety of the funds.
 

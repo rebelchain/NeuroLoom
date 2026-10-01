@@ -147,10 +147,12 @@ The core infrastructure of NeuroLoom utilizes a scalable Factory Pattern. The `N
 
 1. **Dynamic Strategy Deployment:** The Factory contract enables the instantaneous creation of new risk-adjusted vaults (e.g., Yield Farm, Bluechip Momentum, Degen Accumulator) while maintaining strictly isolated states, liquidity pools, and tokenomics.
 2. **Liquidity Provision (ERC-4626):** The tokenized vault standard ensures seamless, non-custodial deposit and withdraw integrations for end-users.
-3. **Multi-Protocol Execution Calls:** The AI agent compiles raw calldata instructions and invokes `executeOmnichain(targetProtocol, data, tokenIn, tokenOut, amountIn, expectedAmountOutMin)`.
-4. **The Protocol Allowlist (Layer 1 Guardrail):** The vault asserts that `targetProtocol` exists in a strict admin-approved whitelist, physically preventing the AI from routing user funds to malicious or arbitrary smart contracts.
-5. **The Oracle Gate & Decimal Agnostic Math (Layer 2 Guardrail):** The Vault maps the asset pair to its corresponding Chainlink feeds. It dynamically normalizes the math via `IERC20Metadata` to prevent decimal hallucinations, checks for stale data, and validates the expected slippage boundary based on real-time market prices.
-6. **Generic Execution & Absolute Validation (Layer 3 Guardrail):** Protected by OpenZeppelin v5's `ReentrancyGuard`, the contract executes `targetProtocol.call(data)`. If the returned token balance (`balanceAfter - balanceBefore`) is strictly less than `expectedAmountOutMin`, the contract reverts the entire transaction. Maximum loss is hardcapped at 200 BPS (2%).
+3. **Multi-Protocol Execution & NFT LP:** The AI agent compiles raw calldata instructions for generic routing via `executeOmnichain` (e.g., Venus lending, basic swaps), AND directly manages active concentrated liquidity positions via `executeLiquidityProvision` and `closeLPPosition` for DEX V3 NFTs.
+4. **The Protocol Allowlist (Layer 1 Guardrail):** The vault asserts that any `targetProtocol` exists in a strict admin-approved whitelist, physically preventing the AI from routing user funds to malicious or arbitrary smart contracts.
+5. **The Oracle Gate & Decimal Agnostic Math (Layer 2 Guardrail):** The Vault maps the asset pair to its corresponding Chainlink feeds. It dynamically normalizes the math via `IERC20Metadata` to prevent decimal hallucinations, checks for stale data, and validates the expected execution price based on real-time market bounds.
+6. **Absolute Slippage Validation (Layer 3 Guardrail):** Protected by OpenZeppelin v5's `ReentrancyGuard`, the contract executes the trade and verifies the exact `balanceAfter - balanceBefore`. Maximum allowable slippage is mathematically hardcapped at 200 BPS (2%), neutralizing MEV sandwich attacks.
+7. **Deterministic Velocity Guard (Layer 4 Guardrail):** To prevent capital drain from a compromised or hallucinating AI, the smart contract mathematically hard-caps any single execution to a maximum of 20% of the live TVL (`MAX_VELOCITY_BPS`).
+8. **Inflation-Resistant Accounting (Layer 5 Guardrail):** By strictly overriding the standard ERC-4626 `totalAssets()` calculation, the Vault dynamically tracks idle cash, live lending rates, and deployed LP principal. This completely neutralizes the notorious share-price manipulation and ERC-4626 donation attacks.
    
 ---
 

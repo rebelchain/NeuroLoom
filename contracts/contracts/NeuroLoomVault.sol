@@ -200,7 +200,7 @@ contract NeuroLoomVault is
         emit RebalanceExecuted(tokenIn, tokenOut, amountIn, block.timestamp);
     }
 
-    /**
+ /**
      * @dev OVERRIDE CRITICAL: Calculate real Net Asset Value
      */
     function totalAssets() public view virtual override returns (uint256) {
@@ -208,16 +208,16 @@ contract NeuroLoomVault is
 
         uint256 venusValue = 0;
         if (venusVToken != address(0)) {
-            uint256 vBalance = IERC20(venusVToken).balanceOf(address(this));
-            if (vBalance > 0) {
-                uint256 exchangeRate = IVenusToken(venusVToken).exchangeRateStored();
-                venusValue = (vBalance * exchangeRate) / 1e18;
-            }
+            venusValue = IERC20(venusVToken).balanceOf(address(this)); 
         }
 
-        return idleCash + venusValue + lpDeployedPrincipal;
-    }
+        uint256 total = idleCash + venusValue + lpDeployedPrincipal;
+        if (total == 0) {
+            return 1;
+        }
 
+        return total;
+    }
     function _validateSlippageAgainstOracle(
         address tokenIn, 
         address tokenOut, 

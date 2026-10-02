@@ -1,8 +1,8 @@
 import * as dotenvx from "@dotenvx/dotenvx";
-import path from "path";
-import cron from "node-cron";
-import fs from "fs";
 import { ChatGroq } from "@langchain/groq";
+import fs from "fs";
+import cron from "node-cron";
+import path from "path";
 import {
   createPublicClient,
   createWalletClient,
@@ -32,7 +32,7 @@ const CONFIG = {
   },
 } as const;
 
-const VAULT_ADDRESS = "0xD00b514048AFC47bFc4DE6a1646D5c63Bd23401a" as const; // The Yield Farm
+const VAULT_ADDRESS = "0x9BA37554D997a7c4d536Ac94180C47f89BCEF0DD" as const; // The Yield Farm
 const LOG_FILE = path.resolve(process.cwd(), "yield_farm_logs.json");
 
 let rawPrivateKey = process.env.AI_PRIVATE_KEY || process.env.PRIVATE_KEY;
@@ -294,7 +294,6 @@ Use analytical, institutional DeFi language. No fluff, get straight to the reaso
           ],
         });
       } else {
-  
         targetProtocol = CONFIG.PROTOCOLS.VENUS_VUSDT;
         amountIn = 1000000000n;
         tokenIn = CONFIG.TOKENS.vUSDT;

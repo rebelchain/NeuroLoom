@@ -2,8 +2,8 @@ import cors from "cors";
 import express from "express";
 import PDFDocument from "pdfkit";
 import { getRecentMemories } from "./data/db.js";
-import { generateYieldFarmPDF } from "./pdfYieldFarm.js";
 import { neuroLoomCycle } from "./index.js";
+import { generateYieldFarmPDF } from "./pdfYieldFarm.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -11,9 +11,9 @@ const GRAPHQL_ENDPOINT =
   "https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.8";
 
 const VAULT_MAP_REVERSE: Record<string, string> = {
-  "yield-farm": "0xD00b514048AFC47bFc4DE6a1646D5c63Bd23401a",
-  "bluechip-momentum": "0xF4be9e83543cc31e93B1a10EAe502B49fe3be92e",
-  "degen-accumulator": "0xc86dB8fBeC6eb19DCF70aC9d34cb159867B36e55",
+  "yield-farm": "0x9BA37554D997a7c4d536Ac94180C47f89BCEF0DD",
+  "bluechip-momentum": "0x2Df494B6A330b1f08F5b720caD47756f251378f9",
+  "degen-accumulator": "0xbC82a09c1d5DfD82367515e51Ee3937ccC4c5D88",
 };
 
 app.use(cors());
@@ -127,17 +127,13 @@ app.post("/api/force-cycle", (req, res) => {
   const { stage } = req.body;
 
   if (!stage || ![1, 2, 3].includes(Number(stage))) {
-    return res
-      .status(400)
-      .json({
-        success: false,
-        message: "Kirimkan parameter stage 1, 2, atau 3",
-      });
+    return res.status(400).json({
+      success: false,
+      message: "Kirimkan parameter stage 1, 2, atau 3",
+    });
   }
 
-  console.log(
-    `\n[DEMO TRIGGER] NeuroLoom AI for STAGE: ${stage}...`,
-  );
+  console.log(`\n[DEMO TRIGGER] NeuroLoom AI for STAGE: ${stage}...`);
 
   try {
     if (Number(stage) === 1) {

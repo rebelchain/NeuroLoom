@@ -20,20 +20,20 @@ export async function runYieldStrategist(
 
   const llmWithTools = llm.bindTools(yieldStrategistTools);
 
-  const messages: any[] = [
-    new SystemMessage(`You are the Yield Strategist Worker for NeuroLoom. 
+const messages: any[] = [
+  new SystemMessage(`You are the Yield Strategist Worker for NeuroLoom. 
 Your task is to analyze DeFi yields based on the market context provided.
-You MUST use your tools to fetch real data for both Stablecoins (e.g., USDT) and Volatile assets (e.g., WBNB).
+You MUST use your tools to fetch real data.
 
 Orchestrator Instructions:
 ${taskDescription}
 
-Provide a concise strategic report highlighting:
-1. Best Stablecoin Yield
-2. Best Volatile Yield
+Provide a concise strategic report highlighting EXACT NUMBERS in decimals:
+1. Risk-Free Rate (e.g., Venus stablecoin APY. If 5%, write 0.05)
+2. Expected Volatile Yield (e.g., DEX APR. If 22%, write 0.22)
 3. Strategic Recommendation`),
-    new HumanMessage(`Market Context: ${marketContext}`),
-  ];
+  new HumanMessage(`Market Context: ${marketContext}`),
+];
 
   console.log(
     "\n[WORKER] Yield Strategist is thinking and planning tool execution...",

@@ -141,7 +141,7 @@ const erc20Abi = [
   },
 ] as const;
 
-async function runAutonomousCycle() {
+export async function runAutonomousCycle() {
   await clearLogs();
   await delay(1000);
   await pushLog(

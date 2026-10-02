@@ -1,12 +1,12 @@
-import { createPublicClient, http, erc20Abi, formatUnits } from "viem";
+import { createPublicClient, http, formatUnits } from "viem";
 import { bscTestnet } from "viem/chains";
 import { CONFIG } from "../config.js";
+import VaultABI from "../abi/NeuroLoomVault.json" with { type: "json" };
 
 const publicClient = createPublicClient({
   chain: bscTestnet,
   transport: http(CONFIG.RPC_URL),
 });
-
 
 export interface MultiVaultState {
   yieldFarm: bigint;
@@ -24,9 +24,9 @@ export async function getVaultState(): Promise<{
     if (scenario !== "PRODUCTION") {
       return {
         balances: {
-          yieldFarm: 10000000000000000000000n, 
-          bluechip: 5000000000000000000000n, 
-          degen: 2000000000000000000000n, 
+          yieldFarm: 10000000000000000000000n,
+          bluechip: 5000000000000000000000n,
+          degen: 2000000000000000000000n,
         },
         formatted: {
           yieldFarm: "10000.0",
@@ -37,24 +37,21 @@ export async function getVaultState(): Promise<{
     }
 
     const yfRaw = (await publicClient.readContract({
-      address: CONFIG.TOKENS.USDT as `0x${string}`,
-      abi: erc20Abi,
-      functionName: "balanceOf",
-      args: [CONFIG.VAULTS.YIELD_FARM as `0x${string}`],
+      address: CONFIG.VAULTS.YIELD_FARM as `0x${string}`,
+      abi: VaultABI.abi,
+      functionName: "totalAssets",
     })) as bigint;
 
     const bcRaw = (await publicClient.readContract({
-      address: CONFIG.TOKENS.USDT as `0x${string}`,
-      abi: erc20Abi,
-      functionName: "balanceOf",
-      args: [CONFIG.VAULTS.BLUECHIP as `0x${string}`],
+      address: CONFIG.VAULTS.BLUECHIP as `0x${string}`,
+      abi: VaultABI.abi,
+      functionName: "totalAssets",
     })) as bigint;
 
     const dgRaw = (await publicClient.readContract({
-      address: CONFIG.TOKENS.USDT as `0x${string}`,
-      abi: erc20Abi,
-      functionName: "balanceOf",
-      args: [CONFIG.VAULTS.DEGEN as `0x${string}`],
+      address: CONFIG.VAULTS.DEGEN as `0x${string}`,
+      abi: VaultABI.abi,
+      functionName: "totalAssets",
     })) as bigint;
 
     return {
@@ -65,8 +62,19 @@ export async function getVaultState(): Promise<{
         degen: formatUnits(dgRaw, 18),
       },
     };
-  } catch (error) {
-    console.error("❌ Gagal membaca state on-chain Vault:", error);
-    throw error;
+  } catch (error: any) {
+    console.error("\n=============================================");
+    console.error("❌ [CRITICAL DEFI ERROR] Gagal Membaca Vault!");
+    console.error("=============================================");
+    console.error("➡ Function      : totalAssets()");
+    console.error("➡ Short Message :", error.shortMessage || error.message);
+    console.error(
+      "➡ Details       :",
+      error.details || "Tidak ada detail revert dari RPC",
+    );
+    console.error("=============================================\n");
+
+    // Hentikan proses agar terminal tidak lanjut ke siklus berikutnya dan log tidak tertimpa
+    process.exit(1);
   }
 }

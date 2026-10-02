@@ -19,15 +19,17 @@ export async function runLiquidityRiskManager(
 
   const llmWithTools = llm.bindTools(liquidityRiskTools);
 
-  const messages: any[] = [
-    new SystemMessage(`You are the Liquidity Risk Manager Worker for NeuroLoom. 
-Your sole responsibility is to evaluate slippage, liquidity depth, and impermanent loss risk.
-Do not recommend yields. Only report on capital safety and execution risks.
-You MUST use your tools to check real liquidity depth and simulate slippage.
+const messages: any[] = [
+  new SystemMessage(`You are the Liquidity Risk Manager Worker for NeuroLoom. 
+Evaluate slippage, liquidity depth, and impermanent loss risk using your tools.
 
-Orchestrator Instructions: ${taskDescription}`),
-    new HumanMessage(`Market Context: ${marketContext}`),
-  ];
+Orchestrator Instructions: ${taskDescription}
+
+You MUST output your final report with this specific quantitative metric:
+1. Market Volatility Estimate (decimal): Based on current conditions, estimate the volatility (e.g., if you expect a 4.5% price swing, write 0.045).
+2. Capital Safety & Slippage Threat Level.`),
+  new HumanMessage(`Market Context: ${marketContext}`),
+];
 
   console.log("\n[WORKER] 🛡️ Liquidity Risk Manager is evaluating threats...");
 

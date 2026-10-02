@@ -3,11 +3,12 @@ import express from "express";
 import PDFDocument from "pdfkit";
 import { getRecentMemories } from "./data/db.js";
 import { generateYieldFarmPDF } from "./pdfYieldFarm.js";
+import { neuroLoomCycle } from "./index.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 const GRAPHQL_ENDPOINT =
-  "https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.7";
+  "https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.8";
 
 const VAULT_MAP_REVERSE: Record<string, string> = {
   "yield-farm": "0xD00b514048AFC47bFc4DE6a1646D5c63Bd23401a",
@@ -121,6 +122,37 @@ app.get("/api/history", async (req, res) => {
 // });
 
 // GENERATE INSTITUTIONAL PDF REPORT
+
+app.post("/api/force-cycle", (req, res) => {
+  const { stage } = req.body;
+
+  if (!stage || ![1, 2, 3].includes(Number(stage))) {
+    return res
+      .status(400)
+      .json({
+        success: false,
+        message: "Kirimkan parameter stage 1, 2, atau 3",
+      });
+  }
+
+  console.log(
+    `\n[DEMO TRIGGER] NeuroLoom AI for STAGE: ${stage}...`,
+  );
+
+  try {
+    if (Number(stage) === 1) {
+      neuroLoomCycle({ stage: 1 }).catch(console.error);
+    } else if (Number(stage) === 2) {
+      neuroLoomCycle({ stage: 2 }).catch(console.error);
+    } else if (Number(stage) === 3) {
+      neuroLoomCycle({ forceCrash: true, stage: 3 }).catch(console.error);
+    }
+
+    res.json({ success: true, message: `AI Cycle STAGE ${stage} triggered!` });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
 
 app.get("/api/report/pdf", (req, res) => {
   const vaultId = (req.query.vault as string) || "global";

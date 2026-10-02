@@ -4,7 +4,7 @@ import PDFDocument from "pdfkit";
 import { getRecentMemories } from "../data/db.js";
 
 const GRAPHQL_ENDPOINT =
-  "https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.7";
+  "https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.8";
 
 // [UTILITY] GENERATE DYNAMIC CHART VIA QUICKCHART API
 async function fetchChartBuffer(

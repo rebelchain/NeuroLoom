@@ -14,7 +14,7 @@ export async function fetchQuantData(
   symbol: string = "BNB/USDT",
 ): Promise<QuantMarketData> {
   const apiKey = process.env.TAAPI_API_KEY;
-  console.log(`[DATA] Menyedot data teknikal ${symbol} dari TAAPI.io v2...`);
+  // console.log(`[DATA] Menyedot data teknikal ${symbol} dari TAAPI.io v2...`);
 
   try {
     if (!apiKey) throw new Error("TAAPI_API_KEY tidak ditemukan di .env");

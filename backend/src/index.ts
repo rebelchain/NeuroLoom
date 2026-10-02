@@ -1,44 +1,103 @@
 import * as dotenvx from "@dotenvx/dotenvx";
 dotenvx.config();
 
-import { ChatGroq } from "@langchain/groq";
+import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { generateDecision } from "./ai/agent.js";
 import { evaluateDecision } from "./ai/evaluator.js";
 import { runLiquidityRiskManager } from "./ai/liquidityWorker.js";
 import { runOrchestrator } from "./ai/orchestrator.js";
 import { runYieldStrategist } from "./ai/yieldWorker.js";
 import { getVaultState } from "./chain/vault.js";
+import { CONFIG } from "./config.js";
 import { getRecentMemories, logAIDecision } from "./data/db.js";
 import { fetchQuantData } from "./data/taapi.js";
-import { executePancakeSwap, executeVenusDeposit } from "./tools/defiTools.js";
 
+import { checkVaultPosition } from "./chain/positionSensor.js";
+import {
+  closeLiquidityV3,
+  executePancakeSwap,
+  executeVenusDeposit,
+  provideLiquidityV3,
+} from "./tools/defiTools.js";
+import { calculateV3LpParams, simulateILRisk } from "./tools/lpMathTools.js";
+import { calculateOptimalAllocation } from "./tools/quantTools.js";
+import { isNetworkGasSafe } from "./utils/gasChecker.js";
 const cycleMinutes = parseInt(process.env.CYCLE_INTERVAL_MINUTES || "30");
 const CYCLE_INTERVAL_MS = cycleMinutes * 60 * 1000;
 let isRunning = true;
 
-const evaluatorLLM = new ChatGroq({
-  apiKey: process.env.GROQ_API_KEY,
-  model: "openai/gpt-oss-20b",
-  maxTokens: 800,
-  temperature: 0,
+const evaluatorLLM = new ChatGoogleGenerativeAI({
+  apiKey: process.env.GEMINI_API_KEY2,
+  model: "gemini-3-flash-preview",
+  temperature: 0.1,
 });
 
-async function neuroLoomCycle() {
+export async function neuroLoomCycle(demoConfig?: {
+  forceCrash?: boolean;
+  stage?: number;
+}) {
   const timestamp = new Date().toISOString();
-  console.log(`[${timestamp}] Initializing NeuroLoom Orchestrator-Workflows`);
+  console.log(`\n[${timestamp}] NeuroLoom Orchestrator-Workflows`);
 
   try {
+    const gasSafe = await isNetworkGasSafe();
+    if (!gasSafe) {
+      console.log(
+        "[SYSTEM] Siklus dibatalkan. Biaya jaringan (Gas) terlalu tinggi saat ini.",
+      );
+      return;
+    }
+
     const market = await fetchQuantData("BNB/USDT");
     const vaultData = await getVaultState();
+
+    // ==========================================
+    // 🚨 DEMO DAY INJECTION (HANYA BERJALAN JIKA TOMBOL STAGE 3 DIKLIK)
+    // ==========================================
+    if (demoConfig?.forceCrash) {
+      console.log("\n🚨 [DEMO OVERRIDE] MENGINJEKSI KRISIS PASAR BUATAN...");
+      market.price = market.price * 0.5; // Memanipulasi seolah-olah harga BNB hancur 50%
+      market.rsi = 15; // RSI oversold parah
+    }
+    // ==========================================
+
+    // [PEMBARUAN KRUSIAL] Sensor Posisi (Mendeteksi Realized IL secara on-chain)
+    let bluechipHealth = await checkVaultPosition(
+      CONFIG.VAULTS.BLUECHIP,
+      market.price,
+    );
+    let degenHealth = await checkVaultPosition(
+      CONFIG.VAULTS.DEGEN,
+      market.price,
+    );
+
+    // ==========================================
+    // 🚨 DEMO DAY INJECTION UNTUK SENSOR POSISI
+    // ==========================================
+    if (demoConfig?.forceCrash) {
+      // Tambahkan 'as any' untuk menembus proteksi tipe TypeScript
+      bluechipHealth = "OUT_OF_RANGE" as any;
+      degenHealth = "OUT_OF_RANGE" as any;
+      console.log("🚨 [DEMO OVERRIDE] SENSOR POSISI DIPAKSA: OUT_OF_RANGE");
+    }
+
     const memories = await getRecentMemories(3);
-    const marketString = JSON.stringify(market);
+
+    // Menyuntikkan Laporan Kesehatan Posisi ke Konteks Utama AI
+    const marketString = JSON.stringify({
+      ...market,
+      POSITION_HEALTH_RADAR: {
+        BLUECHIP_VAULT: bluechipHealth,
+        DEGEN_VAULT: degenHealth,
+      },
+    });
 
     const tasks = await runOrchestrator(market);
     console.log(
-      `[ORCHESTRATOR] Dynamically deploying ${tasks.length} workers...`,
+      `[ORCHESTRATOR] Dynamically deploying ${tasks.length} workers:`,
     );
 
-    const workerPromises = tasks.map((task) => {
+    const workerPromises = tasks.map(async (task) => {
       console.log(`  -> Dispatching ${task.type}: ${task.description}`);
 
       if (task.type === "YIELD_STRATEGIST") {
@@ -57,13 +116,23 @@ async function neuroLoomCycle() {
       .join("\n\n====================\n\n");
 
     let feedbackContext = "";
+    if (demoConfig?.stage === 1) {
+      feedbackContext =
+        "CRITICAL DEMO DIRECTIVE: This is STAGE 1 (Planning). You MUST analyze the market and ONLY output 'calculate_v3_lp_params'. IMPORTANT RULE: Our testnet WBNB balance is extremely low. You MUST set 'amountADesiredWei' to '10000000000000000' (0.01 WBNB) and 'amountBDesiredWei' to '5900000000000000000' (5.9 USDT) exactly.";
+    } else if (demoConfig?.stage === 2) {
+      feedbackContext =
+        feedbackContext = `CRITICAL DEMO DIRECTIVE: This is STAGE 2 (Execution). Read the calculation from your MEMORIES. You MUST output 'provide_liquidity_v3' using those calculated ticks. IMPORTANT SCHEMA RULE: You MUST strictly use the argument keys: 'token0', 'token1', 'amount0DesiredWei', 'amount1DesiredWei', 'tickLower', 'tickUpper', 'fee' (set to 2500), 'slippageBps' (set to 10000), and 'vaultAddress' (set to "${CONFIG.VAULTS.BLUECHIP}"). DO NOT use 'tokenA' or 'amountA'.`;
+    } else if (demoConfig?.stage === 3) {
+      feedbackContext = `CRITICAL DEMO DIRECTIVE: This is STAGE 3 (Emergency Rescue). The POSITION_HEALTH_RADAR indicates the pool is OUT_OF_RANGE due to a market crash. You MUST output 'close_liquidity_v3' to rescue the funds. IMPORTANT SCHEMA RULE: You MUST strictly use ONLY two argument keys: 'vaultAddress' (set to "${CONFIG.VAULTS.BLUECHIP}") and 'tokenId' (set exactly to "AUTO"). DO NOT include 'slippageBps' or any other parameters.`;
+    }
+
     let currentDraft = null;
     let finalThoughts = "";
-    const MAX_ITERATIONS = 1;
+    const MAX_ITERATIONS = 3;
 
     for (let attempt = 1; attempt <= MAX_ITERATIONS; attempt++) {
       console.log(
-        `\n[AGENT] Iteration ${attempt}: Generating strategic thesis...`,
+        `\n[AGENT] Iteration ${attempt}: Generating strategic thesis:`,
       );
 
       const { thoughts, draft } = await generateDecision(
@@ -81,7 +150,7 @@ async function neuroLoomCycle() {
 
       if (!draft) {
         console.log(
-          "[SYSTEM] The agent decided to HOLD. There is no execution draft.",
+          "[SYSTEM] ⏸ The agent decided to HOLD. There is no execution draft.",
         );
         await logAIDecision(
           "N/A",
@@ -115,29 +184,13 @@ async function neuroLoomCycle() {
           feedbackContext = evaluation.feedback;
         } else {
           console.log(
-            "[SYSTEM] Iteration limit reached without a PASS. Aborting transaction.",
-          );
-          await logAIDecision(
-            draft.toolName,
-            "FAIL",
-            market.price,
-            market.rsi,
-            `Max iterations reached. Last feedback: ${evaluation.feedback}`,
-            "FAIL",
+            "[SYSTEM] ❌ Iteration limit reached without a PASS. Aborting transaction.",
           );
           return;
         }
       } else {
         console.log(
-          "[SYSTEM] Transaction ABSOLUTELY REJECTED by the Risk Officer (FAIL).",
-        );
-        await logAIDecision(
-          draft.toolName,
-          "FAIL",
-          market.price,
-          market.rsi,
-          `Rejected by Evaluator: ${evaluation.feedback}`,
-          "FAIL",
+          "[SYSTEM] ⛔ Transaction ABSOLUTELY REJECTED by the Risk Officer (FAIL).",
         );
         return;
       }
@@ -146,10 +199,22 @@ async function neuroLoomCycle() {
     if (currentDraft) {
       try {
         let result: any;
+        console.log(`[SYSTEM] ⚡ Executing Tool: ${currentDraft.toolName}...`);
+
         if (currentDraft.toolName === "execute_pancake_swap") {
           result = await executePancakeSwap.invoke(currentDraft.args);
         } else if (currentDraft.toolName === "execute_venus_deposit") {
           result = await executeVenusDeposit.invoke(currentDraft.args);
+        } else if (currentDraft.toolName === "provide_liquidity_v3") {
+          result = await provideLiquidityV3.invoke(currentDraft.args);
+        } else if (currentDraft.toolName === "close_liquidity_v3") {
+          result = await closeLiquidityV3.invoke(currentDraft.args);
+        } else if (currentDraft.toolName === "calculate_optimal_allocation") {
+          result = await calculateOptimalAllocation.invoke(currentDraft.args);
+        } else if (currentDraft.toolName === "calculate_v3_lp_params") {
+          result = await calculateV3LpParams.invoke(currentDraft.args);
+        } else if (currentDraft.toolName === "simulate_il_risk") {
+          result = await simulateILRisk.invoke(currentDraft.args);
         } else {
           throw new Error(`Unknown toolName: ${currentDraft.toolName}`);
         }
@@ -159,15 +224,16 @@ async function neuroLoomCycle() {
             ? result
             : result?.content || JSON.stringify(result);
 
-        console.log(`ON-CHAIN SUCCESS: ${finalOutput}`);
+        console.log(
+          `✅ ON-CHAIN SUCCESS / CALCULATION DONE: ${finalOutput.substring(0, 100)}...`,
+        );
 
         const txHash = result?.hash || result || "0x_simulated_hash";
-
         const targetVault = currentDraft.args.vaultAddress || "Unknown Vault";
 
         await logAIDecision(
           currentDraft.toolName,
-          currentDraft.args.action || "DEPOSIT",
+          currentDraft.args.action || "CALCULATION",
           market.price,
           market.rsi,
           finalThoughts,
@@ -175,20 +241,15 @@ async function neuroLoomCycle() {
           txHash,
           targetVault,
         );
-      } catch (chainError) {
-        console.error(`[EXECUTION ERROR]Smart contract failed:`, chainError);
-        await logAIDecision(
-          currentDraft.toolName,
-          "REVERTED",
-          market.price,
-          market.rsi,
-          "Transaction reverted on-chain",
-          "FAILED",
+      } catch (chainError: any) {
+        console.error(
+          `[EXECUTION ERROR] ❌ Smart contract / Tool failed:`,
+          chainError,
         );
       }
     }
-  } catch (error) {
-    console.error(`[CRITICAL ERROR] AI cycle stalled:`, error);
+  } catch (error: any) {
+    console.error(`[CRITICAL ERROR] 💥 AI cycle stalled:`, error);
   }
 }
 
@@ -207,15 +268,12 @@ async function startAutonomousLoop() {
     if (isRunning)
       await new Promise((resolve) => setTimeout(resolve, timeToWait));
   }
-  console.log(" [SYSTEM] NeuroLoom is shutting down safely.");
   process.exit(0);
 }
-
-process.on("SIGINT", () => {
-  isRunning = false;
-});
-process.on("SIGTERM", () => {
-  isRunning = false;
-});
-
-startAutonomousLoop();
+// process.on("SIGINT", () => {
+//   isRunning = false;
+// });
+// process.on("SIGTERM", () => {
+//   isRunning = false;
+// });
+// startAutonomousLoop();

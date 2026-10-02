@@ -1,11 +1,9 @@
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
-import { ChatGroq } from "@langchain/groq";
-import { ToolDraft, extractXML } from "./agent.js";
 import { formatUnits } from "viem";
-import { CONFIG } from "../config.js";
+import { ToolDraft, extractXML } from "./agent.js";
 
 export async function evaluateDecision(
-  llm: ChatGroq,
+  llm: any,
   draft: ToolDraft,
   marketData: any,
   vaultBalances: { yieldFarm: bigint; bluechip: bigint; degen: bigint },
@@ -14,25 +12,28 @@ export async function evaluateDecision(
   feedback: string;
 }> {
   const evaluatorPrompt = `You are the Chief Risk Officer for NeuroLoom.
-Evaluate the proposed Tool Call draft based on the DEFI STATE.
+Evaluate the proposed Tool Call draft.
 
 STRICT RULES:
-1. "execute_pancake_swap": The action (BUY/SELL) MUST logically align with the TAAPI market structure.
-2. Vault Targeting: Ensure the draft uses the correct vaultAddress for its strategy.
-3. Ignore exact amount limitations, the execution engine will forcibly allocate exactly 1% of the vault balance. Focus on verifying the STRATEGIC DIRECTION.
+Slippage Check: If the tool is 'provide_liquidity_v3' or 'execute_pancake_swap', slippageBps MUST be set to 10000 for the testnet environment. Do NOT enforce or ask for slippageBps if the tool is 'close_liquidity_v3'.
+2. Sizing Limit (CRITICAL MATH): The amounts in the draft (like amount0DesiredWei and amount1DesiredWei) are in WEI (10^18 format). You MUST mentally remove 18 zeros (divide by 10^18) to get the standard unit. For example, 5900000000000000000 Wei is ONLY 5.9 units! The standard unit amount MUST NEVER exceed 20% of the target vault's TVL (Velocity Guard limit).
+3. LP Range Check: If tool is "provide_liquidity_v3", the tickLower and tickUpper must encase the current market price reasonably.
+
+If any of the rules above are violated (especially SIZING), you MUST output NEEDS_IMPROVEMENT and explain exactly how they should fix the math.
+ONLY output FAIL if the action is completely malicious.
+Output PASS if everything is mathematically safe.
 
 Output your evaluation concisely in the following XML format:
 <evaluation>PASS, NEEDS_IMPROVEMENT, or FAIL</evaluation>
 <feedback>
-What needs improvement and why. If PASS, briefly state why it is safe.
+State specifically what math or parameter is wrong, and provide the correct calculation.
 </feedback>`;
 
-  const context = `DEFI STATE: ${JSON.stringify(marketData)}
-AVAILABLE BALANCES (USDT) & ADDRESS MAPPING:
-- Yield Farm (${CONFIG.VAULTS.YIELD_FARM}): ${formatUnits(vaultBalances.yieldFarm, 6)}
-- Bluechip (${CONFIG.VAULTS.BLUECHIP}): ${formatUnits(vaultBalances.bluechip, 6)}
-- Degen (${CONFIG.VAULTS.DEGEN}): ${formatUnits(vaultBalances.degen, 6)}
-PROPOSED TOOL CALL: ${JSON.stringify(draft)}`;
+  const context = `DEFI STATE: ${JSON.stringify(marketData)}\nBALANCES: 
+Yield Farm: ${formatUnits(vaultBalances.yieldFarm, 18)} 
+Bluechip: ${formatUnits(vaultBalances.bluechip, 18)} 
+Degen: ${formatUnits(vaultBalances.degen, 18)}
+PROPOSED DRAFT: ${JSON.stringify(draft)}`;
 
   try {
     const response = await llm.invoke([
@@ -40,19 +41,27 @@ PROPOSED TOOL CALL: ${JSON.stringify(draft)}`;
       new HumanMessage(context),
     ]);
     const rawContent = response.content.toString();
-    const evaluation = extractXML(rawContent, "evaluation").toUpperCase();
-    const feedback = extractXML(rawContent, "feedback");
+
+    let evaluation = extractXML(rawContent, "evaluation").toUpperCase();
+    let feedback = extractXML(rawContent, "feedback");
+
+    if (!evaluation || !feedback) {
+      console.log(
+        `\n[WARNING] Evaluator format parsing failed. RAW OUTPUT:\n${rawContent}\n`,
+      );
+      if (rawContent.toUpperCase().includes("PASS")) evaluation = "PASS";
+      else if (rawContent.toUpperCase().includes("NEEDS_IMPROVEMENT"))
+        evaluation = "NEEDS_IMPROVEMENT";
+      else evaluation = "FAIL";
+      feedback = feedback || rawContent.trim();
+    }
 
     if (["PASS", "NEEDS_IMPROVEMENT", "FAIL"].includes(evaluation))
       return { status: evaluation as any, feedback };
-    return {
-      status: "FAIL",
-      feedback: "Evaluator returned invalid status format.",
-    };
+
+    return { status: "FAIL", feedback: "Evaluator returned invalid format." };
   } catch (error) {
-    return {
-      status: "FAIL",
-      feedback: "Internal LLM Error during evaluation.",
-    };
+    console.error("[EVALUATOR ERROR]", error);
+    return { status: "FAIL", feedback: "Internal LLM Error." };
   }
 }

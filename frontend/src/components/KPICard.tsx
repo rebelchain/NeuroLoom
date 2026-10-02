@@ -47,7 +47,7 @@ export function KPICard({
       Icon: TrendingDown,
     },
     neutral: {
-      cls: "bg-white/[0.03] text-[#8a8a8a] border-white/[0.1]",
+      cls: "bg-[#1c1c1c] text-[#8a8a8a] border-[#2a2a2a]",
       Icon: Minus,
     },
   }[changeType];
@@ -55,11 +55,11 @@ export function KPICard({
   return (
     <div
       style={{ animationDelay: `${delay}ms` }}
-      className="group relative rounded-[12px] p-5 border border-white/[0.12] bg-gradient-to-br from-white/[0.045] via-white/[0.01] to-primary/[0.02] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] animate-fade-in-up hover:border-primary/40 transition-colors overflow-hidden min-w-0"
+      className="group relative rounded-2xl p-6 border border-[#1f1f1f] bg-[#121212]/90 hover:border-[#333] transition-all overflow-hidden min-w-0"
     >
       <div className="relative z-10 flex flex-col h-full justify-between">
         <div className="flex items-start justify-between mb-5">
-          <div className="w-10 h-10 rounded-lg bg-white/[0.02] border border-white/[0.07] flex items-center justify-center text-primary group-hover:border-primary/70 group-hover:bg-primary/[0.05] transition-colors">
+          <div className="w-10 h-10 rounded-xl bg-[#181818] border border-[#262626] flex items-center justify-center text-[#c5c5c5] group-hover:text-primary transition-colors">
             <Icon className="w-[18px] h-[18px]" strokeWidth={1.5} />
           </div>
           {change && !isLoading && (
@@ -79,20 +79,20 @@ export function KPICard({
             {isLoading ? (
               <div className="flex items-center gap-2 text-[#8a8a8a] animate-pulse">
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span className="text-[13px] font-mono tracking-widest">
+                <span className="text-[12px] font-mono tracking-widest">
                   SYNCING
                 </span>
               </div>
             ) : (
-              <div className="text-[26px] font-medium tracking-tight text-[#f5f5f5] tnum truncate">
+              <div className="text-[26px] font-mono font-bold tracking-tight text-[#f5f5f5] tnum truncate">
                 {prefix === "$" ? formatted : `${prefix}${formatted}${suffix}`}
               </div>
             )}
           </div>
 
-          <div className="text-[13px] text-[#c5c5c5]">{title}</div>
+          <div className="text-[13px] font-medium text-[#c5c5c5]">{title}</div>
           {subtext && (
-            <div className="text-[11px] text-[#8a8a8a] mt-1.5 truncate">
+            <div className="text-[11px] font-mono text-[#8a8a8a] mt-1.5 truncate">
               {subtext}
             </div>
           )}

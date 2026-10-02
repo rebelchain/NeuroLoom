@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-// Struktur data ini persis seperti yang akan kamu ambil dari Smart Contract nanti
+
 export interface VaultAllocation {
   protocol: string;
   percentage: number;

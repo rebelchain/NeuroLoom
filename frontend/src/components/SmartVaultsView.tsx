@@ -110,21 +110,21 @@ function VaultCard({
     <div
       ref={ref}
       className={cn(
-        "group relative rounded-[12px] border border-white/[0.12] bg-gradient-to-br from-white/[0.045] via-white/[0.01] to-primary/[0.02] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] p-6 transition-all duration-500 flex flex-col hover:border-primary/40 overflow-hidden tick-frame",
+        "group relative rounded-2xl border border-[#1f1f1f] bg-[#121212]/90 p-6 transition-all duration-300 flex flex-col hover:border-[#333] overflow-hidden",
         visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6",
       )}
     >
-      <ArrowUpRight className="absolute top-4 right-4 w-5 h-5 text-white/[0.2] group-hover:text-primary transition-all duration-300" />
+      <ArrowUpRight className="absolute top-5 right-5 w-4 h-4 text-[#444] group-hover:text-primary transition-all duration-300" />
 
       <div className="relative z-10 flex-grow">
         <div className="flex items-center gap-4 mb-6">
-          <div className="w-12 h-12 rounded-lg bg-white/[0.02] border border-white/[0.08] flex items-center justify-center text-primary group-hover:border-primary/70 group-hover:bg-primary/[0.05] transition-colors">
-            <span className="font-mono text-sm uppercase tracking-widest">
+          <div className="w-11 h-11 rounded-xl bg-[#181818] border border-[#262626] flex items-center justify-center text-[#f5f5f5] group-hover:text-primary transition-colors">
+            <span className="font-mono text-xs uppercase tracking-widest font-bold">
               {vaultInitials}
             </span>
           </div>
           <div className="min-w-0">
-            <div className="text-[14.5px] font-bold text-[#f5f5f5] uppercase tracking-wide truncate font-mono">
+            <div className="text-[14px] font-bold text-[#f5f5f5] uppercase tracking-wide truncate font-mono">
               {vault.name}
             </div>
             <div className="text-[10px] font-mono text-[#8a8a8a] uppercase tracking-widest mt-1">
@@ -133,7 +133,7 @@ function VaultCard({
           </div>
         </div>
 
-        <div className="space-y-3.5 mb-6">
+        <div className="space-y-3 mb-6">
           <div className="flex justify-between items-center text-[11px] uppercase tracking-widest font-mono">
             <span className="text-[#8a8a8a]">Total TVL</span>
             <span className="text-[#f5f5f5] font-bold tnum">
@@ -162,10 +162,10 @@ function VaultCard({
           </div>
         </div>
 
-        {/* Glass Progress Bar */}
-        <div className="h-1.5 rounded-full bg-black/50 border border-white/[0.05] shadow-[inset_0_1px_2px_rgba(0,0,0,0.5)] flex mb-6 overflow-hidden">
+        {/* Progress Bar (no glow) */}
+        <div className="h-1.5 rounded-full bg-[#181818] border border-[#262626] flex mb-6 overflow-hidden">
           <div
-            className="h-full bg-primary transition-all duration-1000 shadow-[0_0_10px_var(--color-primary)]"
+            className="h-full bg-primary transition-all duration-1000"
             style={{ width: `${allocatedPct}%` }}
           />
           <div
@@ -176,7 +176,7 @@ function VaultCard({
       </div>
 
       {showChart && (
-        <div className="mb-5 border-t border-white/[0.08] pt-5 animate-fade-in-up">
+        <div className="mb-5 border-t border-[#1f1f1f] pt-5 animate-fade-in-up">
           <div className="text-[10px] font-mono text-[#8a8a8a] uppercase tracking-widest mb-3">
             {">"} 30-Day Equity Curve
           </div>
@@ -190,17 +190,17 @@ function VaultCard({
         </div>
       )}
 
-      <div className="mt-auto pt-5 border-t border-white/[0.08] flex gap-3">
+      <div className="mt-auto pt-5 border-t border-[#1f1f1f] flex gap-3">
         <button
           onClick={handleToggleChart}
-          className="flex-1 flex items-center justify-center gap-2 h-10 rounded-md bg-gradient-to-br from-white/[0.05] to-transparent border border-white/[0.08] text-[#c5c5c5] text-[10px] uppercase tracking-widest font-mono shadow-[inset_0_1px_0_rgba(255,255,255,0.02)] hover:text-[#f5f5f5] hover:bg-white/[0.02] hover:border-white/[0.15] transition-all"
+          className="flex-1 flex items-center justify-center gap-2 h-10 rounded-xl bg-[#161616] border border-[#262626] text-[#c5c5c5] text-[10.5px] uppercase tracking-widest font-mono hover:text-[#f5f5f5] hover:border-[#3a3a3a] transition-all cursor-pointer"
         >
           <LineChart className="w-3.5 h-3.5" /> {showChart ? "HIDE" : "CHART"}
         </button>
         <button
           onClick={handleDownloadProof}
           disabled={isDownloading}
-          className="flex-[2] flex items-center justify-center gap-2 h-10 rounded-md bg-gradient-to-br from-white/[0.05] to-transparent border border-white/[0.08] text-[#c5c5c5] text-[10px] uppercase tracking-widest font-mono shadow-[inset_0_1px_0_rgba(255,255,255,0.02)] hover:text-[#f5f5f5] hover:bg-white/[0.02] hover:border-white/[0.15] transition-all disabled:opacity-50"
+          className="flex-[2] flex items-center justify-center gap-2 h-10 rounded-xl bg-[#161616] border border-[#262626] text-[#c5c5c5] text-[10.5px] uppercase tracking-widest font-mono hover:text-[#f5f5f5] hover:border-[#3a3a3a] transition-all disabled:opacity-50 cursor-pointer"
         >
           {isDownloading ? (
             <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -245,129 +245,126 @@ export function SmartVaultsView() {
             protocolName: "PancakeSwap V3",
             amount: realTotalUsd * 0.3,
             rawAmount: realTotalUsd * 0.3,
-            symbol: "USDT",
+            symbol: "CAKE-LP",
           });
           availableBalance = realTotalUsd * 0.1;
         } else if (index === 1) {
           allocations.push({
-            protocolName: "PancakeSwap (WBNB)",
-            amount: realTotalUsd * 0.55,
-            rawAmount: (realTotalUsd * 0.55) / 776,
-            symbol: "WBNB",
+            protocolName: "Venus Protocol",
+            amount: realTotalUsd * 0.4,
+            rawAmount: realTotalUsd * 0.4,
+            symbol: "vUSDT",
           });
           allocations.push({
-            protocolName: "Kinza Finance",
-            amount: realTotalUsd * 0.35,
-            rawAmount: (realTotalUsd * 0.35) / 776,
-            symbol: "WBNB",
+            protocolName: "PancakeSwap V3",
+            amount: realTotalUsd * 0.5,
+            rawAmount: realTotalUsd * 0.5,
+            symbol: "WBNB-LP",
           });
           availableBalance = realTotalUsd * 0.1;
-        } else if (index === 2) {
+        } else {
           allocations.push({
-            protocolName: "Radiant Capital",
+            protocolName: "PancakeSwap V3",
             amount: realTotalUsd * 0.85,
-            rawAmount: (realTotalUsd * 0.85) / 64000,
-            symbol: "BTCB",
+            rawAmount: realTotalUsd * 0.85,
+            symbol: "HIGH-BETA",
           });
           availableBalance = realTotalUsd * 0.15;
         }
       }
 
-      return { availableBalance, totalBalance: realTotalUsd, allocations };
+      return { totalUsd: realTotalUsd, allocations, availableBalance };
     };
 
-    const v1 = getVaultData(0);
-    const v2 = getVaultData(1);
-    const v3 = getVaultData(2);
+    const v0 = getVaultData(0);
+    const v1 = getVaultData(1);
+    const v2 = getVaultData(2);
 
     return [
       {
         id: "yield-farm",
         name: "The Yield Farm",
-        symbol: "USDT",
+        symbol: "yUSDT",
         contractAddress: ACTIVE_VAULTS[0] as `0x${string}`,
-        totalBalance: v1.totalBalance,
-        availableBalance: v1.availableBalance,
         apy: 14.5,
-        allocations: v1.allocations,
+        totalBalance: v0.totalUsd,
+        availableBalance: v0.availableBalance,
+        allocations: v0.allocations,
       },
       {
         id: "bluechip-momentum",
         name: "Bluechip Momentum",
-        symbol: "USDT/WBNB",
+        symbol: "bUSDT",
         contractAddress: ACTIVE_VAULTS[1] as `0x${string}`,
-        totalBalance: v2.totalBalance,
-        availableBalance: v2.availableBalance,
         apy: 22.4,
-        allocations: v2.allocations,
+        totalBalance: v1.totalUsd,
+        availableBalance: v1.availableBalance,
+        allocations: v1.allocations,
       },
       {
         id: "degen-accumulator",
         name: "Degen Accumulator",
-        symbol: "USDT/BTCB",
+        symbol: "dUSDT",
         contractAddress: ACTIVE_VAULTS[2] as `0x${string}`,
-        totalBalance: v3.totalBalance,
-        availableBalance: v3.availableBalance,
         apy: 38.2,
-        allocations: v3.allocations,
+        totalBalance: v2.totalUsd,
+        availableBalance: v2.availableBalance,
+        allocations: v2.allocations,
       },
     ];
   }, [onChainData]);
 
   return (
     <div className="space-y-8 relative">
-      <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[150%] h-[70vh] pointer-events-none bg-[radial-gradient(ellipse_at_50%_0%,_rgba(139,92,246,0.12),_transparent_60%)] z-0"></div>
-
-      <div className="relative z-10 -mt-6">
-        <PageHero
-          badge="Platform · Strategy Vaults"
-          title="Autonomous"
-          accent="Strategies"
-          media={{ kind: "video", src: "/bg/smartvaults.mp4", opacity: 40 }}
-          subtitle="Live oversight of your AI-managed vaults — tracking total liquidity, active execution routes, and idle assets across the BSC ecosystem."
-        />
-      </div>
-
-      <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {strategyVaults.map((vault) => (
-          <VaultCard key={vault.id} vault={vault} isLoading={isVaultsLoading} />
-        ))}
-      </div>
-
-      <div className="relative z-10 space-y-6 pt-6 border-t border-white/[0.08]">
-        <div className="flex items-end justify-between gap-4">
-          <div>
-            <h2 className="text-[14px] font-bold tracking-widest uppercase font-mono text-[#f5f5f5]">
-              AI Routing Breakdown
-            </h2>
-            <p className="text-[10.5px] font-mono uppercase tracking-widest text-[#8a8a8a] mt-2">
-              {">"} Live allocation visualization per smart vault
-            </p>
-          </div>
-          <span className="inline-flex items-center gap-1.5 h-7 px-3 rounded-md border border-primary/40 bg-primary/10 text-[10px] text-primary font-mono uppercase tracking-widest shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_var(--color-primary)]" />
-            {strategyVaults.length} Active
-          </span>
-        </div>
-        {strategyVaults.map((vault) => (
-          <VaultAllocationBar
-            key={vault.id}
-            vault={vault}
-            onDeposit={setSelectedVault}
+      <div className="relative z-10 space-y-8">
+        <div className="-mt-6">
+          <PageHero
+            badge="Vaults · Autonomous Strategies"
+            title="Smart"
+            accent="Vaults"
+            media={{ kind: "video", src: "/bg/smartvaults.mp4", opacity: 40 }}
+            subtitle="Automated, risk-adjusted yield engines running on-chain. Deposit capital into specialized strategies managed by AI agents."
           />
-        ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {strategyVaults.map((vault) => (
+            <VaultCard
+              key={vault.id}
+              vault={vault}
+              isLoading={isVaultsLoading}
+            />
+          ))}
+        </div>
+
+        <div className="space-y-6">
+          <div className="flex items-center gap-3">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+            <h3 className="text-[13px] font-mono font-bold tracking-wider uppercase text-[#f5f5f5]">
+              Real-Time Protocol Allocation Matrix
+            </h3>
+          </div>
+          <div className="grid grid-cols-1 gap-4">
+            {strategyVaults.map((vault) => (
+              <VaultAllocationBar
+                key={`alloc-${vault.id}`}
+                vault={vault}
+                onDeposit={setSelectedVault}
+              />
+            ))}
+          </div>
+        </div>
       </div>
 
       {selectedVault && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in-up">
-          <div className="relative w-full max-w-md">
-            <VaultPanel
-              vaultAddress={selectedVault.contractAddress}
-              vaultName={selectedVault.name}
-              vaultSymbol={selectedVault.symbol}
-              onClose={() => setSelectedVault(null)}
-            />
-          </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <VaultPanel
+            vaultId={selectedVault.id}
+            vaultName={selectedVault.name}
+            vaultAddress={selectedVault.contractAddress}
+            vaultSymbol={selectedVault.symbol}
+            onClose={() => setSelectedVault(null)}
+          />
         </div>
       )}
     </div>

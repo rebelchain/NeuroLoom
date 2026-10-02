@@ -26,7 +26,7 @@ const vaultABI = [
 ] as const;
 
 const GRAPHQL_ENDPOINT =
-  "https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.7";
+  "https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.8";
 
 export function DashboardView() {
   const [totalRebalances, setTotalRebalances] = useState(0);
@@ -114,8 +114,6 @@ export function DashboardView() {
 
   return (
     <div className="relative space-y-8">
-      <div className="absolute top-[-25%] left-1/2 -translate-x-1/2 w-[150%] h-[75vh] pointer-events-none bg-[radial-gradient(ellipse_at_50%_0%,_rgba(139,92,246,0.12),_transparent_60%)] z-0"></div>
-
       <div className="relative z-10 space-y-8">
         {/* HERO BANNER */}
         <div className="-mt-6">
@@ -126,26 +124,25 @@ export function DashboardView() {
             subtitle="Live global state across all AI-managed strategies. Monitor aggregated TVL, total yields, and system-wide routing."
             media={{ kind: "video", src: "/bg/plexuspurple.mp4", opacity: 40 }}
             actions={
-              <div className="flex flex-wrap items-center gap-3.5">
+              <div className="flex flex-wrap items-center gap-3">
                 <button
                   onClick={() => {
                     window.dispatchEvent(
                       new CustomEvent("app-navigate", { detail: "vaults" }),
                     );
                   }}
-                  className="relative flex items-center gap-2 h-[42px] px-6 rounded-md bg-gradient-to-b from-white via-[#e7e7e7] to-[#cfcfcf] text-[#111] font-medium text-[13.5px] border border-white shadow-[inset_0_1px_0_rgba(255,255,255,0.95)] hover:from-white hover:via-[#f3f6ff] hover:to-[#d5def2] hover:shadow-[inset_0_1px_0_#fff,0_0_22px_rgba(186,208,255,0.35),0_8px_18px_rgba(255,255,255,0.12)] transition-all duration-300"
+                  className="flex items-center gap-2 h-[40px] px-5 rounded-xl bg-[#f5f5f5] text-[#111] hover:bg-white font-mono font-bold text-[11px] uppercase tracking-wider transition-colors cursor-pointer"
                 >
                   Explore Strategies
-                  <ArrowRight className="w-4 h-4" />
+                  <ArrowRight className="w-3.5 h-3.5" />
                 </button>
 
-   
                 <button
                   onClick={handleDownloadPDF}
                   disabled={isPrinting}
-                  className="relative flex items-center gap-2 h-[42px] px-5 rounded-md bg-gradient-to-br from-white/[0.1] to-black/[0.45] text-white border border-white/[0.45] shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] font-medium text-[13.5px] hover:border-primary/75 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.22),0_0_20px_rgba(139,92,246,0.3)] transition-all duration-300 disabled:opacity-50"
+                  className="flex items-center gap-2 h-[40px] px-5 rounded-xl bg-[#161616] text-[#f5f5f5] border border-[#262626] hover:border-[#444] font-mono font-bold text-[11px] uppercase tracking-wider transition-colors disabled:opacity-50 cursor-pointer"
                 >
-                  <Download className="w-4 h-4" />
+                  <Download className="w-3.5 h-3.5" />
                   {isPrinting ? "Generating PDF..." : "Export Global Report"}
                 </button>
               </div>

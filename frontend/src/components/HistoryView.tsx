@@ -24,13 +24,7 @@ function getVaultName(address?: string) {
   return VAULT_MAP[address.toLowerCase()] || "NeuroLoom Vault";
 }
 
-type EventType =
-  | "AI_REBALANCE"
-  | "USER_DEPOSIT"
-  | "USER_WITHDRAWAL"
-  | "ADMIN_WHITELIST"
-  | "SYSTEM_PAUSED"
-  | "SYSTEM_UNPAUSED";
+type EventType = "AI_REBALANCE" | "USER_DEPOSIT" | "USER_WITHDRAWAL";
 
 interface VaultEvent {
   id: string;
@@ -57,143 +51,164 @@ interface RawDepositWithdraw {
   blockTimestamp: string;
   transactionHash: string;
 }
-interface RawWhitelist {
-  id: string;
-  protocol: string;
-  status: boolean;
-  blockTimestamp: string;
-  transactionHash: string;
-}
-interface RawPause {
-  id: string;
-  account: string;
-  blockTimestamp: string;
-  transactionHash: string;
+
+const GRAPHQL_URL =
+  "https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.8";
+
+function shortenAddress(addr: string) {
+  if (!addr) return "";
+  return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
 }
 
-const ITEMS_PER_PAGE = 15;
+function EventBadge({ type }: { type: EventType }) {
+  switch (type) {
+    case "AI_REBALANCE":
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-mono tracking-widest uppercase bg-primary/10 text-primary border border-primary/25">
+          <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+          AI Rebalance
+        </span>
+      );
+    case "USER_DEPOSIT":
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-mono tracking-widest uppercase bg-[#10b981]/10 text-[#10b981] border border-[#10b981]/25">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#10b981]" />
+          Deposit
+        </span>
+      );
+    case "USER_WITHDRAWAL":
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-mono tracking-widest uppercase bg-[#ff5f5f]/10 text-[#ff5f5f] border border-[#ff5f5f]/25">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#ff5f5f]" />
+          Withdrawal
+        </span>
+      );
+    default:
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-mono tracking-widest uppercase bg-white/[0.05] text-[#8a8a8a] border border-white/[0.1]">
+          {type}
+        </span>
+      );
+  }
+}
 
 export function HistoryView() {
   const [events, setEvents] = useState<VaultEvent[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<string>("ALL");
+  const [searchQuery, setSearchQuery] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-
   const [currentPage, setCurrentPage] = useState(1);
-
-  const GRAPHQL_ENDPOINT =
-    "https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.6";
+  const ITEMS_PER_PAGE = 10;
 
   useEffect(() => {
-    async function fetchMasterLedger() {
+    let isMounted = true;
+    async function fetchOnChainAudit() {
       try {
-        setLoading(true);
         const query = `
           {
-            rebalanceExecuteds(first: 100, orderBy: blockTimestamp, orderDirection: desc) { id, tokenIn, tokenOut, amountIn, address, blockTimestamp, transactionHash }
-            deposits(first: 100, orderBy: blockTimestamp, orderDirection: desc) { id, assets, address, blockTimestamp, transactionHash }
-            withdraws(first: 100, orderBy: blockTimestamp, orderDirection: desc) { id, assets, address, blockTimestamp, transactionHash }
-            protocolApproveds(first: 20, orderBy: blockTimestamp, orderDirection: desc) { id, protocol, status, blockTimestamp, transactionHash }
-            pauseds(first: 5, orderBy: blockTimestamp, orderDirection: desc) { id, account, blockTimestamp, transactionHash }
-            unpauseds(first: 5, orderBy: blockTimestamp, orderDirection: desc) { id, account, blockTimestamp, transactionHash }
+            rebalanceExecuteds(first: 30, orderBy: blockTimestamp, orderDirection: desc) {
+              id tokenIn tokenOut amountIn address blockTimestamp transactionHash
+            }
+            deposits(first: 30, orderBy: blockTimestamp, orderDirection: desc) {
+              id assets address blockTimestamp transactionHash
+            }
+            withdraws(first: 30, orderBy: blockTimestamp, orderDirection: desc) {
+              id assets address blockTimestamp transactionHash
+            }
           }
         `;
-        const res = await fetch(GRAPHQL_ENDPOINT, {
+        const res = await fetch(GRAPHQL_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ query }),
         });
-        const { data } = await res.json();
-        const normalizedData: VaultEvent[] = [];
-
-        if (data) {
-          if (data.rebalanceExecuteds) {
-            normalizedData.push(
-              ...data.rebalanceExecuteds.map((e: RawRebalance) => {
-                const vaultName = getVaultName(e.address);
-                return {
-                  id: e.id,
-                  type: "AI_REBALANCE" as EventType,
-                  amount: `${formatUnits(BigInt(e.amountIn), 6)} USDT`,
-                  route: `[${vaultName}] Reallocated ${shortenAddress(e.tokenIn)} to ${shortenAddress(e.tokenOut)}`,
-                  timestamp: Number(e.blockTimestamp),
-                  txHash: e.transactionHash,
-                };
-              }),
-            );
-          }
-          if (data.deposits) {
-            normalizedData.push(
-              ...data.deposits.map((e: RawDepositWithdraw) => ({
-                id: e.id,
-                type: "USER_DEPOSIT" as EventType,
-                amount: `+ ${formatUnits(BigInt(e.assets), 6)} USDT`,
-                route: `Capital Inbound to ${getVaultName(e.address)}`,
-                timestamp: Number(e.blockTimestamp),
-                txHash: e.transactionHash,
-              })),
-            );
-          }
-          if (data.withdraws) {
-            normalizedData.push(
-              ...data.withdraws.map((e: RawDepositWithdraw) => ({
-                id: e.id,
-                type: "USER_WITHDRAWAL" as EventType,
-                amount: `- ${formatUnits(BigInt(e.assets), 6)} USDT`,
-                route: `Capital Outbound from ${getVaultName(e.address)}`,
-                timestamp: Number(e.blockTimestamp),
-                txHash: e.transactionHash,
-              })),
-            );
-          }
-          if (data.protocolApproveds) {
-            normalizedData.push(
-              ...data.protocolApproveds.map((e: RawWhitelist) => ({
-                id: e.id,
-                type: "ADMIN_WHITELIST" as EventType,
-                amount: e.status ? "APPROVED" : "REVOKED",
-                route: `Target Protocol: ${shortenAddress(e.protocol)}`,
-                timestamp: Number(e.blockTimestamp),
-                txHash: e.transactionHash,
-              })),
-            );
-          }
-          if (data.pauseds) {
-            normalizedData.push(
-              ...data.pauseds.map((e: RawPause) => ({
-                id: e.id,
-                type: "SYSTEM_PAUSED" as EventType,
-                amount: "EMERGENCY",
-                route: "Global Vault Operations Halted",
-                timestamp: Number(e.blockTimestamp),
-                txHash: e.transactionHash,
-              })),
-            );
-          }
+        const json = await res.json();
+        if (json.errors) {
+          console.error("The Graph Query Error:", json.errors);
         }
-        normalizedData.sort((a, b) => b.timestamp - a.timestamp);
-        setEvents(normalizedData);
-      } catch (error) {
-        console.error("Failed to fetch graph data:", error);
+        const data = json.data;
+        if (!isMounted || !data) return;
+
+        const combined: VaultEvent[] = [];
+
+        if (data.rebalanceExecuteds) {
+          data.rebalanceExecuteds.forEach((item: RawRebalance) => {
+            const vault = getVaultName(item.address);
+            const amt = Number(formatUnits(BigInt(item.amountIn), 6)).toFixed(
+              4,
+            );
+            combined.push({
+              id: item.id,
+              type: "AI_REBALANCE",
+              amount: `${amt} USDT`,
+              route: `${vault}: Route Shift`,
+              timestamp: Number(item.blockTimestamp),
+              txHash: item.transactionHash,
+            });
+          });
+        }
+
+        if (data.deposits) {
+          data.deposits.forEach((item: RawDepositWithdraw) => {
+            const vault = getVaultName(item.address);
+            const amt = Number(formatUnits(BigInt(item.assets), 6)).toFixed(4);
+            combined.push({
+              id: item.id,
+              type: "USER_DEPOSIT",
+              amount: `+${amt} USDT`,
+              route: `Vault Deposit -> ${vault}`,
+              timestamp: Number(item.blockTimestamp),
+              txHash: item.transactionHash,
+            });
+          });
+        }
+
+        if (data.withdraws) {
+          data.withdraws.forEach((item: RawDepositWithdraw) => {
+            const vault = getVaultName(item.address);
+            const amt = Number(formatUnits(BigInt(item.assets), 6)).toFixed(4);
+            combined.push({
+              id: item.id,
+              type: "USER_WITHDRAWAL",
+              amount: `-${amt} USDT`,
+              route: `Withdrawal <- ${vault}`,
+              timestamp: Number(item.blockTimestamp),
+              txHash: item.transactionHash,
+            });
+          });
+        }
+
+        combined.sort((a, b) => b.timestamp - a.timestamp);
+        setEvents(combined);
+      } catch (err) {
+        console.error("Gagal menarik data Subgraph Audit:", err);
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     }
-    fetchMasterLedger();
+
+    void fetchOnChainAudit();
+    const interval = setInterval(fetchOnChainAudit, 15000);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, []);
 
   const filteredEvents = events.filter((e) => {
-    const searchLower = searchQuery.toLowerCase();
-    const matchesSearch =
-      e.txHash.toLowerCase().includes(searchLower) ||
-      e.route.toLowerCase().includes(searchLower);
-    const matchesType = filterType === "ALL" || e.type === filterType;
-    return matchesSearch && matchesType;
+    if (filterType !== "ALL" && e.type !== filterType) return false;
+    if (
+      searchQuery &&
+      !e.txHash.toLowerCase().includes(searchQuery.toLowerCase()) &&
+      !e.route.toLowerCase().includes(searchQuery.toLowerCase())
+    ) {
+      return false;
+    }
+    return true;
   });
 
-  // Pagination
-  const totalPages = Math.ceil(filteredEvents.length / ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(filteredEvents.length / ITEMS_PER_PAGE) || 1;
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const paginatedEvents = filteredEvents.slice(
     startIndex,
@@ -219,18 +234,15 @@ export function HistoryView() {
 
   return (
     <div className="w-full h-full flex flex-col p-6 lg:p-10 overflow-y-auto relative">
-      {/* GLOW ATMOSFERIK */}
-      <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[120%] h-[60vh] pointer-events-none bg-[radial-gradient(ellipse_at_50%_0%,_rgba(139,92,246,0.1),_transparent_60%)] z-0"></div>
-
       {/* HEADER */}
       <div className="relative z-10 mb-8">
-        <div className="flex items-center gap-2 mb-5">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-white/[0.03] border border-white/[0.08] text-primary text-[10px] uppercase tracking-widest font-mono shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_var(--color-primary)]" />
+        <div className="flex items-center gap-2 mb-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#181818] border border-[#262626] text-primary text-[10px] uppercase tracking-widest font-mono">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
             Audit • On-Chain Ledger
           </div>
         </div>
-        <h1 className="text-3xl md:text-[32px] font-bold text-[#f5f5f5] mb-3 font-mono uppercase tracking-widest">
+        <h1 className="text-3xl md:text-[32px] font-bold text-[#f5f5f5] mb-2 font-mono uppercase tracking-widest">
           Master <span className="text-primary">Ledger</span>
         </h1>
         <p className="text-[#8a8a8a] text-[13px] max-w-2xl font-mono leading-relaxed">
@@ -240,10 +252,9 @@ export function HistoryView() {
         </p>
       </div>
 
-
-      <div className="relative z-30 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 bg-white/[0.02] p-4 rounded-[12px] border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.02)] backdrop-blur-sm">
+      <div className="relative z-30 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 bg-[#121212]/90 p-4 rounded-2xl border border-[#1f1f1f]">
         <div className="flex flex-col sm:flex-row w-full md:w-auto gap-4 flex-grow">
-          {/* SEARCH INPUT - Inset Glass */}
+          {/* SEARCH INPUT */}
           <div className="relative w-full sm:w-64">
             <input
               type="text"
@@ -253,7 +264,7 @@ export function HistoryView() {
                 setSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full bg-black/40 border border-white/[0.08] rounded-md py-2.5 px-4 text-[12px] text-[#f5f5f5] focus:outline-none focus:border-primary/60 transition-colors font-mono placeholder:text-[#555] shadow-[inset_0_2px_5px_rgba(0,0,0,0.5)]"
+              className="w-full bg-[#181818] border border-[#262626] rounded-xl py-2.5 px-4 text-[12px] text-[#f5f5f5] focus:outline-none focus:border-primary/60 transition-colors font-mono placeholder:text-[#555]"
             />
           </div>
 
@@ -261,7 +272,7 @@ export function HistoryView() {
           <div className="relative w-full sm:w-56">
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="flex items-center justify-between w-full bg-black/40 border border-white/[0.08] rounded-md py-2.5 px-4 text-[11.5px] uppercase tracking-widest text-[#d5d5d5] focus:outline-none focus:border-primary/60 transition-colors cursor-pointer font-mono shadow-[inset_0_2px_5px_rgba(0,0,0,0.3)]"
+              className="flex items-center justify-between w-full bg-[#181818] border border-[#262626] rounded-xl py-2.5 px-4 text-[11.5px] uppercase tracking-widest text-[#d5d5d5] focus:outline-none focus:border-primary/60 transition-colors cursor-pointer font-mono"
             >
               <div className="flex items-center gap-2.5">
                 <Filter className="w-[14px] h-[14px] text-[#8a8a8a]" />
@@ -270,7 +281,6 @@ export function HistoryView() {
                   {filterType === "AI_REBALANCE" && "AI Rebalances"}
                   {filterType === "USER_DEPOSIT" && "User Deposits"}
                   {filterType === "USER_WITHDRAWAL" && "User Withdrawals"}
-                  {filterType === "ADMIN_WHITELIST" && "Admin Whitelist"}
                 </span>
               </div>
               <svg
@@ -296,13 +306,12 @@ export function HistoryView() {
             )}
 
             {isDropdownOpen && (
-              <div className="absolute top-full left-0 mt-2 w-full bg-[#0a0a0a]/95 backdrop-blur-xl border border-white/[0.12] rounded-md shadow-[0_10px_30px_rgba(0,0,0,0.8)] z-50 flex flex-col overflow-hidden">
+              <div className="absolute top-full left-0 mt-2 w-full bg-[#141414] border border-[#262626] rounded-xl shadow-2xl z-50 flex flex-col overflow-hidden">
                 {[
                   { value: "ALL", label: "All Events" },
                   { value: "AI_REBALANCE", label: "AI Rebalances" },
                   { value: "USER_DEPOSIT", label: "User Deposits" },
                   { value: "USER_WITHDRAWAL", label: "User Withdrawals" },
-                  { value: "ADMIN_WHITELIST", label: "Admin Whitelist" },
                 ].map((option) => (
                   <button
                     key={option.value}
@@ -314,7 +323,7 @@ export function HistoryView() {
                     className={`w-full text-left px-4 py-3 text-[10.5px] uppercase tracking-widest font-mono transition-colors ${
                       filterType === option.value
                         ? "bg-primary/10 text-primary font-bold border-l-2 border-primary"
-                        : "text-[#8a8a8a] hover:bg-white/[0.05] hover:text-[#f5f5f5] border-l-2 border-transparent"
+                        : "text-[#8a8a8a] hover:bg-[#1a1a1a] hover:text-[#f5f5f5] border-l-2 border-transparent"
                     }`}
                   >
                     {option.label}
@@ -325,25 +334,25 @@ export function HistoryView() {
           </div>
         </div>
 
-        {/* EXPORT BUTTON - Ghost Style */}
+        {/* EXPORT BUTTON */}
         <button
           onClick={exportToCSV}
-          className="flex items-center gap-2.5 h-[42px] px-6 rounded-md bg-gradient-to-br from-white/[0.05] to-transparent text-[#c5c5c5] border border-white/[0.12] text-[10.5px] uppercase tracking-[0.15em] font-mono font-bold shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] hover:text-[#f5f5f5] hover:border-primary/50 hover:bg-white/[0.02] transition-all duration-300 shrink-0 justify-center w-full md:w-auto"
+          className="flex items-center gap-2.5 h-[40px] px-5 rounded-xl bg-[#181818] text-[#c5c5c5] border border-[#262626] hover:border-[#444] text-[10.5px] uppercase tracking-[0.15em] font-mono font-bold hover:text-[#f5f5f5] transition-all duration-200 shrink-0 justify-center w-full md:w-auto cursor-pointer"
         >
           <Download className="w-3.5 h-3.5" /> Export CSV
         </button>
       </div>
 
-      <div className="relative z-10 rounded-[12px] border border-white/[0.12] bg-gradient-to-br from-white/[0.045] via-white/[0.01] to-primary/[0.01] shadow-[inset_0_1px_0_rgba(255,255,255,0.05),_0_24px_48px_rgba(0,0,0,0.2)] flex-grow flex flex-col min-h-[400px] overflow-hidden backdrop-blur-sm">
-        <div className="overflow-x-auto flex-grow">
+      <div className="relative z-10 rounded-2xl border border-[#1f1f1f] bg-[#121212] flex-grow flex flex-col min-h-[400px] overflow-hidden">
+        <div className="overflow-x-auto flex-grow bg-[#0c0c0c]">
           <table className="w-full text-left whitespace-nowrap">
             <thead>
-              <tr className="bg-white/[0.02] border-b border-white/[0.08] text-[10.5px] text-[#8a8a8a] font-mono uppercase tracking-widest">
-                <th className="py-4 px-6 font-normal">Event Type</th>
-                <th className="py-4 px-6 font-normal">Amount / Status</th>
-                <th className="py-4 px-6 font-normal">Routing / Target</th>
-                <th className="py-4 px-6 font-normal">Timestamp</th>
-                <th className="py-4 px-6 font-normal">Transaction</th>
+              <tr className="bg-[#141414] border-b border-[#1f1f1f] text-[10px] text-[#8a8a8a] font-mono uppercase tracking-widest">
+                <th className="py-3.5 px-6 font-normal">Event Type</th>
+                <th className="py-3.5 px-6 font-normal">Amount / Status</th>
+                <th className="py-3.5 px-6 font-normal">Routing / Target</th>
+                <th className="py-3.5 px-6 font-normal">Timestamp</th>
+                <th className="py-3.5 px-6 font-normal">Transaction</th>
               </tr>
             </thead>
             <tbody className="text-[11.5px] font-mono">
@@ -366,7 +375,7 @@ export function HistoryView() {
                 paginatedEvents.map((event, idx) => (
                   <tr
                     key={`${event.txHash}-${idx}`}
-                    className="border-b border-white/[0.05] hover:bg-white/[0.03] transition-colors group"
+                    className="border-b border-[#1a1a1a] hover:bg-[#141414] transition-colors group"
                   >
                     <td className="py-4 px-6">
                       <EventBadge type={event.type} />
@@ -383,7 +392,7 @@ export function HistoryView() {
                         href={`https://testnet.bscscan.com/tx/${event.txHash}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-[#8a8a8a] hover:text-primary transition-colors border-b border-dashed border-white/[0.2] hover:border-primary pb-[1px] w-fit"
+                        className="flex items-center gap-2 text-[#8a8a8a] hover:text-primary transition-colors border-b border-dashed border-[#444] hover:border-primary pb-[1px] w-fit"
                       >
                         {shortenAddress(event.txHash)}
                         <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -396,93 +405,34 @@ export function HistoryView() {
           </table>
         </div>
 
-        {/* PAGINATION CONTROLS */}
-        {!loading && filteredEvents.length > 0 && (
-          <div className="mt-auto border-t border-white/[0.08] bg-white/[0.01] px-6 py-4 flex items-center justify-between">
-            <div className="text-[10px] font-mono text-[#8a8a8a] uppercase tracking-widest">
-              Showing {startIndex + 1}-
-              {Math.min(startIndex + ITEMS_PER_PAGE, filteredEvents.length)} of{" "}
-              {filteredEvents.length} events
-            </div>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="w-7 h-7 flex items-center justify-center rounded-md border border-white/[0.12] bg-white/[0.02] text-[#8a8a8a] hover:text-[#f5f5f5] hover:bg-white/[0.05] disabled:opacity-30 disabled:hover:bg-white/[0.02] disabled:hover:text-[#8a8a8a] transition-all"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <div className="px-2 font-mono text-[11px] text-[#f5f5f5]">
-                {currentPage} <span className="text-[#555]">/</span>{" "}
-                {totalPages}
-              </div>
-              <button
-                onClick={() =>
-                  setCurrentPage((p) => Math.min(totalPages, p + 1))
-                }
-                disabled={currentPage === totalPages}
-                className="w-7 h-7 flex items-center justify-center rounded-md border border-white/[0.12] bg-white/[0.02] text-[#8a8a8a] hover:text-[#f5f5f5] hover:bg-white/[0.05] disabled:opacity-30 disabled:hover:bg-white/[0.02] disabled:hover:text-[#8a8a8a] transition-all"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
+        {/* PAGINATION */}
+        <div className="flex items-center justify-between p-4 border-t border-[#1f1f1f] bg-[#141414] text-[11px] font-mono text-[#8a8a8a]">
+          <div>
+            Showing {startIndex + 1} to{" "}
+            {Math.min(startIndex + ITEMS_PER_PAGE, filteredEvents.length)} of{" "}
+            {filteredEvents.length} events
           </div>
-        )}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="p-1.5 rounded-lg bg-[#181818] border border-[#262626] disabled:opacity-30 hover:border-[#444] transition-colors cursor-pointer"
+            >
+              <ChevronLeft className="w-3.5 h-3.5" />
+            </button>
+            <span>
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="p-1.5 rounded-lg bg-[#181818] border border-[#262626] disabled:opacity-30 hover:border-[#444] transition-colors cursor-pointer"
+            >
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
-}
-
-function EventBadge({ type }: { type: EventType }) {
-  switch (type) {
-    case "AI_REBALANCE":
-      return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-primary/10 border border-primary/30 text-primary text-[10px] font-bold shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
-          <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-          REBALANCE
-        </span>
-      );
-    case "USER_DEPOSIT":
-      return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#10b981]/10 border border-[#10b981]/30 text-[#10b981] text-[10px] font-bold shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#10b981]" />
-          INBOUND
-        </span>
-      );
-    case "USER_WITHDRAWAL":
-      return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white/[0.05] border border-white/[0.12] text-[#d5d5d5] text-[10px] font-bold shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#6a6a6a]" />
-          OUTBOUND
-        </span>
-      );
-    case "ADMIN_WHITELIST":
-      return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#0be5b5]/10 border border-[#0be5b5]/30 text-[#0be5b5] text-[10px] font-bold shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
-          WHITELIST
-        </span>
-      );
-    case "SYSTEM_PAUSED":
-      return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#ff5f5f]/10 border border-[#ff5f5f]/30 text-[#ff5f5f] text-[10px] font-bold animate-pulse shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#ff5f5f]" />
-          HALTED
-        </span>
-      );
-    case "SYSTEM_UNPAUSED":
-      return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-primary/10 border border-primary/30 text-primary text-[10px] font-bold shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
-          RESUMED
-        </span>
-      );
-    default:
-      return (
-        <span className="text-[#8a8a8a] font-bold text-[10px]">[ {type} ]</span>
-      );
-  }
-}
-
-function shortenAddress(address: string) {
-  if (!address) return "";
-  return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }

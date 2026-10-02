@@ -6,7 +6,7 @@ import { formatUnits } from "viem";
 import { ACTIVE_VAULTS } from "../config/addresses";
 
 const GRAPHQL_URL =
-  "https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.7";
+  "https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.8";
 
 const VAULT_MAP: Record<string, string> = {
   [ACTIVE_VAULTS[0].toLowerCase()]: "Yield Farm",
@@ -140,36 +140,36 @@ export function EventLog({
     <div className="animate-fade-in-up h-full flex flex-col">
       <div className="flex items-center justify-between mb-4 px-1">
         <div className="flex items-center gap-3">
-          <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_var(--color-primary)]" />
-          <h3 className="text-[13px] font-medium tracking-tight text-[#f5f5f5]">
+          <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+          <h3 className="text-[13px] font-mono font-bold tracking-wider uppercase text-[#f5f5f5]">
             Live Event Ledger
           </h3>
         </div>
-        <div className="inline-flex items-center h-6 px-2.5 rounded-full border border-primary/40 bg-primary/10 text-[10px] text-primary font-mono uppercase tracking-widest">
+        <div className="inline-flex items-center h-6 px-2.5 rounded-full border border-primary/25 bg-primary/10 text-[10px] text-primary font-mono uppercase tracking-widest">
           {isLoading ? "SYNCING..." : "LIVE"}
         </div>
       </div>
 
       <div
         className={cn(
-          "rounded-[12px] border border-white/[0.12] bg-gradient-to-br from-white/[0.045] via-white/[0.01] to-white/[0.01] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] flex-grow flex flex-col overflow-hidden",
+          "rounded-2xl border border-[#1f1f1f] bg-[#121212]/90 flex-grow flex flex-col overflow-hidden",
           maxHeight,
         )}
       >
         {/* Header Terminal */}
-        <div className="flex items-center gap-2 px-5 py-3.5 border-b border-white/[0.06] bg-white/[0.02]">
-          <span className="w-2.5 h-2.5 rounded-full bg-white/[0.12]" />
-          <span className="w-2.5 h-2.5 rounded-full bg-white/[0.12]" />
-          <span className="w-2.5 h-2.5 rounded-full bg-white/[0.12]" />
-          <span className="ml-2 text-[10.5px] uppercase tracking-[0.15em] text-[#8a8a8a] font-mono">
+        <div className="flex items-center gap-2 px-5 py-3.5 border-b border-[#1f1f1f] bg-[#161616]">
+          <span className="w-2.5 h-2.5 rounded-full bg-[#333]" />
+          <span className="w-2.5 h-2.5 rounded-full bg-[#333]" />
+          <span className="w-2.5 h-2.5 rounded-full bg-[#333]" />
+          <span className="ml-2 text-[10px] uppercase tracking-[0.15em] text-[#8a8a8a] font-mono">
             sys.graph.log
           </span>
         </div>
 
         {/* List Transaksi */}
-        <div className="px-5 py-2 font-mono text-[11.5px] leading-relaxed overflow-y-auto flex-grow">
+        <div className="px-5 py-2 font-mono text-[11.5px] leading-relaxed overflow-y-auto flex-grow bg-[#0c0c0c]">
           {events.length === 0 && !isLoading ? (
-            <div className="text-[#8a8a8a] italic py-6 text-center">
+            <div className="text-[#666] italic py-6 text-center">
               &gt; _Awaiting network events...
             </div>
           ) : (
@@ -178,7 +178,7 @@ export function EventLog({
               return (
                 <div
                   key={event.id}
-                  className="flex flex-col sm:flex-row sm:items-center gap-3 py-4 border-b border-white/[0.06] last:border-0 hover:bg-white/[0.03] transition-colors -mx-5 px-5"
+                  className="flex flex-col sm:flex-row sm:items-center gap-3 py-4 border-b border-[#1a1a1a] last:border-0 hover:bg-[#141414] transition-colors -mx-5 px-5"
                 >
                   <div className="flex-grow flex items-center gap-4">
                     <span
@@ -221,7 +221,7 @@ export function EventLog({
                         href={`https://testnet.bscscan.com/tx/${event.txHash}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="hover:text-primary transition-colors border-b border-dashed border-white/[0.2] hover:border-primary pb-[1px]"
+                        className="hover:text-primary transition-colors border-b border-dashed border-[#444] hover:border-primary pb-[1px]"
                       >
                         {event.txHash.slice(0, 6)}...
                       </a>

@@ -7,11 +7,10 @@ config();
 
 const RPC_URL = "https://data-seed-prebsc-2-s2.bnbchain.org:8545/";
 
-
 const VAULT_ADDRESSES = [
-  "0xCafac3dD18aC6c6e92c921884f9E4176737C052c" as `0x${string}`,
-  "0x9f1ac54BEF0DD2f6f3462EA0fa94fC62300d3a8e" as `0x${string}`,
-  "0xbf9fBFf01664500A33080Da5d437028b07DFcC55" as `0x${string}`,
+  // "0x9BA37554D997a7c4d536Ac94180C47f89BCEF0DD" as `0x${string}`,
+  // "0x2Df494B6A330b1f08F5b720caD47756f251378f9" as `0x${string}`,
+  "0xbC82a09c1d5DfD82367515e51Ee3937ccC4c5D88" as `0x${string}`,
 ];
 
 const TESTNET_WBNB =
@@ -25,7 +24,7 @@ const MUSDT_TESTNET =
 const ORACLE_ADDRESS =
   "0x2514895c72f50D8bd4B4F9b1110F0D6bD2c97526" as `0x${string}`;
 const VENUS_VUSDT =
-  "0xb7526572FFE56AB9D7489838Bf2E18e3323b441A" as `0x${string}`; 
+  "0xb7526572FFE56AB9D7489838Bf2E18e3323b441A" as `0x${string}`;
 
 const vaultAbi = parseAbi([
   "function setWbnbToken(address _wbnbToken) external",
@@ -109,7 +108,7 @@ async function setupAllVaults() {
         hash: await walletClient.writeContract(r4),
       });
 
-      console.log("-> Configuring Oracle");
+      console.log("-> Configuring Oracle (Token A)");
       const { request: r5 } = await publicClient.simulateContract({
         account,
         address: vault,
@@ -117,7 +116,10 @@ async function setupAllVaults() {
         functionName: "setPairPriceFeed",
         args: [MUSDT_TESTNET, TESTNET_WBNB, ORACLE_ADDRESS],
       });
-      await walletClient.writeContract(r5);
+      const hash5 = await walletClient.writeContract(r5);
+      await publicClient.waitForTransactionReceipt({ hash: hash5 }); // <--- Rem dipasang
+
+      console.log("-> Configuring Oracle (Token B)");
       const { request: r6 } = await publicClient.simulateContract({
         account,
         address: vault,
@@ -125,7 +127,8 @@ async function setupAllVaults() {
         functionName: "setPairPriceFeed",
         args: [TESTNET_WBNB, MUSDT_TESTNET, ORACLE_ADDRESS],
       });
-      await walletClient.writeContract(r6);
+      const hash6 = await walletClient.writeContract(r6);
+      await publicClient.waitForTransactionReceipt({ hash: hash6 });
 
       console.log("-> Configuring Venus Protocol");
       const { request: r7 } = await publicClient.simulateContract({

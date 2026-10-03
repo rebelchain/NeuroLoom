@@ -1,10 +1,7 @@
-import * as dotenvx from "@dotenvx/dotenvx";
-dotenvx.config();
-
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
-import cors from "cors";
-import express from "express";
+// Ubah express() menjadi express.Router()
+import { Router } from "express";
 import {
   createPublicClient,
   createWalletClient,
@@ -16,9 +13,8 @@ import { privateKeyToAccount } from "viem/accounts";
 import { bscTestnet } from "viem/chains";
 import { CONFIG } from "../config.js";
 import { pushLog } from "../utils/push-log.js";
-const app = express();
-app.use(cors());
-app.use(express.json());
+
+const router = Router(); // <--- GANTI app dengan router
 
 const BLUECHIP_VAULT = CONFIG.VAULTS.BLUECHIP;
 
@@ -30,6 +26,7 @@ const WBNB_TESTNET = "0xae13d989daC2f0dEbFf460aC112a837C89BAa7cd";
 
 // ABIs
 const VAULT_ABI = [
+  /* ... isian ABI biarkan sama ... */
   {
     inputs: [
       { internalType: "address", name: "targetProtocol", type: "address" },
@@ -51,6 +48,7 @@ const VAULT_ABI = [
 ];
 
 const PANCAKE_V3_ROUTER_ABI = [
+  /* ... isian ABI biarkan sama ... */
   {
     inputs: [
       {
@@ -76,6 +74,7 @@ const PANCAKE_V3_ROUTER_ABI = [
 ];
 
 const QUOTER_ABI = [
+  /* ... isian ABI biarkan sama ... */
   {
     inputs: [
       {
@@ -129,7 +128,8 @@ function extractXML(text: string, tag: string): string {
   return match ? match[1].trim() : "";
 }
 
-app.post("/api/live-simulation", async (req, res) => {
+// GANTI app.post menjadi router.post, dan HAPUS '/api' dari URL (karena sudah di-mount di server.ts)
+router.post("/live-simulation", async (req, res) => {
   await pushLog(
     `\n[SYSTEM] Initiating on-chain rebalance simulation pipeline...`,
   );
@@ -192,7 +192,8 @@ Write your reasoning here. Mention the need to Buy the Dip with a micro-transact
     const draft = JSON.parse(responseJsonString);
 
     await pushLog(`[AGENT] Strategy formulated.`);
-    await pushLog(`[AGENT REASONING]\n${thoughts}`);
+    // Tetap gunakan ini agar muncul di frontend log
+    await pushLog(`[AGENT REASONING] ${thoughts}`);
 
     await pushLog(
       `[EVALUATOR] Validating transaction and slippage parameters...`,
@@ -217,11 +218,11 @@ Output XML:
     const feedback = extractXML(evalRaw, "feedback");
 
     if (evaluation !== "PASS" && !evaluation.includes("PASS")) {
+      await pushLog(`[EVALUATOR REJECTED] Reason: ${feedback}`);
       throw new Error(`Evaluator rejected the transaction: ${feedback}`);
     }
 
-    await pushLog(`[EVALUATOR] Transaction approved. Status: ${evaluation}.`);
-
+    await pushLog(`[EVALUATOR APPROVED] ${feedback}`);
     await pushLog(`[SYSTEM] Initiating Viem execution pipeline...`);
 
     const pk = process.env.AI_PRIVATE_KEY;
@@ -275,7 +276,7 @@ Output XML:
         );
         break;
       } catch (e: any) {
-        // await pushLog(`[WARNING] Quoter failed at fee tier ${fee}. Attempting alternative route...`);
+        // Abaikan dan coba fee tier berikutnya
       }
     }
 
@@ -284,7 +285,7 @@ Output XML:
         `[CRITICAL] Liquidity pool unavailable for quoting. Falling back to deterministic estimation.`,
       );
       expectedAmountOut = parseUnits("0.000016", 18);
-      selectedFee = 2500; // Default tier fallback
+      selectedFee = 2500;
       await pushLog(
         `[FALLBACK] Estimated output set to: ${expectedAmountOut.toString()} Wei WBNB.`,
       );
@@ -357,9 +358,6 @@ Output XML:
     await pushLog(`[NETWORK] Transaction confirmed successfully.`);
     await pushLog(`[SYSTEM] On-chain simulation pipeline completed.\n`);
 
-    // ---------------------------------------------------------
-    // STEP 7: RESPONSE TO FRONTEND
-    // ---------------------------------------------------------
     const finalResult = {
       status: "success",
       timestamp: new Date().toISOString(),
@@ -383,9 +381,4 @@ Output XML:
   }
 });
 
-const PORT = process.env.PORT || 3001;
-app.listen(PORT, async () => {
-  await pushLog(
-    `[SYSTEM] NeuroLoom API Engine Online on http://localhost:${PORT}`,
-  );
-});
+export default router;

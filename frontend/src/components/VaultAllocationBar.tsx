@@ -1,7 +1,12 @@
-import { useSectionReveal } from "@/lib/useSectionReveal";
-import { cn, formatCurrency } from "@/lib/utils";
-import { useEffect, useState } from "react";
+"use client";
 
+import { useSectionReveal } from "@/lib/useSectionReveal";
+import { cn } from "@/lib/utils";
+import { useEffect, useState } from "react";
+import { formatUnits } from "viem";
+import { GRAPHQL_ENDPOINT } from "../config/config";
+
+// --- INTERFACES ---
 export interface AIAllocation {
   protocolName: string;
   amount: number;
@@ -16,33 +21,41 @@ export interface VaultData {
   contractAddress: `0x${string}`;
   totalBalance: number;
   availableBalance: number;
+  // allocations ini sekarang akan menjadi fallback jika The Graph belum memuat
   allocations: AIAllocation[];
   apy: number;
 }
 
+interface RawRebalance {
+  tokenOut: string;
+  amountIn: string;
+}
+
+// --- HELPERS ---
 const getProtocolStyles = (protocolName: string) => {
-  if (protocolName.includes("Venus"))
+  const name = protocolName.toLowerCase();
+  if (name.includes("venus"))
     return {
       bar: "bg-[#03337f]",
       glow: "hover:shadow-[0_0_20px_rgba(3,51,127,0.6)]",
       text: "text-[#4a84e6]",
       dot: "bg-[#03337f]",
     };
-  if (protocolName.includes("Pancake"))
+  if (name.includes("pancake"))
     return {
       bar: "bg-[#4cdae6]",
       glow: "hover:shadow-[0_0_20px_rgba(76,218,230,0.6)]",
       text: "text-[#4cdae6]",
       dot: "bg-[#4cdae6]",
     };
-  if (protocolName.includes("Kinza"))
+  if (name.includes("kinza"))
     return {
       bar: "bg-[#e7c034]",
       glow: "hover:shadow-[0_0_20px_rgba(231,192,52,0.6)]",
       text: "text-[#e7c034]",
       dot: "bg-[#e7c034]",
     };
-  if (protocolName.includes("Radiant"))
+  if (name.includes("radiant"))
     return {
       bar: "bg-[#0be5b5]",
       glow: "hover:shadow-[0_0_20px_rgba(11,229,181,0.6)]",
@@ -57,6 +70,27 @@ const getProtocolStyles = (protocolName: string) => {
   };
 };
 
+// Fungsi kecil untuk menebak protokol dari alamat tokenOut (Mocking Route Name)
+function guessProtocolName(tokenOutAddress: string) {
+  const addr = tokenOutAddress.toLowerCase();
+  // Alamat vUSDT (Venus) Testnet
+  if (addr === "0xb7526572ffe56ab9d7489838bf2e18e3323b441a")
+    return "Venus Protocol";
+  // Alamat bCSPX (RWA)
+  if (addr === "0xe2e0f08d4fe0ed7c737353cf03404bf153a0938a")
+    return "PancakeSwap V3";
+  return "Unknown Protocol";
+}
+
+function formatCurrencyLocal(value: string | number) {
+  const num = typeof value === "string" ? Number(value) : value;
+  return new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 4,
+  }).format(num);
+}
+
+// --- MAIN COMPONENT ---
 export function VaultAllocationBar({
   vault,
   onDeposit,
@@ -66,6 +100,7 @@ export function VaultAllocationBar({
 }) {
   const [hovered, setHovered] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [liveAllocations, setLiveAllocations] = useState<AIAllocation[]>([]);
   const { ref, visible } = useSectionReveal<HTMLDivElement>(0.2);
 
   useEffect(() => {
@@ -73,11 +108,98 @@ export function VaultAllocationBar({
     return () => clearTimeout(t);
   }, []);
 
-  const realTvlUsd = Math.max(0, vault.totalBalance);
-  const usdtIdle = Math.max(0, vault.availableBalance);
-  const allocatedUsd = Math.max(0, realTvlUsd - usdtIdle);
+  // --- MENGAMBIL DATA ON-CHAIN (GRAPHQL) ---
+  useEffect(() => {
+    let isMounted = true;
+
+    async function fetchLiveAllocations() {
+      if (!vault.contractAddress) return;
+
+      try {
+        // Ambil data rebalance (dana keluar dari vault ini)
+        const query = `
+          {
+            rebalanceExecuteds(
+              first: 100, 
+              where: { address: "${vault.contractAddress.toLowerCase()}" }
+            ) {
+              tokenOut
+              amountIn
+            }
+          }
+        `;
+
+        const res = await fetch(GRAPHQL_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query }),
+        });
+
+        const json = await res.json();
+        const data = json.data;
+
+        if (!isMounted || !data || !data.rebalanceExecuteds) return;
+
+        // Kumpulkan total dana berdasarkan rute protokol
+        const protocolTotals: Record<string, number> = {};
+
+        data.rebalanceExecuteds.forEach((event: RawRebalance) => {
+          const amount = Number(formatUnits(BigInt(event.amountIn), 18));
+          const protocolName = guessProtocolName(event.tokenOut);
+
+          if (!protocolTotals[protocolName]) {
+            protocolTotals[protocolName] = 0;
+          }
+          protocolTotals[protocolName] += amount;
+        });
+
+        const newAllocations: AIAllocation[] = Object.keys(protocolTotals).map(
+          (name) => ({
+            protocolName: name,
+            amount: protocolTotals[name],
+            symbol: "USDT", // Asumsi semua basisnya USDT
+          }),
+        );
+
+        setLiveAllocations(newAllocations);
+      } catch (error) {
+        console.error("Gagal menarik alokasi real-time:", error);
+      }
+    }
+
+    fetchLiveAllocations();
+    const interval = setInterval(fetchLiveAllocations, 10000); // Update tiap 10 detik
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, [vault.contractAddress]);
+
+  // --- LOGIKA PERHITUNGAN (MERGE LIVE DATA) ---
+
+  // Gunakan data dari The Graph, jika kosong, gunakan props (fallback)
+  const activeAllocations = liveAllocations;
+
+  // Hitung total dana yang terdeploy dari Subgraph
+  const totalDeployedFromGraph = activeAllocations.reduce(
+    (sum, alloc) => sum + alloc.amount,
+    0,
+  );
+
+  // Jika vault kosong (baru deposit), pastikan semua dana adalah Idle (tersedia)
+  // realTvlUsd harus selalu setidaknya sebesar total yang tersedia + yang dideploy
+  const realTvlUsd = Math.max(
+    vault.totalBalance,
+    vault.availableBalance + totalDeployedFromGraph,
+  );
+
+  // Idle cash adalah sisa dari Total TVL dikurangi yang terdeploy
+  const usdtIdle = Math.max(0, realTvlUsd - totalDeployedFromGraph);
+
+  // Persentase deployed
   const allocatedPercent =
-    realTvlUsd > 0 ? (allocatedUsd / realTvlUsd) * 100 : 0;
+    realTvlUsd > 0 ? (totalDeployedFromGraph / realTvlUsd) * 100 : 0;
+
   const width = (amount: number) => {
     if (!mounted || !visible || realTvlUsd === 0) return "0%";
     return `${Math.min(Math.max((amount / realTvlUsd) * 100, 0), 100)}%`;
@@ -99,7 +221,6 @@ export function VaultAllocationBar({
         visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6",
       )}
     >
-      {/* Animated Glowing Left Border */}
       <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-[60%] rounded-r-md bg-white/[0.08] group-hover:bg-primary shadow-[0_0_12px_transparent] group-hover:shadow-[0_0_15px_var(--color-primary)] transition-all duration-500" />
 
       <div className="relative z-10 pl-2">
@@ -122,7 +243,7 @@ export function VaultAllocationBar({
               <span className="text-[11.5px] font-mono text-[#8a8a8a] uppercase tracking-widest">
                 Total Value:{" "}
                 <span className="text-[#e8e8e8] font-bold">
-                  {formatCurrency(realTvlUsd)}
+                  {formatCurrencyLocal(realTvlUsd)}
                 </span>
               </span>
             </div>
@@ -138,7 +259,6 @@ export function VaultAllocationBar({
               </div>
             </div>
 
-            {/* White Metal Button */}
             <button
               onClick={() => {
                 if (onDeposit) onDeposit(vault);
@@ -160,7 +280,6 @@ export function VaultAllocationBar({
             <span>100%</span>
           </div>
 
-          {/* Glass Bar Container */}
           <div className="relative h-7 rounded-md flex bg-black/60 border border-white/[0.08] shadow-[inset_0_2px_8px_rgba(0,0,0,0.6)] overflow-hidden">
             {realTvlUsd === 0 ? (
               <div className="w-full h-full flex items-center justify-center">
@@ -170,7 +289,7 @@ export function VaultAllocationBar({
               </div>
             ) : (
               <>
-                {vault.allocations.map((alloc) => {
+                {activeAllocations.map((alloc) => {
                   const style = getProtocolStyles(alloc.protocolName);
                   return (
                     <div
@@ -192,7 +311,7 @@ export function VaultAllocationBar({
                           <div
                             className={cn("font-bold text-[13px]", style.text)}
                           >
-                            {formatCurrency(alloc.amount)}
+                            {formatCurrencyLocal(alloc.amount)}
                           </div>
                           {alloc.rawAmount && alloc.symbol && (
                             <div className="text-[#6a6a6a] mt-1">
@@ -221,7 +340,7 @@ export function VaultAllocationBar({
                           {">"} Idle Liquidity
                         </div>
                         <div className="text-[#c5c5c5] font-bold text-[13px]">
-                          {formatCurrency(usdtIdle)}
+                          {formatCurrencyLocal(usdtIdle)}
                         </div>
                         <div className="text-[#6a6a6a] mt-1">
                           Ready for routing
@@ -248,7 +367,7 @@ export function VaultAllocationBar({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-3.5">
-            {vault.allocations.map((alloc) => {
+            {activeAllocations.map((alloc) => {
               const style = getProtocolStyles(alloc.protocolName);
               const percentage =
                 realTvlUsd > 0 ? (alloc.amount / realTvlUsd) * 100 : 0;
@@ -274,7 +393,7 @@ export function VaultAllocationBar({
                       {percentage.toFixed(1)}%
                     </span>
                     <span className="text-[#555] ml-2 hidden sm:inline-block">
-                      ({formatCurrency(alloc.amount)})
+                      ({formatCurrencyLocal(alloc.amount)})
                     </span>
                   </div>
                 </div>
@@ -296,7 +415,7 @@ export function VaultAllocationBar({
                     %
                   </span>
                   <span className="text-[#555] ml-2 hidden sm:inline-block">
-                    ({formatCurrency(usdtIdle)})
+                    {formatCurrencyLocal(usdtIdle)}
                   </span>
                 </div>
               </div>

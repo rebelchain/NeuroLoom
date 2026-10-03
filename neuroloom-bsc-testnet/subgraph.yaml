@@ -13,7 +13,7 @@ dataSources:
     source:
       address: "0x9BA37554D997a7c4d536Ac94180C47f89BCEF0DD"
       abi: NeuroLoomVault
-      startBlock: 133059687
+      startBlock: 134165322
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.9
@@ -73,7 +73,7 @@ dataSources:
     source:
       address: "0x2Df494B6A330b1f08F5b720caD47756f251378f9"
       abi: NeuroLoomVault
-      startBlock: 133059725
+      startBlock: 134165379
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.9
@@ -133,7 +133,7 @@ dataSources:
     source:
       address: "0xbC82a09c1d5DfD82367515e51Ee3937ccC4c5D88"
       abi: NeuroLoomVault
-      startBlock: 133059769
+      startBlock: 134165452
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.9

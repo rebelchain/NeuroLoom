@@ -5,19 +5,20 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 
 // Komponen
+import { AITerminalView } from "@/components/AITerminalView";
+import { DashboardView } from "@/components/DashboardView";
+import { DemoVaultRebalanceSimulator } from "@/components/DemoVaultRebalanceSimulator";
+import { ExecutionPipeline } from "@/components/ExecutionPipeline";
+import { Footer } from "@/components/Footer";
+import { HeroSection } from "@/components/HeroSection";
+import { HistoryView } from "@/components/HistoryView";
 import { IdentityGateModal } from "@/components/IdentityGateModal";
-import { AITerminalView } from "../components/AITerminalView";
-import { DashboardView } from "../components/DashboardView";
-import { ExecutionPipeline } from "../components/ExecutionPipeline";
-import { Footer } from "../components/Footer";
-import { HeroSection } from "../components/HeroSection";
-import { HistoryView } from "../components/HistoryView";
-import { LiveTicker } from "../components/LiveTicker";
-import { ProblemSection } from "../components/ProblemSection";
-import { Reveal } from "../components/Reveal";
-import { TopNav, type PageId } from "../components/TopNav";
-import { SmartVaultsView } from "../components/SmartVaultsView";
-import { VaultRebalanceSimulator } from "../components/VaultRebalanceSimulator";
+import { LiveTicker } from "@/components/LiveTicker";
+import { ProblemSection } from "@/components/ProblemSection";
+import { Reveal } from "@/components/Reveal";
+import { SmartVaultsView } from "@/components/SmartVaultsView";
+import { TopNav, type PageId } from "@/components/TopNav";
+import { VaultRebalanceSimulator } from "@/components/VaultRebalanceSimulator";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -32,6 +33,7 @@ const PAGE_TITLES: Record<PageId, string> = {
   vaults: "Strategy Vaults",
   terminal: "AI Terminal",
   history: "Audit Trail",
+  simulation: "Demo Simulation",
 };
 
 export default function NeuroLoomApp() {
@@ -88,6 +90,8 @@ export default function NeuroLoomApp() {
         return <AITerminalView />;
       case "history":
         return <HistoryView />;
+      case "simulation":
+        return <DemoVaultRebalanceSimulator />;
       default:
         return <DashboardView />;
     }
@@ -240,12 +244,12 @@ export default function NeuroLoomApp() {
                     </p>
                     <h2 className="text-3xl sm:text-5xl lg:text-[3.5rem] leading-[1.08] font-normal tracking-tight text-[#f5f5f5]">
                       Autonomous Routing{" "}
-                      <span className="serif it alic text-[#c5c5c5]">
+                      {/* <span className="serif it alic text-[#c5c5c5]">
                         <br></br>
                         across integrated protocols.
-                      </span>
+                      </span> */}
                     </h2>
-                    <p className="text-lg font-light text-[#c5c5c5] max-w-2xl leading-relaxed">
+                    <p className="text-lg font-light text-[#c5c5c5] mt-5 max-w-2xl leading-relaxed">
                       The Orchestrator Workflow handles the entire yield
                       optimization lifecycle in four cryptographic steps. No
                       manual bridges, no complex staking.
@@ -284,7 +288,7 @@ export default function NeuroLoomApp() {
                 </Reveal>
 
                 <Reveal>
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-12">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12">
                     {/* VENUS PROTOCOL (CORE LENDING BASELINE) */}
                     <div className="liquid-glass tick-frame p-6 md:p-8 flex flex-col justify-between transition-all duration-300 hover:border-primary/50">
                       <div>
@@ -313,7 +317,7 @@ export default function NeuroLoomApp() {
                             />
                           </div>
                           <div>
-                            <h3 className="serif text-2xl sm:text-3xl text-[#f5f5f5] tracking-tight">
+                            <h3 className="serif text-3xl sm:text-4xl text-[#f5f5f5] tracking-tight">
                               Venus Protocol
                             </h3>
                             <p className="text-[10px] font-mono text-[#8a8a8a] uppercase tracking-widest mt-0.5">
@@ -369,7 +373,7 @@ export default function NeuroLoomApp() {
                             />
                           </div>
                           <div>
-                            <h3 className="serif text-2xl sm:text-3xl text-[#f5f5f5] tracking-tight">
+                            <h3 className="serif text-3xl sm:text-4xl text-[#f5f5f5] tracking-tight">
                               PancakeSwap V3
                             </h3>
                             <p className="text-[10px] font-mono text-[#8a8a8a] uppercase tracking-widest mt-0.5">
@@ -398,12 +402,69 @@ export default function NeuroLoomApp() {
                       </div>
                     </div>
 
-                    {/* THENA FUSION (ALGEBRA INTEGRAL CLAMM) */}
-                    <div className="liquid-glass tick-frame p-6 md:p-8 flex flex-col justify-between opacity-60 hover:opacity-100 transition-all duration-300">
+                    {/* BACKED.FI (TOKENIZED EQUITIES RWA) */}
+                    <div className="liquid-glass tick-frame p-6 md:p-8 flex flex-col justify-between transition-all duration-500 border border-dashed border-[#262626] bg-[#0a0a0a]/40 group hover:border-[#555]">
                       <div>
                         {/* Top Badges & Status */}
                         <div className="flex items-center justify-between gap-4 mb-8">
-                          <span className="font-mono text-[10px] uppercase tracking-widest text-[#8a8a8a] border border-[#262626] bg-[#161616] px-3 py-1.5">
+                          <span className="font-mono text-[10px] uppercase tracking-widest text-[#8a8a8a] border border-[#262626] bg-[#161616] px-3 py-1.5 group-hover:text-[#c5c5c5] transition-colors">
+                            TOKENIZED EQUITIES (RWA)
+                          </span>
+                          <div className="flex items-center gap-2 border border-[#262626] bg-[#161616] px-3 py-1.5 shrink-0">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#555555]"></span>
+                            <span className="text-[10px] uppercase font-mono text-[#8a8a8a] tracking-widest font-bold">
+                              IN QUEUE
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Protocol Identity */}
+                        <div className="flex items-center gap-4 mb-6">
+                          <div className="w-12 h-12 border border-[#1f1f1f] bg-[#0a0a0a] p-2 flex items-center justify-center overflow-hidden shrink-0 group-hover:border-[#333] transition-colors">
+                            <Image
+                              src="/protocolcard/backed.png"
+                              alt="Backed.fi"
+                              width={40}
+                              height={40}
+                              className="w-full h-full object-contain grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500"
+                            />
+                          </div>
+                          <div>
+                            <h3 className="serif text-3xl sm:text-4xl text-[#f5f5f5] tracking-tight">
+                              Backed.fi
+                            </h3>
+                            <p className="text-[10px] font-mono text-[#8a8a8a] uppercase tracking-widest mt-0.5">
+                              SPYx · S&P 500 xStock
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Description */}
+                        <p className="text-sm text-[#8a8a8a] leading-relaxed mb-8 font-light">
+                          Institutional tokenized US equities. Enables
+                          autonomous routing into compliant real-world assets
+                          when traditional equity risk premiums exceed on-chain
+                          yields.
+                        </p>
+                      </div>
+
+                      {/* Bottom Metric */}
+                      <div className="border-t border-[#1f1f1f] pt-5 flex items-center justify-between font-mono">
+                        <span className="text-xs text-[#8a8a8a] uppercase tracking-widest">
+                          Target Asset Yield
+                        </span>
+                        <span className="text-[#8a8a8a] font-bold text-sm sm:text-base tracking-wide">
+                          Evaluating Model
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* THENA FUSION (ALGEBRA INTEGRAL CLAMM) */}
+                    <div className="liquid-glass tick-frame p-6 md:p-8 flex flex-col justify-between transition-all duration-500 border border-dashed border-[#262626] bg-[#0a0a0a]/40 group hover:border-[#555]">
+                      <div>
+                        {/* Top Badges & Status */}
+                        <div className="flex items-center justify-between gap-4 mb-8">
+                          <span className="font-mono text-[10px] uppercase tracking-widest text-[#8a8a8a] border border-[#262626] bg-[#161616] px-3 py-1.5 group-hover:text-[#c5c5c5] transition-colors">
                             ALGEBRA INTEGRAL CLAMM
                           </span>
                           <div className="flex items-center gap-2 border border-[#262626] bg-[#161616] px-3 py-1.5 shrink-0">
@@ -416,17 +477,17 @@ export default function NeuroLoomApp() {
 
                         {/* Protocol Identity */}
                         <div className="flex items-center gap-4 mb-6">
-                          <div className="w-12 h-12 border border-[#1f1f1f] bg-[#0a0a0a] p-2 flex items-center justify-center overflow-hidden shrink-0">
+                          <div className="w-12 h-12 border border-[#1f1f1f] bg-[#0a0a0a] p-2 flex items-center justify-center overflow-hidden shrink-0 group-hover:border-[#333] transition-colors">
                             <Image
                               src="/protocolcard/thena.png"
-                              alt="PancakeSwap V3"
+                              alt="Thena Fusion"
                               width={40}
                               height={40}
-                              className="w-full h-full object-contain"
+                              className="w-full h-full object-contain grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500"
                             />
                           </div>
                           <div>
-                            <h3 className="serif text-2xl sm:text-3xl text-[#f5f5f5] tracking-tight">
+                            <h3 className="serif text-3xl sm:text-4xl text-[#f5f5f5] tracking-tight">
                               Thena
                             </h3>
                             <p className="text-[10px] font-mono text-[#8a8a8a] uppercase tracking-widest mt-0.5">
@@ -503,7 +564,9 @@ export default function NeuroLoomApp() {
                       </div>
 
                       <p className="text-xs text-[#8a8a8a] leading-relaxed mb-6 font-light">
-                        Single-sided lending deposits in over-collateralized money markets. Capital preservation with zero impermanent loss risk.
+                        Single-sided lending deposits in over-collateralized
+                        money markets. Capital preservation with zero
+                        impermanent loss risk.
                       </p>
 
                       {/* Metrik */}
@@ -529,7 +592,9 @@ export default function NeuroLoomApp() {
                       {/* Composition Badge */}
                       <div className="text-[10px] font-mono text-[#8a8a8a] mb-6 flex items-center justify-between">
                         <span>Target Pool:</span>
-                        <span className="text-[#c5c5c5]">100% Venus Lending</span>
+                        <span className="text-[#c5c5c5]">
+                          100% Venus Lending
+                        </span>
                       </div>
 
                       {/* Mockup Equity Curve  */}
@@ -571,7 +636,9 @@ export default function NeuroLoomApp() {
                       </div>
 
                       <p className="text-xs text-[#8a8a8a] leading-relaxed mb-6 font-light">
-                        Multi-asset portfolio actively rebalancing between Venus lending, PancakeSwap V3 CLAMM, and Backed Finance S&amp;P 500 RWA.
+                        Multi-asset portfolio actively rebalancing between Venus
+                        lending, PancakeSwap V3 CLAMM, and Backed Finance
+                        S&amp;P 500 RWA.
                       </p>
 
                       <div className="grid grid-cols-2 gap-4 mb-6 pt-4 border-t border-[#1a1a1a]">
@@ -595,7 +662,9 @@ export default function NeuroLoomApp() {
 
                       <div className="text-[10px] font-mono text-[#8a8a8a] mb-6 flex items-center justify-between">
                         <span>Target Weights:</span>
-                        <span className="text-primary font-semibold">40% vUSDT | 30% WBNB | 30% bCSPX</span>
+                        <span className="text-primary font-semibold">
+                          40% vUSDT | 30% WBNB | 30% bCSPX
+                        </span>
                       </div>
 
                       <div className="h-14 w-full mt-auto relative overflow-hidden rounded-b-xl border-b border-transparent">
@@ -633,7 +702,9 @@ export default function NeuroLoomApp() {
                       </div>
 
                       <p className="text-xs text-[#8a8a8a] leading-relaxed mb-6 font-light">
-                        Opportunistic high-beta farming across concentrated liquidity ticks and volatile delta-neutral trading pairs for maximum yield.
+                        Opportunistic high-beta farming across concentrated
+                        liquidity ticks and volatile delta-neutral trading pairs
+                        for maximum yield.
                       </p>
 
                       <div className="grid grid-cols-2 gap-4 mb-6 pt-4 border-t border-[#1a1a1a]">
@@ -657,7 +728,9 @@ export default function NeuroLoomApp() {
 
                       <div className="text-[10px] font-mono text-[#8a8a8a] mb-6 flex items-center justify-between">
                         <span>Target Pool:</span>
-                        <span className="text-[#c5c5c5]">High-Beta AMM &amp; Hooks</span>
+                        <span className="text-[#c5c5c5]">
+                          High-Beta AMM &amp; Hooks
+                        </span>
                       </div>
 
                       <div className="h-14 w-full mt-auto relative overflow-hidden rounded-b-xl border-b border-transparent">
@@ -724,4 +797,3 @@ export default function NeuroLoomApp() {
     </>
   );
 }
-

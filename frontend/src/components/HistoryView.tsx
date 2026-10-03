@@ -13,6 +13,8 @@ import { useEffect, useState } from "react";
 import { formatUnits } from "viem";
 import { ACTIVE_VAULTS } from "../config/addresses";
 
+import { GRAPHQL_ENDPOINT } from "../config/config";
+
 const VAULT_MAP: Record<string, string> = {
   [ACTIVE_VAULTS[0].toLowerCase()]: "The Yield Farm",
   [ACTIVE_VAULTS[1].toLowerCase()]: "Bluechip Momentum",
@@ -52,9 +54,6 @@ interface RawDepositWithdraw {
   transactionHash: string;
 }
 
-const GRAPHQL_URL =
-  "https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.8";
-
 function shortenAddress(addr: string) {
   if (!addr) return "";
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
@@ -92,6 +91,14 @@ function EventBadge({ type }: { type: EventType }) {
   }
 }
 
+function formatCurrency(valueStr: string) {
+  const num = Number(valueStr);
+  return new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 0, 
+    maximumFractionDigits: 4,
+  }).format(num);
+}
+
 export function HistoryView() {
   const [events, setEvents] = useState<VaultEvent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -118,7 +125,7 @@ export function HistoryView() {
             }
           }
         `;
-        const res = await fetch(GRAPHQL_URL, {
+        const res = await fetch(GRAPHQL_ENDPOINT, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ query }),
@@ -132,12 +139,17 @@ export function HistoryView() {
 
         const combined: VaultEvent[] = [];
 
+        // PENTING: Gunakan 18 desimal di sini
+        const DECIMALS = 18;
+
         if (data.rebalanceExecuteds) {
           data.rebalanceExecuteds.forEach((item: RawRebalance) => {
             const vault = getVaultName(item.address);
-            const amt = Number(formatUnits(BigInt(item.amountIn), 6)).toFixed(
-              4,
-            );
+            // 1. Format dari Wei (18 desimal) ke Decimal biasa
+            const formattedUnit = formatUnits(BigInt(item.amountIn), DECIMALS);
+            // 2. Format menjadi cantik dengan koma ribuan
+            const amt = formatCurrency(formattedUnit);
+
             combined.push({
               id: item.id,
               type: "AI_REBALANCE",
@@ -152,7 +164,10 @@ export function HistoryView() {
         if (data.deposits) {
           data.deposits.forEach((item: RawDepositWithdraw) => {
             const vault = getVaultName(item.address);
-            const amt = Number(formatUnits(BigInt(item.assets), 6)).toFixed(4);
+            // Gunakan DECIMALS = 18 dan helper formatCurrency
+            const formattedUnit = formatUnits(BigInt(item.assets), DECIMALS);
+            const amt = formatCurrency(formattedUnit);
+
             combined.push({
               id: item.id,
               type: "USER_DEPOSIT",
@@ -167,7 +182,10 @@ export function HistoryView() {
         if (data.withdraws) {
           data.withdraws.forEach((item: RawDepositWithdraw) => {
             const vault = getVaultName(item.address);
-            const amt = Number(formatUnits(BigInt(item.assets), 6)).toFixed(4);
+            // Gunakan DECIMALS = 18 dan helper formatCurrency
+            const formattedUnit = formatUnits(BigInt(item.assets), DECIMALS);
+            const amt = formatCurrency(formattedUnit);
+
             combined.push({
               id: item.id,
               type: "USER_WITHDRAWAL",

@@ -100,8 +100,8 @@ export function HeroSection({
             Traditional DeFi vaults lock liquidity in static crypto positions.
             NeuroLoom deploys autonomous AI agents to dynamically route and
             rebalance your capital across native DeFi protocols and Tokenized
-            Real-World Assets on the BNB Chain, capturing multi-asset
-            yield with zero human intervention.
+            Real-World Assets on the BNB Chain, capturing multi-asset yield with
+            zero human intervention.
           </p>
 
           {/* Dual Action Group (Primary Pill + Secondary Text Link with Arrow) */}
@@ -291,10 +291,10 @@ export function HeroSection({
                     state: "Allocated",
                   },
                   {
-                    name: "THENA Fusion",
-                    pair: "sBNB / BNB",
-                    apy: "24.2% APY",
-                    state: "Routed",
+                    name: "Backed.fi (SPYx)",
+                    pair: "S&P 500 xStock",
+                    apy: "11.2% APY",
+                    state: "Routed RWA",
                   },
                 ].map((item, idx) => (
                   <div

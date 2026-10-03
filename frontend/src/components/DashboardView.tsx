@@ -14,6 +14,7 @@ import { ACTIVE_VAULTS } from "../config/addresses";
 import { EventLog } from "./EventLog";
 import { KPICard } from "./KPICard";
 import { PageHero } from "./PageHero";
+import {GRAPHQL_ENDPOINT} from "../config/config";
 
 const vaultABI = [
   {
@@ -25,8 +26,7 @@ const vaultABI = [
   },
 ] as const;
 
-const GRAPHQL_ENDPOINT =
-  "https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.8";
+
 
 export function DashboardView() {
   const [totalRebalances, setTotalRebalances] = useState(0);
@@ -41,15 +41,15 @@ export function DashboardView() {
     query: { refetchInterval: 10000 },
   });
 
-  const tvlYieldFarm = totalAssetsData?.[0]?.result
-    ? Number(totalAssetsData[0].result) / 1e6
-    : 0;
-  const tvlBluechip = totalAssetsData?.[1]?.result
-    ? Number(totalAssetsData[1].result) / 1e6
-    : 0;
-  const tvlDegen = totalAssetsData?.[2]?.result
-    ? Number(totalAssetsData[2].result) / 1e6
-    : 0;
+const tvlYieldFarm = totalAssetsData?.[0]?.result
+  ? Number(totalAssetsData[0].result) / 1e18
+  : 0;
+const tvlBluechip = totalAssetsData?.[1]?.result
+  ? Number(totalAssetsData[1].result) / 1e18
+  : 0;
+const tvlDegen = totalAssetsData?.[2]?.result
+  ? Number(totalAssetsData[2].result) / 1e18
+  : 0;
 
   const realTVL = tvlYieldFarm + tvlBluechip + tvlDegen;
   const availableYieldFarm = tvlYieldFarm * 0.1;

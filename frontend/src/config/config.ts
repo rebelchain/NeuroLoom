@@ -1,0 +1,33 @@
+export const GRAPHQL_ENDPOINT =
+  "https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.9";
+
+export const CONFIG = {
+  RPC_URL: "https://data-seed-prebsc-2-s2.bnbchain.org:8545/",
+
+  GRAPHQL_ENDPOINT:
+    "https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.9",
+
+  VAULTS: {
+    YIELD_FARM: "0xf25297f1a2d83f738dc32fc5851bdff732c20141",
+    BLUECHIP: "0x48d1edfaedd9ebae51abfb4d4d53a624b8411917",
+    DEGEN: "0x42de62e19704f591acb71a63f892751dc37f098c",
+  },
+
+  TOKENS: {
+    USDT: "0xFa45Fd644B34606cABFb7c8acc546E770e248b83",
+    WBNB: "0xae13d989daC2f0dEbFf460aC112a837C89BAa7cd",
+    BTCB: "0x6ce8dA28E2f864420840cF74474eFf5fD80E65B8",
+    BCSPX: "0xe2e0f08d4fe0ed7c737353cf03404bf153a0938a",
+  },
+
+  PROTOCOLS: {
+    PANCAKE_ROUTER: "0x1b81D678ffb9C0263b24A97847620C99d213eB14",
+    PANCAKE_V3_MANAGER: "0x427bF5b37357632377eCbEC9de3626C71A5396c1",
+    VENUS_VUSDT: "0xb7526572FFE56AB9D7489838Bf2E18e3323b441A",
+  },
+
+  ORACLES: {
+    BNB_USD: "0x2514895c72f50D8bd4B4F9b1110F0D6bD2c97526",
+    BTC_USD: "0x5741306c21795FdCBb9b265Ea0255F499DFe515C",
+  },
+} as const;

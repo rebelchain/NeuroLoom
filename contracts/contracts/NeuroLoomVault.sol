@@ -200,7 +200,7 @@ contract NeuroLoomVault is
         emit RebalanceExecuted(tokenIn, tokenOut, amountIn, block.timestamp);
     }
 
- /**
+  /**
      * @dev OVERRIDE CRITICAL: Calculate real Net Asset Value
      */
     function totalAssets() public view virtual override returns (uint256) {
@@ -208,16 +208,32 @@ contract NeuroLoomVault is
 
         uint256 venusValue = 0;
         if (venusVToken != address(0)) {
-            venusValue = IERC20(venusVToken).balanceOf(address(this)); 
+            uint256 vBalance = IERC20(venusVToken).balanceOf(address(this));
+            if (vBalance > 0) {
+                uint256 exchangeRate = IVenusToken(venusVToken).exchangeRateStored();
+                venusValue = (vBalance * exchangeRate) / 1e18;
+            }
         }
 
-        uint256 total = idleCash + venusValue + lpDeployedPrincipal;
-        if (total == 0) {
-            return 1;
-        }
-
-        return total;
+        return idleCash + venusValue + lpDeployedPrincipal;
     }
+    /**
+     * @dev Cap maximum withdraw/redeem to idle cash to prevent revert 
+     * when funds are deployed in external protocols.
+     */
+    function maxWithdraw(address owner) public view virtual override returns (uint256) {
+        uint256 idleCash = IERC20(asset()).balanceOf(address(this));
+        uint256 standardMax = super.maxWithdraw(owner);
+        return idleCash < standardMax ? idleCash : standardMax;
+    }
+
+    function maxRedeem(address owner) public view virtual override returns (uint256) {
+        uint256 idleCash = IERC20(asset()).balanceOf(address(this));
+        uint256 standardMaxRedeem = super.maxRedeem(owner);
+        uint256 idleShares = convertToShares(idleCash);
+        return idleShares < standardMaxRedeem ? idleShares : standardMaxRedeem;
+    }
+
     function _validateSlippageAgainstOracle(
         address tokenIn, 
         address tokenOut, 

@@ -1,10 +1,15 @@
 "use client";
 
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { LogOut, Wallet } from "lucide-react";
+import { LogOut, Sparkles, Wallet } from "lucide-react";
 import Image from "next/image";
 
-export type PageId = "overview" | "vaults" | "terminal" | "history";
+export type PageId =
+  | "overview"
+  | "vaults"
+  | "terminal"
+  | "history"
+  | "simulation";
 
 interface TopNavProps {
   activePage: PageId;
@@ -73,8 +78,19 @@ export function TopNav({
         </div>
       </nav>
 
-      {/* RIGHT: Wallet Connect */}
-      <div className="flex items-center shrink-0">
+      {/* RIGHT: Wallet Connect & Demo Button */}
+      <div className="flex items-center shrink-0 gap-3">
+        <button
+          onClick={() => onNavigate("simulation")}
+          className={`flex items-center gap-2 h-9 sm:h-[38px] px-3 sm:px-4 rounded-lg font-mono font-bold text-[10.5px] uppercase tracking-widest transition-all duration-300 border cursor-pointer ${
+            activePage === "simulation"
+              ? "bg-primary/20 text-primary border-primary/50 shadow-[0_0_12px_rgba(139,92,246,0.3)]"
+              : "bg-primary/10 text-primary border-primary/30 hover:bg-primary/20 hover:border-primary/50"
+          }`}
+        >
+          <span className="hidden sm:inline">Demo Simulation</span>
+        </button>
+
         <ConnectButton.Custom>
           {({
             account,

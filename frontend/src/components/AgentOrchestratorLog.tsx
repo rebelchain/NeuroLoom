@@ -72,7 +72,7 @@ export function AgentOrchestratorLog() {
       {/* TERMINAL HEADER */}
       <header className="flex justify-between items-center px-6 py-4 border-b border-[#1f1f1f] bg-[#161616]">
         <div className="flex items-center gap-3.5">
-          <div className="w-8 h-8 rounded-lg bg-[#1f1f1f] border border-[#2a2a2a] flex items-center justify-center">
+          <div className="w-8 h-8 rounded-lg bg-[#1f1f1f] border border-[#262626] flex items-center justify-center">
             <TerminalSquare className="w-4 h-4 text-primary" />
           </div>
           <div className="flex flex-col">
@@ -147,4 +147,3 @@ export function AgentOrchestratorLog() {
     </div>
   );
 }
-

@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { Instrument_Serif, Manrope } from "next/font/google";
-import { Cursor } from "../components/Cursor";
 import "./globals.css";
 import { Providers } from "./providers";
 const manrope = Manrope({
@@ -40,7 +39,6 @@ export default function RootLayout({
     >
       <body className="font-sans antialiased min-h-screen bg-[#0a0a0a] text-[#f5f5f5]">
         <div className="grain"></div>
-        <Cursor />
         <Providers>{children}</Providers>
       </body>
     </html>

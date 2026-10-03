@@ -5,9 +5,7 @@ import { Activity, ExternalLink } from "lucide-react";
 import { useEffect, useState } from "react";
 import { formatUnits } from "viem";
 import { ACTIVE_VAULTS } from "../config/addresses";
-
-const GRAPHQL_URL =
-  "https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.8";
+import { GRAPHQL_ENDPOINT } from "../config/config";
 
 const VAULT_MAP: Record<string, string> = {
   [ACTIVE_VAULTS[0].toLowerCase()]: "The Yield Farm",
@@ -18,6 +16,14 @@ const VAULT_MAP: Record<string, string> = {
 function getVaultName(address?: string) {
   if (!address) return "NeuroLoom Vault";
   return VAULT_MAP[address.toLowerCase()] || "NeuroLoom Vault";
+}
+
+function formatCurrency(valueStr: string) {
+  const num = Number(valueStr);
+  return new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 4,
+  }).format(num);
 }
 
 interface GraphRebalanceData {
@@ -45,7 +51,7 @@ export function LiveSettlementTable() {
             }
           }
         `;
-        const res = await fetch(GRAPHQL_URL, {
+        const res = await fetch(GRAPHQL_ENDPOINT, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ query }),
@@ -141,9 +147,9 @@ export function LiveSettlementTable() {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2.5">
                         <span className="text-primary font-bold tnum text-[12.5px]">
-                          {Number(
-                            formatUnits(BigInt(event.amountIn), 6),
-                          ).toFixed(4)}
+                          {formatCurrency(
+                            formatUnits(BigInt(event.amountIn), 18),
+                          )}
                         </span>
 
                         <span className="text-[#999] text-[10px] bg-[#1a1a1a] rounded px-2 py-0.5 border border-[#262626]">

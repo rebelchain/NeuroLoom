@@ -229,7 +229,7 @@ export function SmartVaultsView() {
     const getVaultData = (index: number) => {
       const totalAssetsWei =
         (onChainData?.[index]?.result as bigint) || BigInt(0);
-      const realTotalUsd = Number(formatUnits(totalAssetsWei, 6));
+      const realTotalUsd = Number(formatUnits(totalAssetsWei, 18));
       const allocations: AIAllocation[] = [];
       let availableBalance = 0;
 

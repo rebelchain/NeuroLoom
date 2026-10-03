@@ -4,9 +4,7 @@ import { cn, formatTimeAgo } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { formatUnits } from "viem";
 import { ACTIVE_VAULTS } from "../config/addresses";
-
-const GRAPHQL_URL =
-  "https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.8";
+import { GRAPHQL_ENDPOINT } from "../config/config";
 
 const VAULT_MAP: Record<string, string> = {
   [ACTIVE_VAULTS[0].toLowerCase()]: "Yield Farm",
@@ -27,7 +25,7 @@ export interface AIEventRow {
   type: EventOp;
   protocol: string;
   asset: string;
-  amount: number;
+  amount: string;
   detail?: string;
   timestamp: number;
   txHash: string;
@@ -55,6 +53,14 @@ function getVaultName(address?: string) {
   return VAULT_MAP[address.toLowerCase()] || "NeuroLoom Vault";
 }
 
+function formatCurrency(valueStr: string) {
+  const num = Number(valueStr);
+  return new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 4,
+  }).format(num);
+}
+
 export function EventLog({
   maxHeight = "max-h-[520px]",
 }: {
@@ -72,7 +78,7 @@ export function EventLog({
           withdraws(first: 5, orderBy: blockTimestamp, orderDirection: desc) { id assets address blockTimestamp transactionHash } 
         }`;
 
-        const response = await fetch(GRAPHQL_URL, {
+        const response = await fetch(GRAPHQL_ENDPOINT, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ query }),
@@ -91,7 +97,7 @@ export function EventLog({
                   type: "VAULT_DEPOSITED" as EventOp,
                   protocol: vaultName,
                   asset: "USDT",
-                  amount: Number(formatUnits(BigInt(item.assets), 6)),
+                  amount: formatCurrency(formatUnits(BigInt(item.assets), 18)),
                   detail: `To ${vaultName}`,
                   timestamp: Number(item.blockTimestamp) * 1000,
                   txHash: item.transactionHash,
@@ -109,7 +115,7 @@ export function EventLog({
                   type: "VAULT_WITHDRAWN" as EventOp,
                   protocol: vaultName,
                   asset: "USDT",
-                  amount: Number(formatUnits(BigInt(item.assets), 6)),
+                  amount: formatCurrency(formatUnits(BigInt(item.assets), 18)),
                   detail: `From ${vaultName}`,
                   timestamp: Number(item.blockTimestamp) * 1000,
                   txHash: item.transactionHash,
@@ -212,8 +218,8 @@ export function EventLog({
                         "whitespace-nowrap text-[12.5px] font-medium",
                       )}
                     >
-                      {event.amount > 0 ? "+" : ""}
-                      {event.amount.toFixed(2)} USDT
+                      {Number(event.amount.replace(/,/g, "")) > 0 ? "+" : ""}
+                      {event.amount} USDT
                     </span>
                     <div className="flex items-center gap-2.5 text-[10px] text-[#8a8a8a]">
                       <span>{formatTimeAgo(event.timestamp)}</span>

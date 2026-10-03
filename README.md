@@ -61,11 +61,9 @@ Link: https://indonesiaweb3hack.xyz/en/projects/proj_231bfb01edfeb05edc
 9. [Technology Stack](#technology-stack)
 10. [Cloud Architecture & Autonomous Execution](#cloud-architecture--autonomous-execution)
 11. [Getting Started](#getting-started)
-12. [Security & Threat Model](#security--threat-model)
-13. [Deterministic Test Coverage](#deterministic-test-coverage)
-14. [On-Chain Provisioning & Operational Scripts](#on-chain-provisioning--operational-scripts)
-15. [Known Limitations & Production Roadmap](#known-limitations--production-roadmap)
-16. [License](#license)
+12. [Security & Threat Mitigation](#security--threat-mitigation)
+13. [Known Limitations & Production Roadmap](#known-limitations--production-roadmap)
+14. [License](#license)
 
 ## 
 ---
@@ -293,7 +291,7 @@ Create a `.env` file in both `/contracts` and `/backend` directories.
 | `PRIVATE_KEY` | `/contracts/.env` | Yes | Admin Deployer Wallet for proxy upgrades & whitelisting. |
 | `AI_PRIVATE_KEY` | `/backend/.env` | Yes | AI Executor Wallet for signing live omnichain trades. |
 | `GROQ_API_KEY` | `/backend/.env` | Yes | LLM Engine inference capability. |
-| `MOCK_SCENARIO` | `/backend/.env` | No | Set to `"DEMO"` for micro-transactions (0.0001 USDT) during live pitches. |
+| `MOCK_SCENARIO` | `/backend/.env` | No | Set to `"DEMO"` for micro-transactions. |
 
 ### 3. Quick Start Commands
 
@@ -301,54 +299,26 @@ Run these core services from their respective directories in separate terminal w
 
 | **Service** | **Command** | **Description** |
 | :--- | :--- | :--- |
-| **Smart Contracts** | `npx hardhat test test/E2ESlippage.test.ts` | Runs deterministic security & MEV attack simulations. |
+| **Smart Contracts** | `npx hardhat test test/NeuroLoomVault.test.ts` | [Security & Threat Mitigation](#security--threat-mitigation) test |
 | **API & PDF Server** | `npx tsx src/server.ts` | Boots the Express backend (Port 4000) for PDF rendering and history logs. |
 | **AI Orchestrator** | `npx tsx src/index.ts` | Boots the autonomous LangChain Harness (requires Groq key). |
 | **Frontend UI** | `npm run dev` | Launches the Next.js Web3 Dashboard at `http://localhost:7000`. |
 
-## Security & Threat Model
+### Security & Threat Mitigation
 
 | **Threat** | **Applied Mitigation** | **Status** |
 | --- | --- | --- |
-| Unauthorized Execution | Strict `AccessControl` (`onlyRole(AI_EXECUTOR_ROLE)`) | ✅ On-chain |
-| AI Arbitrary Execution | Strict On-Chain Protocol Allowlist (`approvedProtocols`) | ✅ On-chain |
-| AI Route/Decimal Hallucination | Pre-execution Oracle validation & dynamic `IERC20Metadata` | ✅ On-chain |
-| Reentrancy Attacks | OpenZeppelin v5 `ReentrancyGuard` (ERC-7201 safe) | ✅ On-chain |
-| Oracle Stale / Flash crash | Rejects Chainlink data older than 3600 seconds | ✅ On-chain |
-| Sandwich MEV Attack | Absolute post-execution balance check via Fair Value | ✅ On-chain |
-| AI API Failure / Network Outage | Evaluator Circuit Breaker (Halts execution to `HOLD`) | ✅ Off-chain |
-
-## Deterministic Test Coverage
-
-```
-$ npx hardhat test
-
- Security Audit & Wamia Guards: NeuroLoomVault (Hardhat v3 + Viem)
-    🛡 Core Access Control (RBAC & Whitelist)
-      ✔ Must have a valid AI_EXECUTOR_ROLE. (1029ms)
-      ✔ Must REVERT if the AI ​​targets a non-whitelisted protocol.
-    NeuroLoom Defense Systems 
-      ✔ Velocity Guard: Must REVERT if AI uses > 20% of TVL in a single transaction.
-      ✔ Oracle Guard: Must REVERT if the transaction does not have a valid Oracle Price Feed.
+| **Unauthorized Execution** | Strict `AccessControl` (`onlyRole(AI_EXECUTOR_ROLE)`) | ✅ On-chain |
+| **AI Arbitrary Execution** | Strict On-Chain Protocol Allowlist (`approvedProtocols`) | ✅ On-chain |
+| **AI Route/Decimal Hallucination** | Pre-execution Oracle validation & dynamic `IERC20Metadata` | ✅ On-chain |
+| **Reentrancy Attacks** | OpenZeppelin v5 `ReentrancyGuard` (ERC-7201 safe) | ✅ On-chain |
+| **Oracle Stale / Flash crash** | Rejects Chainlink data older than 3600 seconds | ✅ On-chain |
+| **Sandwich MEV Attack** | Absolute post-execution balance check via Fair Value | ✅ On-chain |
+| **ERC-4626 Inflation Attack** | OpenZeppelin v5 Virtual Offsets (Eliminating Zero-State vulnerability) | ✅ On-chain |
+| **Withdrawal DoS (Locked Funds)** | Dynamic `maxWithdraw` capped to Vault's `idleCash` | ✅ On-chain |
+| **AI API Failure / Network Outage** | Evaluator Circuit Breaker (Halts execution to `HOLD`) | ✅ Off-chain |
 
 
-4 passing (4 nodejs)
-```
-
-## On-Chain Provisioning & Operational Scripts
-
-Targeted network scripts for real-world deployment, security provisioning, and live BSC Testnet demonstrations. These enforce role-based access control and integrate the Vault with decentralized infrastructure.
-
-**Run these commands from their designated workspace directories:**
-
-| **Phase** | **Command** | **Directory** | **Purpose** |
-| --- | --- | --- | --- |
-| **1. Whitelist Target** | `npx hardhat run scripts/whitelist-protocol.ts --network bscTestnet` | `/contracts` | Admin authorization for the V3 Router at the contract level. |
-| **2. Oracle Setup** | `npx tsx src/scripts/setup-oracle.ts` | `/backend` | Connects Chainlink BNB/USD to the dynamic oracle system. |
-| **3. Demo Rebalance** | `npx tsx src/scripts/demo_rebalance.ts` | `/backend` | Bypasses LLM delay to blast a deterministic entry payload. |
-| **4. Demo Unwind** | `npx tsx src/scripts/demo_unwind.ts` | `/backend` | Simulates an AI exiting a volatile AMM position. |
-| **5. Audit Vault** | `npx tsx src/scripts/debug-vault.ts` | `/backend` | Read-only diagnostic utility fetching real-time idle and active TVL. |
----
 
 ## Known Limitations
 

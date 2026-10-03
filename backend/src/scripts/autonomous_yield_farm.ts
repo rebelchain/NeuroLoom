@@ -38,7 +38,7 @@ const CONFIG = {
   PROTOCOLS: { VENUS_VUSDT: "0xb7526572FFE56AB9D7489838Bf2E18e3323b441A" },
 } as const;
 
-const VAULT_ADDRESS = "0xD00b514048AFC47bFc4DE6a1646D5c63Bd23401a" as const;
+const VAULT_ADDRESS = "0xf25297f1a2d83f738dc32fc5851bdff732c20141" as const;
 const LOG_FILE = path.resolve(process.cwd(), "autonomous_ai_logs.json");
 
 let rawPrivateKey = process.env.AI_PRIVATE_KEY || process.env.PRIVATE_KEY;

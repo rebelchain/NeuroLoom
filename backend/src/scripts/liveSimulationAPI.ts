@@ -14,14 +14,13 @@ import {
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { bscTestnet } from "viem/chains";
+import { CONFIG } from "../config.js";
 import { pushLog } from "../utils/push-log.js";
-
-// --- CONFIGURATION ---
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-const BLUECHIP_VAULT = "0x2Df494B6A330b1f08F5b720caD47756f251378f9";
+const BLUECHIP_VAULT = CONFIG.VAULTS.BLUECHIP;
 
 // Constants
 const PANCAKE_V3_ROUTER = "0x1b81D678ffb9C0263b24A97847620C99d213eB14";
@@ -112,7 +111,6 @@ const QUOTER_ABI = [
   },
 ];
 
-// --- LLM SETUP ---
 const agentLLM = new ChatGoogleGenerativeAI({
   apiKey: process.env.GEMINI_API_KEY,
   model: "gemini-3-flash-preview",
@@ -125,16 +123,12 @@ const evaluatorLLM = new ChatGoogleGenerativeAI({
   temperature: 0.1,
 });
 
-// --- HELPER FUNCTION ---
 function extractXML(text: string, tag: string): string {
   const regex = new RegExp(`<${tag}>([\\s\\S]*?)</${tag}>`, "i");
   const match = text.match(regex);
   return match ? match[1].trim() : "";
 }
 
-// ==========================================
-// API ENDPOINT: /api/live-simulation
-// ==========================================
 app.post("/api/live-simulation", async (req, res) => {
   await pushLog(
     `\n[SYSTEM] Initiating on-chain rebalance simulation pipeline...`,
@@ -154,9 +148,6 @@ app.post("/api/live-simulation", async (req, res) => {
       currentWeights: "vUSDT 42.2% | WBNB 26.1% | bCSPX 31.7%",
     };
 
-    // ---------------------------------------------------------
-    // STEP 2: AGENT REASONING
-    // ---------------------------------------------------------
     await pushLog(
       `[AGENT] Formulating strategic response based on injected market context...`,
     );
@@ -200,13 +191,9 @@ Write your reasoning here. Mention the need to Buy the Dip with a micro-transact
 
     const draft = JSON.parse(responseJsonString);
 
-    // MENCETAK REASONING GEMINI KE LOG (Sesuai Permintaan)
     await pushLog(`[AGENT] Strategy formulated.`);
     await pushLog(`[AGENT REASONING]\n${thoughts}`);
 
-    // ---------------------------------------------------------
-    // STEP 3: EVALUATOR
-    // ---------------------------------------------------------
     await pushLog(
       `[EVALUATOR] Validating transaction and slippage parameters...`,
     );
@@ -235,9 +222,6 @@ Output XML:
 
     await pushLog(`[EVALUATOR] Transaction approved. Status: ${evaluation}.`);
 
-    // ---------------------------------------------------------
-    // STEP 4: VIEM INITIALIZATION
-    // ---------------------------------------------------------
     await pushLog(`[SYSTEM] Initiating Viem execution pipeline...`);
 
     const pk = process.env.AI_PRIVATE_KEY;
@@ -260,9 +244,6 @@ Output XML:
 
     const amountIn = parseUnits(draft.args.amountInUsdtStr, 18);
 
-    // ---------------------------------------------------------
-    // STEP 5: DYNAMIC QUOTING & ROUTE DISCOVERY
-    // ---------------------------------------------------------
     await pushLog(
       `[QUOTER] Executing price discovery for 0.01 USDT on PancakeSwap V3...`,
     );
@@ -294,7 +275,6 @@ Output XML:
         );
         break;
       } catch (e: any) {
-        //  Buka komentar ini jika ingin melihat log kegagalan tier tertentu
         // await pushLog(`[WARNING] Quoter failed at fee tier ${fee}. Attempting alternative route...`);
       }
     }
@@ -320,9 +300,6 @@ Output XML:
 
     const deadline = BigInt(Math.floor(Date.now() / 1000) + 600);
 
-    // ---------------------------------------------------------
-    // STEP 6: EXECUTION
-    // ---------------------------------------------------------
     const calldata = encodeFunctionData({
       abi: PANCAKE_V3_ROUTER_ABI,
       functionName: "exactInputSingle",
@@ -344,6 +321,13 @@ Output XML:
       `[NETWORK] Broadcasting executeOmnichain to target vault: ${BLUECHIP_VAULT}...`,
     );
 
+    const nonce = await publicClient.getTransactionCount({
+      address: account.address,
+      blockTag: "pending",
+    });
+
+    await pushLog(`[SYSTEM] Using Nonce: ${nonce} for transaction.`);
+
     const { request } = await publicClient.simulateContract({
       address: BLUECHIP_VAULT as `0x${string}`,
       abi: VAULT_ABI,
@@ -357,6 +341,7 @@ Output XML:
         amountOutMin,
       ],
       account,
+      nonce: nonce,
     });
 
     const txHash = await walletClient.writeContract(request);

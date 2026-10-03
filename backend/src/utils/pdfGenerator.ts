@@ -1,10 +1,8 @@
 import fs from "fs";
 import path from "path";
 import PDFDocument from "pdfkit";
+import { CONFIG } from "../config.js";
 import { getRecentMemories } from "../data/db.js";
-
-const GRAPHQL_ENDPOINT =
-  "https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.8";
 
 // [UTILITY] GENERATE DYNAMIC CHART VIA QUICKCHART API
 async function fetchChartBuffer(
@@ -53,7 +51,6 @@ async function fetchChartBuffer(
   }
 }
 
-
 //  CLEAN AI MARKDOWN TEXT
 function cleanMarkdown(text: string): string {
   if (!text) return "";
@@ -64,8 +61,7 @@ function cleanMarkdown(text: string): string {
     .trim();
 }
 
-
-// GENERATE STRATEGY TEAR SHEET 
+// GENERATE STRATEGY TEAR SHEET
 export async function generateProofOfTradingPDF(
   vaultName: string,
 ): Promise<string> {
@@ -95,7 +91,6 @@ export async function generateProofOfTradingPDF(
         )
         .sort((a: any, b: any) => a.timestamp - b.timestamp);
 
-  
       doc
         .fontSize(20)
         .font("Helvetica-Bold")
@@ -119,7 +114,6 @@ export async function generateProofOfTradingPDF(
         .strokeColor("#e5e5e5")
         .stroke();
       doc.moveDown(1);
-
 
       const totalExecutions = strategyExecutions.length;
       const successExecutions = strategyExecutions.filter(
@@ -153,7 +147,6 @@ export async function generateProofOfTradingPDF(
       doc.x = 50;
       doc.y = metricsY + 70;
 
-   
       if (totalExecutions > 0) {
         doc
           .fontSize(12)
@@ -182,7 +175,6 @@ export async function generateProofOfTradingPDF(
           doc.moveDown(2);
         }
       }
-
 
       doc
         .fontSize(12)
@@ -241,7 +233,6 @@ export async function generateProofOfTradingPDF(
               .text("Engine Reasoning:");
             doc.moveDown(0.3);
 
-         
             const cleanReasoningText = cleanMarkdown(trade.reasoning);
 
             doc
@@ -250,7 +241,7 @@ export async function generateProofOfTradingPDF(
               .text(cleanReasoningText, {
                 width: 470,
                 align: "justify",
-                lineGap: 2.5, 
+                lineGap: 2.5,
               });
 
             doc.moveDown(1.5);
@@ -258,7 +249,6 @@ export async function generateProofOfTradingPDF(
           });
       }
 
-   
       doc
         .moveTo(50, doc.y)
         .lineTo(545, doc.y)
@@ -283,9 +273,6 @@ export async function generateProofOfTradingPDF(
     }
   });
 }
-
-
-
 
 // GENERATE GLOBAL REPORT
 export async function generateGlobalReportPDF(): Promise<string> {
@@ -322,14 +309,13 @@ export async function generateGlobalReportPDF(): Promise<string> {
         .stroke();
       doc.moveDown(1.5);
 
-   
       let totalRebalances = 0;
       let totalDeposits = 0;
       let isGraphConnected = false;
 
       try {
         const query = `{ rebalanceExecuteds { id } deposits { id } }`;
-        const res = await fetch(GRAPHQL_ENDPOINT, {
+        const res = await fetch(CONFIG.GRAPHQL_ENDPOINT, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ query }),

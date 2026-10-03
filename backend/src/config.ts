@@ -1,10 +1,13 @@
 export const CONFIG = {
   RPC_URL: "https://data-seed-prebsc-2-s2.bnbchain.org:8545/",
 
+  GRAPHQL_ENDPOINT:
+    "https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.9",
+
   VAULTS: {
-    YIELD_FARM: "0x9BA37554D997a7c4d536Ac94180C47f89BCEF0DD",
-    BLUECHIP: "0x2Df494B6A330b1f08F5b720caD47756f251378f9",
-    DEGEN: "0xbC82a09c1d5DfD82367515e51Ee3937ccC4c5D88",
+    YIELD_FARM: "0xf25297f1a2d83f738dc32fc5851bdff732c20141",
+    BLUECHIP: "0x48d1edfaedd9ebae51abfb4d4d53a624b8411917",
+    DEGEN: "0x42de62e19704f591acb71a63f892751dc37f098c",
   },
 
   TOKENS: {

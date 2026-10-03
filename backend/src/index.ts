@@ -51,17 +51,14 @@ export async function neuroLoomCycle(demoConfig?: {
     const market = await fetchQuantData("BNB/USDT");
     const vaultData = await getVaultState();
 
-    // ==========================================
-    // 🚨 DEMO DAY INJECTION (HANYA BERJALAN JIKA TOMBOL STAGE 3 DIKLIK)
-    // ==========================================
+    // DEMO DAY INJECTION
     if (demoConfig?.forceCrash) {
       console.log("\n🚨 [DEMO OVERRIDE] MENGINJEKSI KRISIS PASAR BUATAN...");
-      market.price = market.price * 0.5; // Memanipulasi seolah-olah harga BNB hancur 50%
+      market.price = market.price * 0.5;
       market.rsi = 15; // RSI oversold parah
     }
-    // ==========================================
 
-    // [PEMBARUAN KRUSIAL] Sensor Posisi (Mendeteksi Realized IL secara on-chain)
+    // Sensor Posisi (Mendeteksi Realized IL secara on-chain)
     let bluechipHealth = await checkVaultPosition(
       CONFIG.VAULTS.BLUECHIP,
       market.price,
@@ -120,8 +117,7 @@ export async function neuroLoomCycle(demoConfig?: {
       feedbackContext =
         "CRITICAL DEMO DIRECTIVE: This is STAGE 1 (Planning). You MUST analyze the market and ONLY output 'calculate_v3_lp_params'. IMPORTANT RULE: Our testnet WBNB balance is extremely low. You MUST set 'amountADesiredWei' to '10000000000000000' (0.01 WBNB) and 'amountBDesiredWei' to '5900000000000000000' (5.9 USDT) exactly.";
     } else if (demoConfig?.stage === 2) {
-      feedbackContext =
-        feedbackContext = `CRITICAL DEMO DIRECTIVE: This is STAGE 2 (Execution). Read the calculation from your MEMORIES. You MUST output 'provide_liquidity_v3' using those calculated ticks. IMPORTANT SCHEMA RULE: You MUST strictly use the argument keys: 'token0', 'token1', 'amount0DesiredWei', 'amount1DesiredWei', 'tickLower', 'tickUpper', 'fee' (set to 2500), 'slippageBps' (set to 10000), and 'vaultAddress' (set to "${CONFIG.VAULTS.BLUECHIP}"). DO NOT use 'tokenA' or 'amountA'.`;
+      feedbackContext = `CRITICAL DEMO DIRECTIVE: This is STAGE 2 (Execution). Read the calculation from your MEMORIES. You MUST output 'provide_liquidity_v3' using those calculated ticks. IMPORTANT SCHEMA RULE: You MUST strictly use the argument keys: 'token0', 'token1', 'amount0DesiredWei', 'amount1DesiredWei', 'tickLower', 'tickUpper', 'fee' (set to 2500), 'slippageBps' (set to 10000), and 'vaultAddress' (set to "${CONFIG.VAULTS.BLUECHIP}"). DO NOT use 'tokenA' or 'amountA'.`;
     } else if (demoConfig?.stage === 3) {
       feedbackContext = `CRITICAL DEMO DIRECTIVE: This is STAGE 3 (Emergency Rescue). The POSITION_HEALTH_RADAR indicates the pool is OUT_OF_RANGE due to a market crash. You MUST output 'close_liquidity_v3' to rescue the funds. IMPORTANT SCHEMA RULE: You MUST strictly use ONLY two argument keys: 'vaultAddress' (set to "${CONFIG.VAULTS.BLUECHIP}") and 'tokenId' (set exactly to "AUTO"). DO NOT include 'slippageBps' or any other parameters.`;
     }

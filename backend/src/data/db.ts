@@ -13,14 +13,11 @@ export interface TradeRecord {
   txHash?: string;
 }
 
-// FUNGSI HELPER: Mendapatkan nama file spesifik per Vault
 function getDbPath(vaultStrategy: string): string {
-  // Ubah nama seperti "Bluechip Momentum" menjadi "bluechip-momentum"
   const safeName = vaultStrategy.toLowerCase().replace(/\s+/g, "-");
   return path.resolve(process.cwd(), `journal_${safeName}.json`);
 }
 
-// Inisialisasi awal untuk file global (jika diperlukan)
 const GLOBAL_DB_PATH = path.resolve(process.cwd(), "journal_global.json");
 if (!fs.existsSync(GLOBAL_DB_PATH)) {
   fs.writeFileSync(GLOBAL_DB_PATH, JSON.stringify([]));
@@ -36,10 +33,8 @@ export async function logAIDecision(
   txHash: string = "",
   targetVault: string = "",
 ): Promise<void> {
-  // Tentukan path berdasarkan vault (jika kosong, gunakan global)
   const dbPath = vaultStrategy ? getDbPath(vaultStrategy) : GLOBAL_DB_PATH;
 
-  // Pastikan file eksis
   if (!fs.existsSync(dbPath)) {
     fs.writeFileSync(dbPath, JSON.stringify([]));
   }
@@ -62,15 +57,12 @@ export async function logAIDecision(
   records.push(newRecord);
   fs.writeFileSync(dbPath, JSON.stringify(records, null, 2));
 
-  // --- OPSIONAL: Salin juga ke Global Journal untuk Dashboard Global ---
-  // Jika kamu ingin dasbor utama melihat SEMUA log gabungan
   const globalData = fs.readFileSync(GLOBAL_DB_PATH, "utf-8");
   const globalRecords: TradeRecord[] = JSON.parse(globalData);
   globalRecords.push(newRecord);
   fs.writeFileSync(GLOBAL_DB_PATH, JSON.stringify(globalRecords, null, 2));
 }
 
-// Fungsi ini sekarang butuh parameter opsional 'vaultStrategy'
 export async function getRecentMemories(
   limit: number = 5,
   vaultStrategy?: string,

@@ -3,7 +3,6 @@ import { z } from "zod";
 
 export const calculateOptimalAllocation = tool(
   async ({ expectedApy, riskFreeRate, volatility, currentTvlWei }) => {
-    // Continuous Kelly: (APY - RFR) / Volatility^2
     const numerator = expectedApy - riskFreeRate;
     const denominator = Math.pow(volatility, 2);
     let kelly = denominator > 0 ? numerator / denominator : 0;

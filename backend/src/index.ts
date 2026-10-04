@@ -28,12 +28,11 @@ const CYCLE_INTERVAL_MS = cycleMinutes * 60 * 1000;
 let isRunning = true;
 
 const evaluatorLLM = new ChatGoogleGenerativeAI({
-  apiKey: process.env.GEMINI_API_KEY2,
+  apiKey: process.env.GEMINI_API_KEY_2,
   model: "gemini-3-flash-preview",
   temperature: 0.1,
 });
 
-// --- HELPER UNTUK MULTI-VAULT LOGGING ---
 function getVaultIdFromAddress(address: string | undefined): string {
   if (!address) return "global";
 
@@ -46,7 +45,6 @@ function getVaultIdFromAddress(address: string | undefined): string {
 
   return "global";
 }
-// ----------------------------------------
 
 export async function neuroLoomCycle(demoConfig?: {
   forceCrash?: boolean;
@@ -83,11 +81,7 @@ export async function neuroLoomCycle(demoConfig?: {
       market.price,
     );
 
-    // ==========================================
-    // 🚨 DEMO DAY INJECTION UNTUK SENSOR POSISI
-    // ==========================================
     if (demoConfig?.forceCrash) {
-      // Tambahkan 'as any' untuk menembus proteksi tipe TypeScript
       bluechipHealth = "OUT_OF_RANGE" as any;
       degenHealth = "OUT_OF_RANGE" as any;
       console.log("🚨 [DEMO OVERRIDE] SENSOR POSISI DIPAKSA: OUT_OF_RANGE");

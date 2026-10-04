@@ -56,7 +56,7 @@ const walletClient = createWalletClient({
 });
 
 const evaluatorLlm = new ChatGroq({
-  apiKey: process.env.GROQ_API_KEY,
+  apiKey: process.env.GROQ_API_KEY_1,
   model: "openai/gpt-oss-20b",
   temperature: 0.1,
   maxTokens: 500,

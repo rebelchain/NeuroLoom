@@ -6,7 +6,6 @@ import { CONFIG } from "../config.js";
 
 dotenvx.config();
 
-// Alamat NonfungiblePositionManager PancakeSwap V3 di BSC Testnet
 const PANCAKE_V3_MANAGER = "0x427bF5b37357632377eCbEC9de3626C71A5396c1";
 
 async function initPool() {
@@ -26,10 +25,9 @@ async function initPool() {
     transport: http(CONFIG.RPC_URL),
   });
 
-  // Urutkan Token (Token0 harus < Token1 secara hex)
   let token0: string = CONFIG.TOKENS.WBNB;
   let token1: string = CONFIG.TOKENS.USDT;
-  let price = 590; // 1 WBNB = 590 mUSDT
+  let price = 590;
 
   if (token0.toLowerCase() > token1.toLowerCase()) {
     console.log("🔄 Menukar posisi token agar sesuai aturan V3...");
@@ -38,8 +36,6 @@ async function initPool() {
     price = 1 / 590;
   }
 
-  // Matematika sqrtPriceX96 (Harga Akar Kuadrat dikali 2^96)
-  // Harga 590 dikonversi ke sqrtPriceX96 = ~1924454477382747190130635243520
   const sqrtPrice = Math.sqrt(price);
   const sqrtPriceX96 = BigInt(Math.floor(sqrtPrice * 2 ** 96));
 

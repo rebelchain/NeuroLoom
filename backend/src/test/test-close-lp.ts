@@ -4,17 +4,14 @@ dotenvx.config();
 import { closeLiquidityV3 } from "../tools/defiTools.js";
 
 async function runCloseLPTest() {
-  console.log(
-    "🧪 Memulai Uji Coba Unit: PancakeSwap V3 Close LP (Manual Tanpa AI)...\n",
-  );
+  console.log("Uji Coba Unit: PancakeSwap V3 Close LP\n");
 
   const testArgs = {
-    // Alamat Bluechip Vault-mu yang baru saja menyetor LP
     vaultAddress: "0x48d1edfaedd9ebae51abfb4d4d53a624b8411917",
     tokenId: "AUTO",
   } as const;
 
-  console.log("📦 Parameter Eksekusi Tersusun:");
+  console.log(" Parameter Eksekusi:");
   console.dir(testArgs, { depth: null, colors: true });
   console.log("\n⚡ Menembakkan alat closeLiquidityV3 ke BSC Testnet...");
 

@@ -3,17 +3,13 @@ import fs from "fs";
 import path from "path";
 import PDFDocument from "pdfkit";
 
-// --- [UTILITY] MENGHASILKAN EQUITY CURVE CHART (INSTITUTIONAL STYLE) ---
 async function fetchChartBuffer(
   data: number[],
   labels: string[],
 ): Promise<Buffer | null> {
-  // Jika tidak ada data transaksi sama sekali
   if (data.length === 0) return null;
 
   try {
-    // BUG FIX: Jika hanya ada 1 data point, chart.js akan error saat menggambar garis.
-    // Solusi: Kita gandakan data pertama agar menjadi garis lurus horisontal yang valid.
     let chartData = [...data];
     let chartLabels = [...labels];
     if (chartData.length === 1) {
@@ -29,12 +25,12 @@ async function fetchChartBuffer(
           {
             label: "Execution Price (USD)",
             data: chartData,
-            borderColor: "#3b82f6", // Warna garis biru Arkham
-            backgroundColor: "rgba(59, 130, 246, 0.15)", // Fill bawah kurva
+            borderColor: "#3b82f6",
+            backgroundColor: "rgba(59, 130, 246, 0.15)",
             fill: true,
             borderWidth: 2.5,
-            pointRadius: 0, // Sembunyikan titik agar lebih rapi ala institusi
-            tension: 0.3, // Membuat garis lebih smooth
+            pointRadius: 0,
+            tension: 0.3,
           },
         ],
       },
@@ -49,7 +45,7 @@ async function fetchChartBuffer(
           },
           y: {
             display: true,
-            grid: { color: "rgba(255,255,255,0.08)", drawBorder: false }, // Grid yang sangat tipis
+            grid: { color: "rgba(255,255,255,0.08)", drawBorder: false },
             ticks: {
               // Format angka Y-axis menjadi harga USD
               callback: (value: any) => "$" + Number(value).toFixed(2),
@@ -60,7 +56,6 @@ async function fetchChartBuffer(
       },
     };
 
-    // Tambahkan %23 (kode URI untuk #) agar background menjadi #121212
     const url = `https://quickchart.io/chart?width=540&height=200&bkg=%23121212&c=${encodeURIComponent(
       JSON.stringify(chartConfig),
     )}`;
@@ -72,14 +67,14 @@ async function fetchChartBuffer(
     return null;
   }
 }
+``;
 
-// BUG FIX: Hapus batas pemotongan kalimat
 function cleanMarkdown(text: string): string {
   if (!text) return "No data available.";
   return text
-    .replace(/\*\*/g, "") // Hapus bold markdown
-    .replace(/\*/g, "") // Hapus italic
-    .replace(/\n{3,}/g, "\n\n") // Rapikan spasi
+    .replace(/\*\*/g, "")
+    .replace(/\*/g, "")
+    .replace(/\n{3,}/g, "\n\n")
     .trim();
 }
 
@@ -217,9 +212,7 @@ export async function generateDynamicVaultPDF(
       const SECONDARY_COLOR = "#555555";
       const ACCENT_COLOR = "#3b82f6";
 
-      // -------------------------------------------------------------
       // DATA FETCHING
-      // -------------------------------------------------------------
       const dbPath = path.resolve(
         process.cwd(),
         `journal_${config.dbName}.json`,
@@ -252,9 +245,7 @@ export async function generateDynamicVaultPDF(
           ? ((successExecutions / totalExecutions) * 100).toFixed(1)
           : "0.0";
 
-      // -------------------------------------------------------------
       // SECTION 1: HEADER & TITLE
-      // -------------------------------------------------------------
       doc
         .fontSize(22)
         .font("Helvetica-Bold")
@@ -283,7 +274,6 @@ export async function generateDynamicVaultPDF(
       // -------------------------------------------------------------
       const metricsStartY = doc.y;
 
-      // Kiri: Performance Metrics
       doc
         .fontSize(10)
         .font("Helvetica-Bold")
@@ -301,7 +291,6 @@ export async function generateDynamicVaultPDF(
       doc.text(`:  ${config.riskProfile}`, 130, metricsStartY + 45);
       doc.text(`:  ${config.targetApy}`, 130, metricsStartY + 60);
 
-      // Kanan: Multi-Agent Models
       doc
         .fontSize(10)
         .font("Helvetica-Bold")
@@ -337,9 +326,8 @@ export async function generateDynamicVaultPDF(
       doc.moveDown(0.5);
 
       if (totalExecutions > 0 && normalizedId !== "global") {
-        // BUG FIX: Gunakan executedPrice yang asli untuk titik di Y-axis (bukan pecahan acak)
         const chartPrices = strategyExecutions.map((h: any) => {
-          return h.executedPrice ? Number(h.executedPrice) : 500; // 500 sebagai default fallback
+          return h.executedPrice ? Number(h.executedPrice) : 500;
         });
 
         const chartLabels = strategyExecutions.map(
@@ -369,9 +357,7 @@ export async function generateDynamicVaultPDF(
       doc.moveDown(1);
       doc.x = 40;
 
-      // -------------------------------------------------------------
       // SECTION 4: REAL-TIME ASSET ALLOCATION
-      // -------------------------------------------------------------
       doc
         .fontSize(12)
         .font("Helvetica-Bold")
@@ -429,9 +415,7 @@ export async function generateDynamicVaultPDF(
       doc.y = rowY + 25;
       doc.x = 40;
 
-      // -------------------------------------------------------------
-      // SECTION 5: ALGORITHMIC REASONING MATRIX (LOG EKSEKUSI)
-      // -------------------------------------------------------------
+      // SECTION 5: ALGORITHMIC REASONING MATRIX
       if (doc.y > 600) doc.addPage();
 
       doc
@@ -453,18 +437,14 @@ export async function generateDynamicVaultPDF(
           .fillColor("#888888")
           .text("No strategic operations recorded.");
       } else {
-        // Ambil eksekusi terbaru dan cetak baris per baris
         strategyExecutions
           .reverse()
           .slice(0, 5)
           .forEach((trade: any, index: number) => {
-            // Karena reasoning panjang, kita harus memeriksa sisa ruang halaman sebelum mencetak blok panjang.
-            // Jika sisa < 150px (hampir habis), pindah halaman agar kotak log tidak terpotong.
             if (doc.y > 600) doc.addPage();
 
             const startY = doc.y;
 
-            // Header Baris (ID & Time)
             doc.rect(40, startY, 515, 18).fill(PRIMARY_COLOR);
             doc
               .fillColor("#ffffff")
@@ -476,23 +456,20 @@ export async function generateDynamicVaultPDF(
                 startY + 5,
               );
 
-            // --- TAMBAHAN BARU: LINK TX HASH ---
             if (trade.transactionHash) {
               const shortHash = `${trade.transactionHash.substring(0, 8)}...${trade.transactionHash.substring(trade.transactionHash.length - 6)}`;
               const explorerUrl = `https://testnet.bscscan.com/tx/${trade.transactionHash}`;
 
-              // Buat teks bergaris bawah warna biru muda (link)
               doc
                 .fontSize(8)
                 .font("Helvetica-Oblique")
                 .fillColor("#4cdae6")
                 .text(`View Tx: ${shortHash}`, 440, startY + 6, {
-                  link: explorerUrl, // Ini yang membuat PDF clickable!
+                  link: explorerUrl,
                   underline: true,
                 });
             }
 
-            // Baris Abu-abu (Action, Route, Price)
             doc.rect(40, startY + 18, 515, 20).fill("#f4f4f5");
 
             doc
@@ -525,7 +502,6 @@ export async function generateDynamicVaultPDF(
             doc.y = startY + 45;
             doc.x = 40;
 
-            // BUG FIX 1: Teks Reasoning AI Lengkap
             doc
               .fontSize(9)
               .font("Helvetica-Bold")
@@ -541,7 +517,6 @@ export async function generateDynamicVaultPDF(
               });
             doc.moveDown(0.7);
 
-            // BUG FIX 2: Teks Reasoning CRO Langsung dari log transaksi (journal.json)
             doc
               .fontSize(9)
               .font("Helvetica-Bold")

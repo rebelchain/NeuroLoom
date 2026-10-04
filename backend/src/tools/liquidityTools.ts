@@ -1,11 +1,10 @@
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
 
-
 export const checkPoolDepth = tool(
   async ({ pair, dex }) => {
     console.log(`[TOOL] Checking liquidity depth for ${pair} on ${dex}...`);
-  
+
     const data = {
       pair,
       dex,
@@ -31,8 +30,7 @@ export const simulateTradeSlippage = tool(
     console.log(
       `[TOOL] Simulating slippage for a $${tradeSizeUsd} trade on ${pair}...`,
     );
-    // Simulasi kalkulasi slippage on-chain
-    let estimatedSlippage = 0.05; 
+    let estimatedSlippage = 0.05;
     if (tradeSizeUsd > 10000) estimatedSlippage = 0.15;
     if (tradeSizeUsd > 100000) estimatedSlippage = 1.2;
 

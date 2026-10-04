@@ -2,14 +2,12 @@ import { createPublicClient, http, parseAbi } from "viem";
 import { bscTestnet } from "viem/chains";
 import { CONFIG } from "../config.js";
 
-// ABI Standar ERC721 +  Positions function
 const NFPM_ABI = parseAbi([
   "function balanceOf(address owner) view returns (uint256)",
   "function tokenOfOwnerByIndex(address owner, uint256 index) view returns (uint256)",
   "function positions(uint256 tokenId) view returns (uint96 nonce, address operator, address token0, address token1, uint24 fee, int24 tickLower, int24 tickUpper, uint128 liquidity, uint256 feeGrowthInside0LastX128, uint256 feeGrowthInside1LastX128, uint128 tokensOwed0, uint128 tokensOwed1)",
 ]);
 
-// Helper: Konversi Harga Pasar ke Tick (Berdasarkan matematika V3)
 function priceToTick(price: number): number {
   return Math.floor(Math.log(price) / Math.log(1.0001));
 }
@@ -51,7 +49,6 @@ export async function checkVaultPosition(
       };
     }
 
-    // 2. Ambil ID NFT yang paling baru dicetak oleh brankas
     const tokenId = await publicClient.readContract({
       address: nfpmAddress,
       abi: NFPM_ABI,
@@ -59,7 +56,6 @@ export async function checkVaultPosition(
       args: [vault, balance - 1n],
     });
 
-    // 3. Ekstrak data krusial dari NFT tersebut
     const position = await publicClient.readContract({
       address: nfpmAddress,
       abi: NFPM_ABI,
@@ -78,7 +74,6 @@ export async function checkVaultPosition(
       };
     }
 
-    // 4. Kalkulasi Kesehatan (Impermanent Loss Radar)
     const currentTick = priceToTick(currentMarketPrice);
     let status: "IN_RANGE" | "OUT_OF_RANGE_BELOW" | "OUT_OF_RANGE_ABOVE" =
       "IN_RANGE";

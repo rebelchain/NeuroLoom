@@ -132,7 +132,7 @@ export const calculateV3LpParams = tool(
   },
 );
 
-// Helper: Konversi Tick ke Harga
+
 function tickToPrice(tick: number): number {
   return Math.pow(1.0001, tick);
 }
@@ -142,7 +142,6 @@ function calculateV3PositionValue(tickLower: number, tickUpper: number) {
   const priceA = tickToPrice(tickLower);
   const priceB = tickToPrice(tickUpper);
 
-  // Menghitung komposisi Token 0 (Base) dan Token 1 (Quote) berdasarkan posisi harga terhadap rentang
   const getX = (p: number) => {
     if (p < priceA)
       return (
@@ -169,14 +168,13 @@ export const simulateILRisk = tool(
     const priceDown = currentPrice * (1 - expectedVolatilityDecimal);
     const priceUp = currentPrice * (1 + expectedVolatilityDecimal);
 
-    // FIX: Hapus currentPrice dari pemanggilan fungsi ini
+
     const { getX, getY } = calculateV3PositionValue(tickLower, tickUpper);
 
-    // Saldo awal saat deposit
+
     const x0 = getX(currentPrice);
     const y0 = getY(currentPrice);
 
-    // Fungsi Kalkulasi IL
     const calculateIL = (newPrice: number) => {
       const x1 = getX(newPrice);
       const y1 = getY(newPrice);
@@ -190,7 +188,7 @@ export const simulateILRisk = tool(
     const ilDown = calculateIL(priceDown);
     const ilUp = calculateIL(priceUp);
 
-    // Menghitung IL V2 Standar sebagai pembanding amplifikasi
+ 
     const rDown = priceDown / currentPrice;
     const v2IlDown = (2 * Math.sqrt(rDown)) / (1 + rDown) - 1;
     const amplificationFactor =

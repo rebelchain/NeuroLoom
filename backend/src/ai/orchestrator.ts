@@ -1,20 +1,54 @@
+import * as dotenvx from "@dotenvx/dotenvx";
 import { ChatGroq } from "@langchain/groq";
+import { getActiveGroqKey, rotateGroqKey } from "../utils/apiRotator.js";
+import { pushLog } from "../utils/push-log.js";
+dotenvx.config();
 
 export interface OrchestratorTask {
   type: string;
   description: string;
 }
 
+async function invokeGroqWithRetry(
+  messages: any[],
+  maxRetries = 2,
+): Promise<any> {
+  let attempt = 0;
+
+  while (attempt <= maxRetries) {
+    try {
+      // 1. Selalu inisialisasi LLM dengan Key yang aktif saat ini
+      const llm = new ChatGroq({
+        apiKey: getActiveGroqKey(),
+        model: "openai/gpt-oss-20b",
+        maxTokens: 800,
+        temperature: 0.1,
+      });
+
+      return await llm.invoke(messages);
+    } catch (error: any) {
+      // 2. Deteksi error kuota / rate limit (429)
+      const isQuotaError =
+        error.message?.includes("429") ||
+        error.message?.toLowerCase().includes("rate limit") ||
+        error.message?.toLowerCase().includes("quota");
+
+      if (isQuotaError && attempt < maxRetries) {
+        console.warn(
+          `\n⚠️ [WARNING] Groq API Limit habis. Mengeksekusi rotasi...`,
+        );
+        rotateGroqKey(); // Putar ke API Key Groq berikutnya!
+        attempt++;
+      } else {
+        throw error; // Lempar error jika bukan karena limit atau sudah maksimal retry
+      }
+    }
+  }
+}
+
 export async function runOrchestrator(
   marketData: any,
 ): Promise<OrchestratorTask[]> {
-  const llm = new ChatGroq({
-    apiKey: process.env.GROQ_API_KEY,
-    model: "openai/gpt-oss-20b",
-    maxTokens: 800,
-    temperature: 0.1,
-  });
-
   const prompt = `You are the NeuroLoom Orchestrator. 
 Analyze the current DEFI STATE and determine which specialized workers need to be deployed to formulate the best strategy.
 
@@ -39,9 +73,10 @@ Briefly explain your reasoning for choosing these specific workers based on the 
 DEFI STATE: ${JSON.stringify(marketData)}`;
 
   console.log("[ORCHESTRATOR] Analyzing market and planning tasks.");
-  const response = await llm.invoke(prompt);
+  const response = await invokeGroqWithRetry([
+    { role: "user", content: prompt },
+  ]);
   const content = response.content.toString();
-
 
   const tasks: OrchestratorTask[] = [];
   const taskMatches = content.match(/<task>([\s\S]*?)<\/task>/g) || [];
@@ -60,7 +95,7 @@ DEFI STATE: ${JSON.stringify(marketData)}`;
 
   const analysisMatch = content.match(/<analysis>([\s\S]*?)<\/analysis>/);
   if (analysisMatch) {
-    console.log(`\n[ORCHESTRATOR ANALYSIS]:\n${analysisMatch[1].trim()}\n`);
+    await pushLog(`\n[ORCHESTRATOR ANALYSIS]:\n"${analysisMatch[1].trim()}"\n`);
   }
 
   return tasks;

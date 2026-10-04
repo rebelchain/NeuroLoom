@@ -1,4 +1,5 @@
 import * as dotenvx from "@dotenvx/dotenvx";
+import { pushLog } from "../utils/push-log.js";
 dotenvx.config();
 
 export interface QuantMarketData {
@@ -14,7 +15,7 @@ export async function fetchQuantData(
   symbol: string = "BNB/USDT",
 ): Promise<QuantMarketData> {
   const apiKey = process.env.TAAPI_API_KEY;
-  console.log(`[DATA] Fetching technical data for ${symbol} from TAAPI.io`);
+  await pushLog(`[DATA] Fetching technical data for ${symbol} from TAAPI.io`);
 
   try {
     if (!apiKey) throw new Error("TAAPI_API_KEY tidak ditemukan di .env");

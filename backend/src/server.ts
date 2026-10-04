@@ -6,10 +6,10 @@ import express from "express";
 import { getRecentMemories } from "./data/db.js";
 import { neuroLoomCycle } from "./index.js";
 
-// --- IMPORT ROUTER & SERVICE MODUL ---
 import bluechipRouter from "./scripts/bluechipSimulation.js";
-// import yieldFarmRouter from "./scripts/yieldFarmSimulation.js"; // Nanti buat file ini
-// import degenRouter from "./scripts/degenSimulation.js";         // Nanti buat file ini
+// import yieldFarmRouter from "./scripts/yieldFarmSimulation.js";
+// import degenRouter from "./scripts/degenSimulation.js";
+import liveDemoRouter from "./scripts/liveDemoSimulation.js";
 import { generateDynamicVaultPDF } from "./utils/pdfGenerator.js";
 
 const app = express();
@@ -18,9 +18,7 @@ const PORT = process.env.PORT || 9000;
 app.use(cors());
 app.use(express.json());
 
-// ==========================================
-// 1. GLOBAL LOGGING SYSTEM
-// ==========================================
+// GLOBAL LOGGING SYSTEM
 let globalLogs: string[] = [];
 
 app.get("/api/ai-logs", (req, res) => {
@@ -79,23 +77,18 @@ app.post("/api/force-cycle", (req, res) => {
   }
 });
 
-// ==========================================
-// 2. MOUNT LIVE SIMULATION ROUTER
-// ==========================================
+// MOUNT LIVE SIMULATION ROUTER
 app.use("/api", bluechipRouter);
 // app.use("/api", yieldFarmRouter);
 // app.use("/api", degenRouter);
+app.use("/api", liveDemoRouter);
 
-// ==========================================
-// 3. PDF GENERATION ROUTER (MODULAR)
-// ==========================================
+// PDF GENERATION ROUTER
 app.get("/api/report/pdf", (req, res) => {
-  // Tangkap parameter 'vault' (misal: ?vault=bluechip-momentum)
   const vaultId = (req.query.vault as string) || "global";
 
   console.log(`[PDF] Meng-generate laporan untuk Vault: ${vaultId}`);
 
-  // generateDynamicVaultPDF akan mencari journal_${vaultId}.json secara otomatis
   generateDynamicVaultPDF(res, vaultId).catch((err) => {
     console.error("[PDF ERROR]", err);
     if (!res.headersSent) {
@@ -104,9 +97,7 @@ app.get("/api/report/pdf", (req, res) => {
   });
 });
 
-// ==========================================
-// 4. SERVER START
-// ==========================================
+// SERVER START
 app.listen(PORT, () => {
   console.log(
     `\n[API SERVER] NeuroLoom Bridge runs on http://localhost:${PORT}`,
@@ -114,6 +105,9 @@ app.listen(PORT, () => {
   console.log(`   - Endpoint History : http://localhost:${PORT}/api/history`);
   console.log(
     `   - Endpoint Sim API : http://localhost:${PORT}/api/live-simulation`,
+  );
+  console.log(
+    `   - Endpoint Sandbox : http://localhost:${PORT}/api/run-demo-simulation`,
   );
   console.log(
     `   - Endpoint PDF     : http://localhost:${PORT}/api/report/pdf?vault=global`,

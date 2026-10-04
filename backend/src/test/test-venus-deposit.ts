@@ -11,7 +11,7 @@ async function runVenusTest() {
     amountInWei: "1000000000000000000", // 1 USDT
   } as const;
 
-  console.log("⚡ Executing executeVenusDeposit on BSC Testnet...");
+  console.log("Executing executeVenusDeposit on BSC Testnet...");
 
   try {
     const result = await executeVenusDeposit.invoke(testArgs);

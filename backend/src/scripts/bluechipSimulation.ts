@@ -111,13 +111,13 @@ const QUOTER_ABI = [
 ];
 
 const agentLLM = new ChatGoogleGenerativeAI({
-  apiKey: process.env.GEMINI_API_KEY,
+  apiKey: process.env.GEMINI_API_KEY_1,
   model: "gemini-3-flash-preview",
   temperature: 0.1,
 });
 
 const evaluatorLLM = new ChatGoogleGenerativeAI({
-  apiKey: process.env.GEMINI_API_KEY2,
+  apiKey: process.env.GEMINI_API_KEY_2,
   model: "gemini-3-flash-preview",
   temperature: 0.1,
 });

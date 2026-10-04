@@ -11,6 +11,15 @@ interface VaultPanelProps {
   onClose: () => void;
 }
 
+function formatCurrencyLocal(value: string | number) {
+  const num = typeof value === "string" ? Number(value) : value;
+  if (isNaN(num)) return "0.00";
+  return new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 4,
+  }).format(num);
+}
+
 export function VaultPanel({
   vaultName,
   vaultAddress,
@@ -90,6 +99,8 @@ export function VaultPanel({
   // FIX TAMPILAN SALDO:
   const displayBalance =
     action === "deposit" ? formattedWalletBalance : formattedVaultShares;
+
+  const cleanDisplayBalance = formatCurrencyLocal(displayBalance);
   const assetLabel = action === "deposit" ? "USDT" : "SHARES";
 
   return (
@@ -143,7 +154,7 @@ export function VaultPanel({
             onClick={handleMax}
           >
             {/* FIX: Menampilkan displayBalance mentah tanpa toFixed() untuk mencegah pembulatan ke nol pada nilai kecil */}
-            {action === "deposit" ? "Wallet" : "Vault"}: {displayBalance}{" "}
+            {action === "deposit" ? "Wallet" : "Vault"}: {cleanDisplayBalance}{" "}
             {assetLabel}
           </span>
         </div>

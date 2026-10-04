@@ -1,11 +1,11 @@
 export const GRAPHQL_ENDPOINT =
-  "https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.9";
+  "https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.10";
 
 export const CONFIG = {
   RPC_URL: "https://data-seed-prebsc-2-s2.bnbchain.org:8545/",
 
   GRAPHQL_ENDPOINT:
-    "https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.9",
+    "https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.10",
 
   VAULTS: {
     YIELD_FARM: "0xf25297f1a2d83f738dc32fc5851bdff732c20141",

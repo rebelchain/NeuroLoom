@@ -685,7 +685,7 @@ export function DemoVaultRebalanceSimulator() {
     try {
       console.log("Memicu Live Simulation API...");
       const response = await fetch(
-        "http://localhost:3001/api/live-simulation",
+        "http://localhost:9000/api/live-simulation/bluechip-momentum",
         {
           method: "POST",
           headers: {
@@ -694,6 +694,24 @@ export function DemoVaultRebalanceSimulator() {
           body: JSON.stringify({ trigger: "UI_SIMULATOR" }),
         },
       );
+
+      // Cek apakah response benar-benar OK sebelum melakukan parsing JSON
+      if (!response.ok) {
+        // Jika server mengembalikan 404 (Not Found) atau 500 (Internal Server Error)
+        const errorText = await response.text();
+        throw new Error(
+          `Server merespons dengan status ${response.status}: ${errorText.substring(0, 100)}...`,
+        );
+      }
+
+      // Pastikan Content-Type adalah JSON
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        const text = await response.text();
+        throw new Error(
+          `Menerima format non-JSON. Server merespons: ${text.substring(0, 100)}...`,
+        );
+      }
 
       const data = await response.json();
 
@@ -705,8 +723,18 @@ export function DemoVaultRebalanceSimulator() {
         alert(`AI Execution Failed: ${data.message}`);
       }
     } catch (error) {
+      // <-- UBAH DI SINI: Hapus : any
       console.error("Gagal menghubungi backend:", error);
-      alert("Gagal menghubungi server AI backend.");
+
+      // Lakukan pengecekan tipe dengan aman (Type Guard)
+      let errorMessage = "Terjadi kesalahan yang tidak diketahui.";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === "string") {
+        errorMessage = error;
+      }
+
+      alert(`Gagal menghubungi server AI backend. Detail: ${errorMessage}`);
     } finally {
       setIsAiExecuting(false);
     }

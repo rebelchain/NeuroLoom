@@ -26,21 +26,46 @@ export function AgentOrchestratorLog() {
     let isMounted = true;
     const fetchLogs = async () => {
       try {
-        const response = await fetch(
-          "https://neuroloom-api.duckdns.org/api/ai-logs",
-          { cache: "no-store" },
-        );
-        if (!response.ok) return;
+        const response = await fetch("http://localhost:9000/api/ai-logs", {
+          cache: "no-store",
+        });
+
+        // 1. Tangani HTTP Error (404, 500, dll) TANPA melempar exception keras
+        if (!response.ok) {
+          console.warn(
+            `[Log Fetch] Server mengembalikan status ${response.status}. Menunggu pemulihan server...`,
+          );
+          return; // Hentikan eksekusi fungsi ini dengan aman (akan dicoba lagi oleh interval)
+        }
+
+        // 2. Tangani format respons yang salah (bukan JSON)
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          console.warn(
+            `[Log Fetch] Menerima format non-JSON. Menunggu pemulihan server...`,
+          );
+          return; // Sama, hentikan eksekusi dengan aman
+        }
+
+        // 3. Jika aman, lakukan parsing JSON
         const data = await response.json();
-        if (isMounted && data.logs) {
+
+        // 4. Update state jika komponen masih mount dan data valid
+        if (isMounted && data && Array.isArray(data.logs)) {
           setVisibleLogs(data.logs);
         }
       } catch (error) {
-        console.error("Gagal mengambil log AI:", error);
+        // Tangani masalah jaringan (Network Error, server mati total)
+        console.error(
+          "[Log Fetch] Gagal mengambil log AI. Pastikan server berjalan pada port 4000.",
+          error,
+        );
       }
     };
+
     void fetchLogs();
     const interval = setInterval(fetchLogs, 1000);
+
     return () => {
       isMounted = false;
       clearInterval(interval);
@@ -56,14 +81,23 @@ export function AgentOrchestratorLog() {
 
   const clearLogs = async () => {
     try {
-      await fetch("https://neuroloom-api.duckdns.org/api/ai-logs", {
+      const response = await fetch("http://localhost:9000/api/ai-logs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "clear" }),
       });
-      setVisibleLogs([]);
+
+      // Pastikan respons valid sebelum mengosongkan state UI
+      if (response.ok) {
+        setVisibleLogs([]);
+      } else {
+        console.warn(
+          "[Log Clear] Gagal mereset log di server. Status:",
+          response.status,
+        );
+      }
     } catch (e) {
-      console.error("Gagal reset logs:", e);
+      console.error("[Log Clear] Gagal reset logs (Network Error):", e);
     }
   };
 

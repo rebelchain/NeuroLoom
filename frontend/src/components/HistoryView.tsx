@@ -21,6 +21,53 @@ const VAULT_MAP: Record<string, string> = {
   [ACTIVE_VAULTS[2].toLowerCase()]: "Degen Accumulator",
 };
 
+const PROTOCOL_MAP: Record<string, string> = {
+  "0x1b81d678ffb9c0263b24a97847620c99d213eb14": "PancakeSwap (v3)",
+  "0x427bf5b37357632377ecbec9de3626c71a5396c1": "PancakeSwap V3 Manager",
+  "0x5ee89d4357d71368cf54a0407c64e36500dbc475": "Venus Protocol (Mock)",
+  "0xfa45fd644b34606cabfb7c8acc546e770e248b83": "USDT",
+  "0xae13d989dac2f0debff460ac112a837c89baa7cd": "WBNB",
+};
+
+function getProtocolOrTokenName(address: string) {
+  if (!address) return "Unknown Target";
+  const lowerAddr = address.toLowerCase();
+
+  if (VAULT_MAP[lowerAddr]) return "Vault";
+
+  if (PROTOCOL_MAP[lowerAddr]) return PROTOCOL_MAP[lowerAddr];
+
+  return shortenAddress(address);
+}
+
+function buildRouteString(
+  vaultName: string,
+  tokenIn: string,
+  tokenOut: string,
+) {
+  const inName = getProtocolOrTokenName(tokenIn);
+  const outName = getProtocolOrTokenName(tokenOut);
+
+  if (outName.includes("Venus")) {
+    return `${vaultName}: Deposit to Venus`;
+  }
+  if (inName.includes("Venus")) {
+    return `${vaultName}: Withdraw from Venus`;
+  }
+
+  // Logika khusus untuk PancakeSwap LP
+  if (
+    inName.includes("PancakeSwap V3 Manager") ||
+    outName.includes("PancakeSwap V3 Manager")
+  ) {
+    return `${vaultName}: LP Management (V3)`;
+  }
+
+  // Default Swap Route (Contoh: Vault -> USDT -> WBNB)
+  return `${vaultName}: Swap ${inName} → ${outName}`;
+}
+// -----------------------------------------------
+
 function getVaultName(address?: string) {
   if (!address) return "NeuroLoom Vault";
   return VAULT_MAP[address.toLowerCase()] || "NeuroLoom Vault";
@@ -65,21 +112,21 @@ function EventBadge({ type }: { type: EventType }) {
       return (
         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-mono tracking-widest uppercase bg-primary/10 text-primary border border-primary/25">
           <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-          AI Rebalance
+          AI Execution
         </span>
       );
     case "USER_DEPOSIT":
       return (
         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-mono tracking-widest uppercase bg-[#10b981]/10 text-[#10b981] border border-[#10b981]/25">
           <span className="w-1.5 h-1.5 rounded-full bg-[#10b981]" />
-          Deposit
+          User Deposit
         </span>
       );
     case "USER_WITHDRAWAL":
       return (
         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-mono tracking-widest uppercase bg-[#ff5f5f]/10 text-[#ff5f5f] border border-[#ff5f5f]/25">
           <span className="w-1.5 h-1.5 rounded-full bg-[#ff5f5f]" />
-          Withdrawal
+          User Withdraw
         </span>
       );
     default:
@@ -94,7 +141,7 @@ function EventBadge({ type }: { type: EventType }) {
 function formatCurrency(valueStr: string) {
   const num = Number(valueStr);
   return new Intl.NumberFormat("en-US", {
-    minimumFractionDigits: 0, 
+    minimumFractionDigits: 0,
     maximumFractionDigits: 4,
   }).format(num);
 }
@@ -138,23 +185,25 @@ export function HistoryView() {
         if (!isMounted || !data) return;
 
         const combined: VaultEvent[] = [];
-
-        // PENTING: Gunakan 18 desimal di sini
         const DECIMALS = 18;
 
         if (data.rebalanceExecuteds) {
           data.rebalanceExecuteds.forEach((item: RawRebalance) => {
             const vault = getVaultName(item.address);
-            // 1. Format dari Wei (18 desimal) ke Decimal biasa
             const formattedUnit = formatUnits(BigInt(item.amountIn), DECIMALS);
-            // 2. Format menjadi cantik dengan koma ribuan
             const amt = formatCurrency(formattedUnit);
+
+            const routeDescription = buildRouteString(
+              vault,
+              item.tokenIn,
+              item.tokenOut,
+            );
 
             combined.push({
               id: item.id,
               type: "AI_REBALANCE",
               amount: `${amt} USDT`,
-              route: `${vault}: Route Shift`,
+              route: routeDescription,
               timestamp: Number(item.blockTimestamp),
               txHash: item.transactionHash,
             });
@@ -164,7 +213,6 @@ export function HistoryView() {
         if (data.deposits) {
           data.deposits.forEach((item: RawDepositWithdraw) => {
             const vault = getVaultName(item.address);
-            // Gunakan DECIMALS = 18 dan helper formatCurrency
             const formattedUnit = formatUnits(BigInt(item.assets), DECIMALS);
             const amt = formatCurrency(formattedUnit);
 
@@ -172,7 +220,7 @@ export function HistoryView() {
               id: item.id,
               type: "USER_DEPOSIT",
               amount: `+${amt} USDT`,
-              route: `Vault Deposit -> ${vault}`,
+              route: `External Wallet → ${vault}`,
               timestamp: Number(item.blockTimestamp),
               txHash: item.transactionHash,
             });
@@ -182,7 +230,6 @@ export function HistoryView() {
         if (data.withdraws) {
           data.withdraws.forEach((item: RawDepositWithdraw) => {
             const vault = getVaultName(item.address);
-            // Gunakan DECIMALS = 18 dan helper formatCurrency
             const formattedUnit = formatUnits(BigInt(item.assets), DECIMALS);
             const amt = formatCurrency(formattedUnit);
 
@@ -190,7 +237,7 @@ export function HistoryView() {
               id: item.id,
               type: "USER_WITHDRAWAL",
               amount: `-${amt} USDT`,
-              route: `Withdrawal <- ${vault}`,
+              route: `${vault} → External Wallet`,
               timestamp: Number(item.blockTimestamp),
               txHash: item.transactionHash,
             });
@@ -252,7 +299,6 @@ export function HistoryView() {
 
   return (
     <div className="w-full h-full flex flex-col p-6 lg:p-10 overflow-y-auto relative">
-      {/* HEADER */}
       <div className="relative z-10 mb-8">
         <div className="flex items-center gap-2 mb-4">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#181818] border border-[#262626] text-primary text-[10px] uppercase tracking-widest font-mono">
@@ -272,7 +318,6 @@ export function HistoryView() {
 
       <div className="relative z-30 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 bg-[#121212]/90 p-4 rounded-2xl border border-[#1f1f1f]">
         <div className="flex flex-col sm:flex-row w-full md:w-auto gap-4 flex-grow">
-          {/* SEARCH INPUT */}
           <div className="relative w-full sm:w-64">
             <input
               type="text"
@@ -286,7 +331,6 @@ export function HistoryView() {
             />
           </div>
 
-          {/* FILTER DROPDOWN */}
           <div className="relative w-full sm:w-56">
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -296,7 +340,7 @@ export function HistoryView() {
                 <Filter className="w-[14px] h-[14px] text-[#8a8a8a]" />
                 <span>
                   {filterType === "ALL" && "All Events"}
-                  {filterType === "AI_REBALANCE" && "AI Rebalances"}
+                  {filterType === "AI_REBALANCE" && "AI Executions"}
                   {filterType === "USER_DEPOSIT" && "User Deposits"}
                   {filterType === "USER_WITHDRAWAL" && "User Withdrawals"}
                 </span>
@@ -327,7 +371,7 @@ export function HistoryView() {
               <div className="absolute top-full left-0 mt-2 w-full bg-[#141414] border border-[#262626] rounded-xl shadow-2xl z-50 flex flex-col overflow-hidden">
                 {[
                   { value: "ALL", label: "All Events" },
-                  { value: "AI_REBALANCE", label: "AI Rebalances" },
+                  { value: "AI_REBALANCE", label: "AI Executions" },
                   { value: "USER_DEPOSIT", label: "User Deposits" },
                   { value: "USER_WITHDRAWAL", label: "User Withdrawals" },
                 ].map((option) => (
@@ -352,7 +396,6 @@ export function HistoryView() {
           </div>
         </div>
 
-        {/* EXPORT BUTTON */}
         <button
           onClick={exportToCSV}
           className="flex items-center gap-2.5 h-[40px] px-5 rounded-xl bg-[#181818] text-[#c5c5c5] border border-[#262626] hover:border-[#444] text-[10.5px] uppercase tracking-[0.15em] font-mono font-bold hover:text-[#f5f5f5] transition-all duration-200 shrink-0 justify-center w-full md:w-auto cursor-pointer"
@@ -423,7 +466,6 @@ export function HistoryView() {
           </table>
         </div>
 
-        {/* PAGINATION */}
         <div className="flex items-center justify-between p-4 border-t border-[#1f1f1f] bg-[#141414] text-[11px] font-mono text-[#8a8a8a]">
           <div>
             Showing {startIndex + 1} to{" "}

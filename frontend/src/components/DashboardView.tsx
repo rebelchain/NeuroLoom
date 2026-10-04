@@ -11,10 +11,10 @@ import {
 import { useEffect, useState } from "react";
 import { useReadContracts } from "wagmi";
 import { ACTIVE_VAULTS } from "../config/addresses";
+import { GRAPHQL_ENDPOINT } from "../config/config";
 import { EventLog } from "./EventLog";
 import { KPICard } from "./KPICard";
 import { PageHero } from "./PageHero";
-import {GRAPHQL_ENDPOINT} from "../config/config";
 
 const vaultABI = [
   {
@@ -25,8 +25,6 @@ const vaultABI = [
     type: "function",
   },
 ] as const;
-
-
 
 export function DashboardView() {
   const [totalRebalances, setTotalRebalances] = useState(0);
@@ -41,15 +39,15 @@ export function DashboardView() {
     query: { refetchInterval: 10000 },
   });
 
-const tvlYieldFarm = totalAssetsData?.[0]?.result
-  ? Number(totalAssetsData[0].result) / 1e18
-  : 0;
-const tvlBluechip = totalAssetsData?.[1]?.result
-  ? Number(totalAssetsData[1].result) / 1e18
-  : 0;
-const tvlDegen = totalAssetsData?.[2]?.result
-  ? Number(totalAssetsData[2].result) / 1e18
-  : 0;
+  const tvlYieldFarm = totalAssetsData?.[0]?.result
+    ? Number(totalAssetsData[0].result) / 1e18
+    : 0;
+  const tvlBluechip = totalAssetsData?.[1]?.result
+    ? Number(totalAssetsData[1].result) / 1e18
+    : 0;
+  const tvlDegen = totalAssetsData?.[2]?.result
+    ? Number(totalAssetsData[2].result) / 1e18
+    : 0;
 
   const realTVL = tvlYieldFarm + tvlBluechip + tvlDegen;
   const availableYieldFarm = tvlYieldFarm * 0.1;
@@ -70,10 +68,11 @@ const tvlDegen = totalAssetsData?.[2]?.result
 
   const handleDownloadPDF = () => {
     setIsPrinting(true);
-    window.open(
-      "https://neuroloom-api.duckdns.org/api/report/pdf?vault=global",
-      "_blank",
-    );
+    // window.open(
+    //   "https://neuroloom-api.duckdns.org/api/report/pdf?vault=global",
+    //   "_blank",
+    // );
+    window.open("http://localhost:4000/api/report/pdf?vault=global", "_blank");
     setTimeout(() => {
       setIsPrinting(false);
     }, 2000);

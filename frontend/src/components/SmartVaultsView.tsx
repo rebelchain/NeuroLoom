@@ -1,20 +1,25 @@
 "use client";
 
+import { CONFIG } from "@/config/config";
 import { useSectionReveal } from "@/lib/useSectionReveal";
 import { cn, formatCurrency } from "@/lib/utils";
 import { ArrowUpRight, FileText, LineChart, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { formatUnits } from "viem";
+import { useReadContracts } from "wagmi";
+import { ACTIVE_VAULTS } from "../config/addresses";
+import { GRAPHQL_ENDPOINT } from "../config/config";
 import { PageHero } from "./PageHero";
 import {
   VaultAllocationBar,
   type AIAllocation,
   type VaultData,
 } from "./VaultAllocationBar";
-import { useMemo, useState } from "react";
-import { formatUnits } from "viem";
-import { useReadContracts } from "wagmi";
-import { ACTIVE_VAULTS } from "../config/addresses";
 import { VaultChart } from "./VaultChart";
 import { VaultPanel } from "./VaultPanel";
+
+// --- ABIs & CONSTANTS ---
+const USDT_TESTNET = CONFIG.TOKENS.USDT as `0x${string}`;
 
 const vaultTotalAssetsABI = [
   {
@@ -26,6 +31,17 @@ const vaultTotalAssetsABI = [
   },
 ] as const;
 
+const erc20ABI = [
+  {
+    inputs: [{ internalType: "address", name: "account", type: "address" }],
+    name: "balanceOf",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+] as const;
+
+// --- UTILS ---
 const generateRealisticEquityCurve = (
   currentTvl: number,
   days: number = 30,
@@ -56,6 +72,35 @@ const generateRealisticEquityCurve = (
   return data;
 };
 
+function guessProtocolName(tokenOutAddress: string) {
+  if (!tokenOutAddress) return "Unknown Protocol";
+
+  const addr = tokenOutAddress.toLowerCase();
+
+  if (addr === CONFIG.PROTOCOLS.VENUS_VUSDT.toLowerCase()) {
+    return "Venus Protocol";
+  }
+  if (addr === CONFIG.TOKENS.WBNB.toLowerCase()) {
+    return "PancakeSwap V3";
+  }
+
+  if (addr === CONFIG.TOKENS.BTCB.toLowerCase()) {
+    return "Radiant Capital";
+  }
+
+  if (addr === CONFIG.TOKENS.BCSPX.toLowerCase()) {
+    return "Backed.fi";
+  }
+  return "Unknown Protocol";
+}
+
+interface RawRebalance {
+  address: string;
+  tokenOut: string;
+  amountIn: string;
+}
+
+//  COMPONENTS
 function VaultCard({
   vault,
   isLoading = false,
@@ -71,7 +116,10 @@ function VaultCard({
   );
   const [isChartLoading, setIsChartLoading] = useState(false);
 
-  const totalAllocated = vault.totalBalance - vault.availableBalance;
+  const totalAllocated = vault.allocations.reduce(
+    (sum, alloc) => sum + alloc.amount,
+    0,
+  );
   const allocatedPct =
     vault.totalBalance > 0 ? (totalAllocated / vault.totalBalance) * 100 : 0;
 
@@ -99,8 +147,12 @@ function VaultCard({
 
   const handleDownloadProof = () => {
     setIsDownloading(true);
+    // window.open(
+    //   `https://neuroloom-api.duckdns.org/api/report/pdf?vault=${vault.id}`,
+    //   "_blank",
+    // );
     window.open(
-      `https://neuroloom-api.duckdns.org/api/report/pdf?vault=${vault.id}`,
+      `http://localhost:9000/api/report/pdf?vault=${vault.id}`,
       "_blank",
     );
     setTimeout(() => setIsDownloading(false), 2000);
@@ -162,7 +214,7 @@ function VaultCard({
           </div>
         </div>
 
-        {/* Progress Bar (no glow) */}
+        {/* Progress Bar */}
         <div className="h-1.5 rounded-full bg-[#181818] border border-[#262626] flex mb-6 overflow-hidden">
           <div
             className="h-full bg-primary transition-all duration-1000"
@@ -216,103 +268,166 @@ function VaultCard({
 
 export function SmartVaultsView() {
   const [selectedVault, setSelectedVault] = useState<VaultData | null>(null);
+  const [graphAllocations, setGraphAllocations] = useState<
+    Record<string, AIAllocation[]>
+  >({});
+
   const { data: onChainData, isLoading: isVaultsLoading } = useReadContracts({
-    contracts: ACTIVE_VAULTS.map((address) => ({
-      address: address as `0x${string}`,
-      abi: vaultTotalAssetsABI,
-      functionName: "totalAssets",
-    })),
+    contracts: [
+      {
+        address: ACTIVE_VAULTS[0] as `0x${string}`,
+        abi: vaultTotalAssetsABI,
+        functionName: "totalAssets",
+      },
+      {
+        address: ACTIVE_VAULTS[1] as `0x${string}`,
+        abi: vaultTotalAssetsABI,
+        functionName: "totalAssets",
+      },
+      {
+        address: ACTIVE_VAULTS[2] as `0x${string}`,
+        abi: vaultTotalAssetsABI,
+        functionName: "totalAssets",
+      },
+      {
+        address: USDT_TESTNET as `0x${string}`,
+        abi: erc20ABI,
+        functionName: "balanceOf",
+        args: [ACTIVE_VAULTS[0] as `0x${string}`],
+      },
+      {
+        address: USDT_TESTNET as `0x${string}`,
+        abi: erc20ABI,
+        functionName: "balanceOf",
+        args: [ACTIVE_VAULTS[1] as `0x${string}`],
+      },
+      {
+        address: USDT_TESTNET as `0x${string}`,
+        abi: erc20ABI,
+        functionName: "balanceOf",
+        args: [ACTIVE_VAULTS[2] as `0x${string}`],
+      },
+    ],
     query: { refetchInterval: 10000 },
   });
 
-  const strategyVaults = useMemo<VaultData[]>(() => {
-    const getVaultData = (index: number) => {
-      const totalAssetsWei =
-        (onChainData?.[index]?.result as bigint) || BigInt(0);
-      const realTotalUsd = Number(formatUnits(totalAssetsWei, 18));
-      const allocations: AIAllocation[] = [];
-      let availableBalance = 0;
+  useEffect(() => {
+    let isMounted = true;
 
-      if (realTotalUsd > 0) {
-        if (index === 0) {
-          allocations.push({
-            protocolName: "Venus Protocol",
-            amount: realTotalUsd * 0.6,
-            rawAmount: realTotalUsd * 0.6,
-            symbol: "vUSDT",
+    async function fetchAllVaultAllocations() {
+      try {
+        const query = `
+          {
+            rebalanceExecuteds(
+              first: 100
+            ) {
+              address
+              tokenOut
+              amountIn
+            }
+          }
+        `;
+
+        const res = await fetch(GRAPHQL_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query }),
+        });
+
+        const json = await res.json();
+        const data = json.data;
+
+        if (!isMounted || !data || !data.rebalanceExecuteds) return;
+
+        const vaultAllocations: Record<string, AIAllocation[]> = {};
+
+        ACTIVE_VAULTS.forEach((vaultAddr) => {
+          const vaultEvents = data.rebalanceExecuteds.filter(
+            (e: RawRebalance) =>
+              e.address.toLowerCase() === vaultAddr.toLowerCase(),
+          );
+
+          const protocolTotals: Record<string, number> = {};
+
+          vaultEvents.forEach((event: RawRebalance) => {
+            const amount = Number(formatUnits(BigInt(event.amountIn), 18));
+            const protocolName = guessProtocolName(event.tokenOut);
+
+            if (!protocolTotals[protocolName]) {
+              protocolTotals[protocolName] = 0;
+            }
+            protocolTotals[protocolName] += amount;
           });
-          allocations.push({
-            protocolName: "PancakeSwap V3",
-            amount: realTotalUsd * 0.3,
-            rawAmount: realTotalUsd * 0.3,
-            symbol: "CAKE-LP",
-          });
-          availableBalance = realTotalUsd * 0.1;
-        } else if (index === 1) {
-          allocations.push({
-            protocolName: "Venus Protocol",
-            amount: realTotalUsd * 0.4,
-            rawAmount: realTotalUsd * 0.4,
-            symbol: "vUSDT",
-          });
-          allocations.push({
-            protocolName: "PancakeSwap V3",
-            amount: realTotalUsd * 0.5,
-            rawAmount: realTotalUsd * 0.5,
-            symbol: "WBNB-LP",
-          });
-          availableBalance = realTotalUsd * 0.1;
-        } else {
-          allocations.push({
-            protocolName: "PancakeSwap V3",
-            amount: realTotalUsd * 0.85,
-            rawAmount: realTotalUsd * 0.85,
-            symbol: "HIGH-BETA",
-          });
-          availableBalance = realTotalUsd * 0.15;
-        }
+
+          vaultAllocations[vaultAddr.toLowerCase()] = Object.keys(
+            protocolTotals,
+          ).map((name) => ({
+            protocolName: name,
+            amount: protocolTotals[name],
+            symbol: "USDT",
+          }));
+        });
+
+        setGraphAllocations(vaultAllocations);
+      } catch (error) {
+        console.error("Gagal menarik alokasi real-time dari The Graph:", error);
       }
+    }
 
-      return { totalUsd: realTotalUsd, allocations, availableBalance };
+    fetchAllVaultAllocations();
+    const interval = setInterval(fetchAllVaultAllocations, 10000);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
     };
+  }, []);
 
-    const v0 = getVaultData(0);
-    const v1 = getVaultData(1);
-    const v2 = getVaultData(2);
+  const strategyVaults = useState<VaultData[]>(() => {
+    return [];
+  });
 
-    return [
-      {
-        id: "yield-farm",
-        name: "The Yield Farm",
-        symbol: "yUSDT",
-        contractAddress: ACTIVE_VAULTS[0] as `0x${string}`,
-        apy: 14.5,
-        totalBalance: v0.totalUsd,
-        availableBalance: v0.availableBalance,
-        allocations: v0.allocations,
-      },
-      {
-        id: "bluechip-momentum",
-        name: "Bluechip Momentum",
-        symbol: "bUSDT",
-        contractAddress: ACTIVE_VAULTS[1] as `0x${string}`,
-        apy: 22.4,
-        totalBalance: v1.totalUsd,
-        availableBalance: v1.availableBalance,
-        allocations: v1.allocations,
-      },
-      {
-        id: "degen-accumulator",
-        name: "Degen Accumulator",
-        symbol: "dUSDT",
-        contractAddress: ACTIVE_VAULTS[2] as `0x${string}`,
-        apy: 38.2,
-        totalBalance: v2.totalUsd,
-        availableBalance: v2.availableBalance,
-        allocations: v2.allocations,
-      },
-    ];
-  }, [onChainData]);
+  const getVaultData = (
+    index: number,
+    vaultId: string,
+    name: string,
+    symbol: string,
+    apy: number,
+  ) => {
+    const vaultAddr = ACTIVE_VAULTS[index].toLowerCase();
+
+    const totalAssetsWei =
+      (onChainData?.[index]?.result as bigint) || BigInt(0);
+    const idleUsdtWei =
+      (onChainData?.[index + 3]?.result as bigint) || BigInt(0);
+
+    const realTotalUsd = Number(formatUnits(totalAssetsWei, 18));
+
+    const allocations = graphAllocations[vaultAddr] || [];
+
+    const totalDeployedFromGraph = allocations.reduce(
+      (sum, alloc) => sum + alloc.amount,
+      0,
+    );
+
+    const availableBalance = Math.max(0, realTotalUsd - totalDeployedFromGraph);
+
+    return {
+      id: vaultId,
+      name,
+      symbol,
+      contractAddress: ACTIVE_VAULTS[index] as `0x${string}`,
+      apy,
+      totalBalance: realTotalUsd,
+      availableBalance,
+      allocations,
+    };
+  };
+
+  const computedVaults: VaultData[] = [
+    getVaultData(0, "yield-farm", "The Yield Farm", "yUSDT", 14.5),
+    getVaultData(1, "bluechip-momentum", "Bluechip Momentum", "bUSDT", 22.4),
+    getVaultData(2, "degen-accumulator", "Degen Accumulator", "dUSDT", 38.2),
+  ];
 
   return (
     <div className="space-y-8 relative">
@@ -328,11 +443,13 @@ export function SmartVaultsView() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {strategyVaults.map((vault) => (
+          {computedVaults.map((vault) => (
             <VaultCard
               key={vault.id}
               vault={vault}
-              isLoading={isVaultsLoading}
+              isLoading={
+                isVaultsLoading || Object.keys(graphAllocations).length === 0
+              }
             />
           ))}
         </div>
@@ -345,7 +462,7 @@ export function SmartVaultsView() {
             </h3>
           </div>
           <div className="grid grid-cols-1 gap-4">
-            {strategyVaults.map((vault) => (
+            {computedVaults.map((vault) => (
               <VaultAllocationBar
                 key={`alloc-${vault.id}`}
                 vault={vault}

@@ -13,6 +13,70 @@ const VAULT_MAP: Record<string, string> = {
   [ACTIVE_VAULTS[2].toLowerCase()]: "Degen Accumulator",
 };
 
+// --- TAMBAHAN BARU: Token & Protocol Mapping ---
+// Ganti alamat Mock Venus ini (0x5ee8...) dengan alamat aslimu!
+const PROTOCOL_MAP: Record<string, string> = {
+  "0x1b81d678ffb9c0263b24a97847620c99d213eb14": "PancakeSwap V3",
+  "0x427bf5b37357632377ecbec9de3626c71a5396c1": "PancakeSwap V3 Manager",
+  "0x5ee89d4357d71368cf54a0407c64e36500dbc475": "Venus Protocol",
+  "0xfa45fd644b34606cabfb7c8acc546e770e248b83": "USDT",
+  "0xae13d989dac2f0debff460ac112a837c89baa7cd": "WBNB",
+};
+
+function getProtocolOrTokenName(address: string) {
+  if (!address) return "Unknown";
+  const lowerAddr = address.toLowerCase();
+
+  if (VAULT_MAP[lowerAddr]) return "Vault";
+  if (PROTOCOL_MAP[lowerAddr]) return PROTOCOL_MAP[lowerAddr];
+
+  // Kembalikan alamat disingkat jika tidak dikenal
+  return `${address.slice(0, 4)}...${address.slice(-4)}`;
+}
+
+// --- LOGIKA CERDAS: MENGANALISIS RUTE TRANSAKSI ---
+function analyzeRebalanceFlow(tokenIn: string, tokenOut: string) {
+  const inName = getProtocolOrTokenName(tokenIn);
+  const outName = getProtocolOrTokenName(tokenOut);
+
+  // Jika AI menarik (Withdraw) dari Venus (Vault membakar vUSDT, dapat USDT)
+  if (inName.includes("Venus")) {
+    return {
+      actionBadge: "WITHDRAW",
+      actionColor: "text-[#ff5f5f] border-[#ff5f5f]/30 bg-[#ff5f5f]/10",
+      flowDescription: `Venus Protocol → ${outName}`,
+    };
+  }
+
+  // Jika AI menyetor (Deposit) ke Venus (Vault memberikan USDT, dapat vUSDT)
+  if (outName.includes("Venus")) {
+    return {
+      actionBadge: "DEPOSIT",
+      actionColor: "text-[#10b981] border-[#10b981]/30 bg-[#10b981]/10",
+      flowDescription: `${inName} → Venus Protocol`,
+    };
+  }
+
+  // Jika AI menambahkan LP di PancakeSwap V3 Manager
+  if (
+    inName.includes("PancakeSwap V3 Manager") ||
+    outName.includes("PancakeSwap V3 Manager")
+  ) {
+    return {
+      actionBadge: "PROVIDE LP",
+      actionColor: "text-[#3b82f6] border-[#3b82f6]/30 bg-[#3b82f6]/10",
+      flowDescription: `USDT ⇄ WBNB (PancakeSwap V3)`,
+    };
+  }
+
+  // Default: Swap Biasa
+  return {
+    actionBadge: "SWAP",
+    actionColor: "text-[#f59e0b] border-[#f59e0b]/30 bg-[#f59e0b]/10",
+    flowDescription: `${inName} ⇄ ${outName}`,
+  };
+}
+
 function getVaultName(address?: string) {
   if (!address) return "NeuroLoom Vault";
   return VAULT_MAP[address.toLowerCase()] || "NeuroLoom Vault";
@@ -107,10 +171,13 @@ export function LiveSettlementTable() {
         <table className="w-full text-left whitespace-nowrap">
           <thead>
             <tr className="bg-[#141414] text-[#8a8a8a] font-mono text-[10px] uppercase tracking-widest border-b border-[#1f1f1f]">
-              <th className="px-6 py-3.5 font-normal">Target Vault</th>
-              <th className="px-6 py-3.5 font-normal">Rebalance Flow</th>
+              <th className="px-6 py-3.5 font-normal w-1/4">Target Vault</th>
+              {/* Berikan penanda lebar khusus agar kolom ini konsisten */}
+              <th className="px-6 py-3.5 font-normal w-[400px]">
+                Rebalance Flow
+              </th>
               <th className="px-6 py-3.5 font-normal">Execution Time</th>
-              <th className="px-6 py-3.5 font-normal">Tx Hash</th>
+              <th className="px-6 py-3.5 font-normal text-right">Tx Hash</th>
             </tr>
           </thead>
           <tbody className="font-mono text-[11.5px] divide-y divide-[#1a1a1a]">
@@ -127,6 +194,10 @@ export function LiveSettlementTable() {
               events.map((event) => {
                 const vaultName = getVaultName(event.address);
 
+                // Panggil fungsi logika analisis rute
+                const { actionBadge, actionColor, flowDescription } =
+                  analyzeRebalanceFlow(event.tokenIn, event.tokenOut);
+
                 return (
                   <tr
                     key={event.id}
@@ -139,31 +210,35 @@ export function LiveSettlementTable() {
                         </strong>
                         <span className="text-[#777] text-[10px] uppercase tracking-wider flex items-center gap-1.5">
                           <span className="w-1 h-1 rounded-full bg-primary" />
-                          AI Rebalance
+                          AI Execution
                         </span>
                       </div>
                     </td>
 
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-2.5">
-                        <span className="text-primary font-bold tnum text-[12.5px]">
-                          {formatCurrency(
-                            formatUnits(BigInt(event.amountIn), 18),
-                          )}
+                      <div className="flex items-center gap-3">
+                        {/* Jumlah Nilai Aset - Lebar tetap agar sejajar */}
+                        <div className="w-[85px] text-right">
+                          <span className="text-[#d5d5d5] font-bold tnum text-[12.5px]">
+                            {formatCurrency(
+                              formatUnits(BigInt(event.amountIn), 18),
+                            )}{" "}
+                            <span className="text-primary text-[10px]">
+                              USDT
+                            </span>
+                          </span>
+                        </div>
+
+                        {/* Deskripsi Rute Protokol - Lebar tetap agar sejajar dan rata tengah */}
+                        <span className="w-[180px] text-center text-[#999] text-[10px] bg-[#1a1a1a] rounded px-2.5 py-1.5 border border-[#262626] whitespace-nowrap overflow-hidden text-ellipsis">
+                          {flowDescription}
                         </span>
 
-                        <span className="text-[#999] text-[10px] bg-[#1a1a1a] rounded px-2 py-0.5 border border-[#262626]">
-                          {event.tokenIn.slice(0, 4)}...
-                          {event.tokenIn.slice(-4)}
-                        </span>
-                        <span className="text-[#555] text-[11px]">→</span>
-                        <span className="text-[#999] text-[10px] bg-[#1a1a1a] rounded px-2 py-0.5 border border-[#262626]">
-                          {event.tokenOut.slice(0, 4)}...
-                          {event.tokenOut.slice(-4)}
-                        </span>
-
-                        <span className="text-[#10b981] font-semibold text-[9px] uppercase tracking-wider border border-[#10b981]/30 rounded bg-[#10b981]/10 px-2 py-0.5 ml-2">
-                          Executed
+                        {/* Badge Aksi Spesifik - Lebar tetap agar sejajar dan rata tengah */}
+                        <span
+                          className={`w-[75px] text-center font-semibold text-[9px] uppercase tracking-wider border rounded px-2 py-1 ${actionColor}`}
+                        >
+                          {actionBadge}
                         </span>
                       </div>
                     </td>
@@ -172,12 +247,12 @@ export function LiveSettlementTable() {
                       {formatTimeAgo(Number(event.blockTimestamp) * 1000)}
                     </td>
 
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 text-right">
                       <a
                         href={`https://testnet.bscscan.com/tx/${event.transactionHash}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-[#8a8a8a] hover:text-primary transition-colors inline-flex items-center gap-1 font-mono text-[11px] group"
+                        className="text-[#8a8a8a] hover:text-primary transition-colors inline-flex items-center justify-end gap-1 font-mono text-[11px] group"
                       >
                         <span>
                           {event.transactionHash.slice(0, 6)}...

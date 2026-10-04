@@ -34,9 +34,11 @@ export function PageHero({
         <div className="flex flex-wrap items-end justify-between gap-8">
           <div className="max-w-2xl">
             {badge && (
-              <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-md bg-gradient-to-r from-[#2a2a2a] to-[#0a0a0a] border border-white/[0.12] shadow-sm mb-5 text-[11px] uppercase tracking-widest text-[#f2f2f2] font-mono">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_var(--color-primary)]" />
-                {badge}
+              <div className="inline-flex items-center gap-2 px-3 py-2 mb-2 rounded-[4px] bg-[#121212]/90 border border-[#1f1f1f] hover:border-primary/40 transition-all duration-300 shadow-md backdrop-blur-md">
+                <span className="w-1 h-1 rounded-full bg-primary animate-pulse shadow-[0_0_6px_var(--color-primary)]" />
+                <span className="text-[9px] uppercase tracking-wider font-semibold text-[#c5c5c5]">
+                  {badge}
+                </span>
               </div>
             )}
 

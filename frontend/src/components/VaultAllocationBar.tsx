@@ -3,8 +3,6 @@
 import { useSectionReveal } from "@/lib/useSectionReveal";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
-import { formatUnits } from "viem";
-import { GRAPHQL_ENDPOINT } from "../config/config";
 
 // --- INTERFACES ---
 export interface AIAllocation {
@@ -21,14 +19,8 @@ export interface VaultData {
   contractAddress: `0x${string}`;
   totalBalance: number;
   availableBalance: number;
-  // allocations ini sekarang akan menjadi fallback jika The Graph belum memuat
   allocations: AIAllocation[];
   apy: number;
-}
-
-interface RawRebalance {
-  tokenOut: string;
-  amountIn: string;
 }
 
 // --- HELPERS ---
@@ -48,13 +40,6 @@ const getProtocolStyles = (protocolName: string) => {
       text: "text-[#4cdae6]",
       dot: "bg-[#4cdae6]",
     };
-  if (name.includes("kinza"))
-    return {
-      bar: "bg-[#e7c034]",
-      glow: "hover:shadow-[0_0_20px_rgba(231,192,52,0.6)]",
-      text: "text-[#e7c034]",
-      dot: "bg-[#e7c034]",
-    };
   if (name.includes("radiant"))
     return {
       bar: "bg-[#0be5b5]",
@@ -69,18 +54,6 @@ const getProtocolStyles = (protocolName: string) => {
     dot: "bg-primary",
   };
 };
-
-// Fungsi kecil untuk menebak protokol dari alamat tokenOut (Mocking Route Name)
-function guessProtocolName(tokenOutAddress: string) {
-  const addr = tokenOutAddress.toLowerCase();
-  // Alamat vUSDT (Venus) Testnet
-  if (addr === "0xb7526572ffe56ab9d7489838bf2e18e3323b441a")
-    return "Venus Protocol";
-  // Alamat bCSPX (RWA)
-  if (addr === "0xe2e0f08d4fe0ed7c737353cf03404bf153a0938a")
-    return "PancakeSwap V3";
-  return "Unknown Protocol";
-}
 
 function formatCurrencyLocal(value: string | number) {
   const num = typeof value === "string" ? Number(value) : value;
@@ -100,7 +73,6 @@ export function VaultAllocationBar({
 }) {
   const [hovered, setHovered] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
-  const [liveAllocations, setLiveAllocations] = useState<AIAllocation[]>([]);
   const { ref, visible } = useSectionReveal<HTMLDivElement>(0.2);
 
   useEffect(() => {
@@ -108,97 +80,17 @@ export function VaultAllocationBar({
     return () => clearTimeout(t);
   }, []);
 
-  // --- MENGAMBIL DATA ON-CHAIN (GRAPHQL) ---
-  useEffect(() => {
-    let isMounted = true;
+  const activeAllocations = vault.allocations || [];
+  const realTvlUsd = vault.totalBalance || 0;
+  const usdtIdle = vault.availableBalance || 0;
 
-    async function fetchLiveAllocations() {
-      if (!vault.contractAddress) return;
-
-      try {
-        // Ambil data rebalance (dana keluar dari vault ini)
-        const query = `
-          {
-            rebalanceExecuteds(
-              first: 100, 
-              where: { address: "${vault.contractAddress.toLowerCase()}" }
-            ) {
-              tokenOut
-              amountIn
-            }
-          }
-        `;
-
-        const res = await fetch(GRAPHQL_ENDPOINT, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ query }),
-        });
-
-        const json = await res.json();
-        const data = json.data;
-
-        if (!isMounted || !data || !data.rebalanceExecuteds) return;
-
-        // Kumpulkan total dana berdasarkan rute protokol
-        const protocolTotals: Record<string, number> = {};
-
-        data.rebalanceExecuteds.forEach((event: RawRebalance) => {
-          const amount = Number(formatUnits(BigInt(event.amountIn), 18));
-          const protocolName = guessProtocolName(event.tokenOut);
-
-          if (!protocolTotals[protocolName]) {
-            protocolTotals[protocolName] = 0;
-          }
-          protocolTotals[protocolName] += amount;
-        });
-
-        const newAllocations: AIAllocation[] = Object.keys(protocolTotals).map(
-          (name) => ({
-            protocolName: name,
-            amount: protocolTotals[name],
-            symbol: "USDT", // Asumsi semua basisnya USDT
-          }),
-        );
-
-        setLiveAllocations(newAllocations);
-      } catch (error) {
-        console.error("Gagal menarik alokasi real-time:", error);
-      }
-    }
-
-    fetchLiveAllocations();
-    const interval = setInterval(fetchLiveAllocations, 10000); // Update tiap 10 detik
-    return () => {
-      isMounted = false;
-      clearInterval(interval);
-    };
-  }, [vault.contractAddress]);
-
-  // --- LOGIKA PERHITUNGAN (MERGE LIVE DATA) ---
-
-  // Gunakan data dari The Graph, jika kosong, gunakan props (fallback)
-  const activeAllocations = liveAllocations;
-
-  // Hitung total dana yang terdeploy dari Subgraph
-  const totalDeployedFromGraph = activeAllocations.reduce(
+  const totalDeployed = activeAllocations.reduce(
     (sum, alloc) => sum + alloc.amount,
     0,
   );
 
-  // Jika vault kosong (baru deposit), pastikan semua dana adalah Idle (tersedia)
-  // realTvlUsd harus selalu setidaknya sebesar total yang tersedia + yang dideploy
-  const realTvlUsd = Math.max(
-    vault.totalBalance,
-    vault.availableBalance + totalDeployedFromGraph,
-  );
-
-  // Idle cash adalah sisa dari Total TVL dikurangi yang terdeploy
-  const usdtIdle = Math.max(0, realTvlUsd - totalDeployedFromGraph);
-
-  // Persentase deployed
   const allocatedPercent =
-    realTvlUsd > 0 ? (totalDeployedFromGraph / realTvlUsd) * 100 : 0;
+    realTvlUsd > 0 ? (totalDeployed / realTvlUsd) * 100 : 0;
 
   const width = (amount: number) => {
     if (!mounted || !visible || realTvlUsd === 0) return "0%";

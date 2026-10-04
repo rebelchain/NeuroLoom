@@ -1,7 +1,9 @@
+import * as dotenvx from "@dotenvx/dotenvx";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
-// Ubah express() menjadi express.Router()
 import { Router } from "express";
+import fs from "fs";
+import path from "path";
 import {
   createPublicClient,
   createWalletClient,
@@ -14,7 +16,8 @@ import { bscTestnet } from "viem/chains";
 import { CONFIG } from "../config.js";
 import { pushLog } from "../utils/push-log.js";
 
-const router = Router(); // <--- GANTI app dengan router
+dotenvx.config();
+const router = Router();
 
 const BLUECHIP_VAULT = CONFIG.VAULTS.BLUECHIP;
 
@@ -26,7 +29,6 @@ const WBNB_TESTNET = "0xae13d989daC2f0dEbFf460aC112a837C89BAa7cd";
 
 // ABIs
 const VAULT_ABI = [
-  /* ... isian ABI biarkan sama ... */
   {
     inputs: [
       { internalType: "address", name: "targetProtocol", type: "address" },
@@ -48,7 +50,6 @@ const VAULT_ABI = [
 ];
 
 const PANCAKE_V3_ROUTER_ABI = [
-  /* ... isian ABI biarkan sama ... */
   {
     inputs: [
       {
@@ -74,7 +75,6 @@ const PANCAKE_V3_ROUTER_ABI = [
 ];
 
 const QUOTER_ABI = [
-  /* ... isian ABI biarkan sama ... */
   {
     inputs: [
       {
@@ -117,7 +117,7 @@ const agentLLM = new ChatGoogleGenerativeAI({
 });
 
 const evaluatorLLM = new ChatGoogleGenerativeAI({
-  apiKey: process.env.GEMINI_API_KEY2 || process.env.GEMINI_API_KEY,
+  apiKey: process.env.GEMINI_API_KEY2,
   model: "gemini-3-flash-preview",
   temperature: 0.1,
 });
@@ -128,8 +128,7 @@ function extractXML(text: string, tag: string): string {
   return match ? match[1].trim() : "";
 }
 
-// GANTI app.post menjadi router.post, dan HAPUS '/api' dari URL (karena sudah di-mount di server.ts)
-router.post("/live-simulation", async (req, res) => {
+router.post("/live-simulation/bluechip-momentum", async (req, res) => {
   await pushLog(
     `\n[SYSTEM] Initiating on-chain rebalance simulation pipeline...`,
   );
@@ -192,7 +191,6 @@ Write your reasoning here. Mention the need to Buy the Dip with a micro-transact
     const draft = JSON.parse(responseJsonString);
 
     await pushLog(`[AGENT] Strategy formulated.`);
-    // Tetap gunakan ini agar muncul di frontend log
     await pushLog(`[AGENT REASONING] ${thoughts}`);
 
     await pushLog(
@@ -246,7 +244,7 @@ Output XML:
     const amountIn = parseUnits(draft.args.amountInUsdtStr, 18);
 
     await pushLog(
-      `[QUOTER] Executing price discovery for 0.01 USDT on PancakeSwap V3...`,
+      `[QUOTER] Executing price discovery for ${draft.args.amountInUsdtStr} USDT on PancakeSwap V3...`,
     );
 
     let expectedAmountOut = 0n;
@@ -275,9 +273,7 @@ Output XML:
           `[QUOTER] Route established at fee tier ${fee}. Expected output: ${expectedAmountOut.toString()} Wei.`,
         );
         break;
-      } catch (e: any) {
-        // Abaikan dan coba fee tier berikutnya
-      }
+      } catch (e: any) {}
     }
 
     if (expectedAmountOut === 0n) {
@@ -358,12 +354,43 @@ Output XML:
     await pushLog(`[NETWORK] Transaction confirmed successfully.`);
     await pushLog(`[SYSTEM] On-chain simulation pipeline completed.\n`);
 
+    const dbName = "bluechip-momentum";
+    const dbPath = path.resolve(process.cwd(), `journal_${dbName}.json`);
+
+    let existingLogs = [];
+    if (fs.existsSync(dbPath)) {
+      try {
+        const rawData = fs.readFileSync(dbPath, "utf-8");
+        existingLogs = JSON.parse(rawData);
+      } catch (e) {
+        console.error("Gagal membaca journal file, membuat yang baru.");
+      }
+    }
+
+    const newLogEntry = {
+      timestamp: Date.now(),
+      action: draft.args.action || "BUY_WBNB",
+      route: "USDT ⇄ WBNB (PancakeSwap)",
+      executedPrice: simulatedPrice,
+      reasoning: thoughts,
+      cro_reasoning: feedback,
+      status: "SUCCESS",
+      transactionHash: txHash,
+    };
+
+    existingLogs.push(newLogEntry);
+    fs.writeFileSync(dbPath, JSON.stringify(existingLogs, null, 2), "utf-8");
+    await pushLog(
+      `[DATABASE] Execution log saved to journal_${dbName}.json for PDF generation.`,
+    );
+
     const finalResult = {
       status: "success",
       timestamp: new Date().toISOString(),
       market: { price_detected: simulatedPrice },
       ai_reasoning: thoughts,
       evaluator_status: evaluation,
+      evaluator_reasoning: feedback,
       execution: {
         tool_used: draft.toolName,
         amount_swapped: draft.args.amountInUsdtStr,

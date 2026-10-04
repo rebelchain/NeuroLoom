@@ -1,7 +1,7 @@
-import { createPublicClient, http, formatUnits } from "viem";
+import { createPublicClient, formatUnits, http } from "viem";
 import { bscTestnet } from "viem/chains";
-import { CONFIG } from "../config.js";
 import VaultABI from "../abi/NeuroLoomVault.json" with { type: "json" };
+import { CONFIG } from "../config.js";
 
 const publicClient = createPublicClient({
   chain: bscTestnet,
@@ -63,18 +63,14 @@ export async function getVaultState(): Promise<{
       },
     };
   } catch (error: any) {
-    console.error("\n=============================================");
     console.error("❌ [CRITICAL DEFI ERROR] Gagal Membaca Vault!");
-    console.error("=============================================");
     console.error("➡ Function      : totalAssets()");
     console.error("➡ Short Message :", error.shortMessage || error.message);
     console.error(
       "➡ Details       :",
       error.details || "Tidak ada detail revert dari RPC",
     );
-    console.error("=============================================\n");
 
-    // Hentikan proses agar terminal tidak lanjut ke siklus berikutnya dan log tidak tertimpa
     process.exit(1);
   }
 }

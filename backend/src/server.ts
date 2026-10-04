@@ -3,15 +3,17 @@ dotenvx.config();
 
 import cors from "cors";
 import express from "express";
-import PDFDocument from "pdfkit";
 import { getRecentMemories } from "./data/db.js";
 import { neuroLoomCycle } from "./index.js";
-import { generateYieldFarmPDF } from "./pdfYieldFarm.js";
-// Import Router Live Simulation yang sudah dipisah
-import liveSimulationRouter from "./scripts/bluechipSimulation.js";
+
+// --- IMPORT ROUTER & SERVICE MODUL ---
+import bluechipRouter from "./scripts/bluechipSimulation.js";
+// import yieldFarmRouter from "./scripts/yieldFarmSimulation.js"; // Nanti buat file ini
+// import degenRouter from "./scripts/degenSimulation.js";         // Nanti buat file ini
+import { generateDynamicVaultPDF } from "./utils/pdfGenerator.js";
 
 const app = express();
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 9000;
 
 app.use(cors());
 app.use(express.json());
@@ -80,173 +82,31 @@ app.post("/api/force-cycle", (req, res) => {
 // ==========================================
 // 2. MOUNT LIVE SIMULATION ROUTER
 // ==========================================
-// Pasang endpoint yang berasal dari file liveSimulationAPI.ts
-app.use("/api", liveSimulationRouter);
+app.use("/api", bluechipRouter);
+// app.use("/api", yieldFarmRouter);
+// app.use("/api", degenRouter);
 
 // ==========================================
-// 3. PDF GENERATION & SERVER START
+// 3. PDF GENERATION ROUTER (MODULAR)
 // ==========================================
-
 app.get("/api/report/pdf", (req, res) => {
+  // Tangkap parameter 'vault' (misal: ?vault=bluechip-momentum)
   const vaultId = (req.query.vault as string) || "global";
-  const isGlobal = vaultId === "global";
 
-  if (
-    vaultId.toLowerCase().includes("yield-farm") ||
-    vaultId.toLowerCase().includes("yieldfarm")
-  ) {
-    return generateYieldFarmPDF(res);
-  }
+  console.log(`[PDF] Meng-generate laporan untuk Vault: ${vaultId}`);
 
-  res.setHeader("Content-Type", "application/pdf");
-  res.setHeader(
-    "Content-Disposition",
-    `inline; filename="NeuroLoom_Report_${vaultId}.pdf"`,
-  );
-
-  const doc = new PDFDocument({ margin: 50, size: "A4" });
-  doc.pipe(res);
-
-  doc.font("Courier-Bold").fontSize(22).text("NEUROLOOM", { align: "center" });
-  doc.fontSize(12).text("AI YIELD OPTIMIZER REPORT", { align: "center" });
-  doc.moveDown(1);
-  doc.moveTo(50, doc.y).lineTo(545, doc.y).strokeColor("#cccccc").stroke();
-  doc.moveDown(2);
-
-  doc.fillColor("#000000").font("Courier").fontSize(10);
-  doc.text(`TARGET VAULT   : ${vaultId.toUpperCase().replace("-", " ")}`);
-  doc.text(`REPORT DATE    : ${new Date().toUTCString()}`);
-  doc.text(`NETWORK        : BSC Testnet`);
-  doc.text(`AI ENGINE      : openai/gpt-oss-safeguard-20b`);
-  doc.text(`ORACLE         : CHAINLINK DECENTRALIZED DATA FEEDS`);
-  doc.moveDown(2);
-
-  doc
-    .font("Courier-Bold")
-    .fontSize(14)
-    .text(isGlobal ? "MACRO PROTOCOL OVERVIEW" : "AI STRATEGY & MARKET THESIS");
-  doc.moveTo(50, doc.y).lineTo(545, doc.y).strokeColor("#cccccc").stroke();
-  doc.moveDown(1);
-
-  let marketThesis = "";
-  let actionPlan = "";
-  let riskProfile = "";
-  let dynamicRoute = "";
-
-  if (vaultId.includes("degen")) {
-    marketThesis =
-      "Order flow dynamics indicate recent liquidity sweeps below key support levels. BTCB breakout momentum is building rapidly in the short term.";
-    actionPlan =
-      "Aggressive execution: Route capital into high-volatility Radiant Capital and PancakeSwap V3 BTCB pools to capture premium swap fees.";
-    riskProfile =
-      "HIGH / Targeting 38.2% APY. Strict algorithmic stop-loss mechanisms enabled to hedge against macro drawdowns.";
-    dynamicRoute = "USDT -> RADIANT_CAPITAL (BTCB)";
-  } else if (vaultId.includes("bluechip")) {
-    marketThesis =
-      "WBNB market structure shows steady accumulation. Technical analysis confirms higher-lows with supporting on-chain transaction volume on the BSC network.";
-    actionPlan =
-      "Momentum execution: Scale capital into WBNB liquidity pools to capture both directional upside and sustained trading fees.";
-    riskProfile =
-      "MODERATE / Targeting 22.4% APY with algorithmic impermanent loss mitigation protocols active.";
-    dynamicRoute = "USDT -> PANCAKE_V3 (WBNB)";
-  } else if (vaultId.includes("yield-farm")) {
-    marketThesis =
-      "Macro market volatility remains uncertain. Stablecoin yield rates across decentralized lending protocols offer the highest risk-adjusted returns currently.";
-    actionPlan =
-      "Defensive execution: Deploy capital primarily into single-sided USDT staking and Venus Protocol lending markets.";
-    riskProfile =
-      "LOW / Targeting 14.5% APY. Focus on principal preservation and consistent algorithmic compounding.";
-    dynamicRoute = "USDT -> VENUS_PROTOCOL (vUSDT)";
-  } else {
-    marketThesis =
-      "The broader BNB Chain ecosystem is experiencing segmented volatility. Stablecoins demand remains high in lending markets, while WBNB and BTCB show fragmented liquidity.";
-    actionPlan =
-      "Omni-Execution: NeuroLoom Orchestrator is actively managing capital across 3 isolated strategy vaults, auto-rebalancing based on real-time Oracle feeds.";
-    riskProfile =
-      "DIVERSIFIED / Blended APY target of 25.0%. Capital is distributed across Low, Medium, and High-risk smart contracts.";
-    dynamicRoute = "SYSTEM_REBALANCE -> MULTI_ROUTING";
-  }
-
-  doc.font("Courier-Bold").fontSize(10).text("THESIS & REASONING :");
-  doc.font("Courier").text(marketThesis, { width: 495, align: "justify" });
-  doc.moveDown(0.7);
-
-  doc.font("Courier-Bold").text("EXECUTION PLAN     :");
-  doc.font("Courier").text(actionPlan, { width: 495, align: "justify" });
-  doc.moveDown(0.7);
-
-  doc.font("Courier-Bold").text("RISK & OUTCOME     :");
-  doc.font("Courier").text(riskProfile, { width: 495, align: "justify" });
-  doc.moveDown(2);
-
-  doc
-    .font("Courier-Bold")
-    .fontSize(14)
-    .text(
-      isGlobal ? "GLOBAL EXECUTION LOGS" : "LATEST AI EXECUTIONS (3 ACTIVE)",
-    );
-  doc.moveTo(50, doc.y).lineTo(545, doc.y).strokeColor("#cccccc").stroke();
-  doc.moveDown(1);
-
-  const mockExecutions = [
-    {
-      action: isGlobal ? "GLOBAL_TVL_SYNC" : "INITIAL_CAPITAL_DEPOSIT",
-      amount: isGlobal ? "1,532.50 USDT (AGGREGATED)" : "50.00 USDT",
-      route: isGlobal ? "INDEXER -> NEUROLOOM_CORE" : "WALLET -> SMART_VAULT",
-      status: "CONFIRMED_ON_CHAIN",
-      slippage: "0.00%",
-      hash: "0x8f4c2a9d8e7f6b5c4d3e2a1b0c9d8e7f6b5c4d3e",
-    },
-    {
-      action: "ORACLE_PRICE_VALIDATION",
-      amount: "N/A",
-      route: "CHAINLINK_AGGREGATOR",
-      status: "DATA_VERIFIED",
-      slippage: "N/A",
-      hash: "0x3a19d8c7b6a5f4e3d2c1b0a9f8e7d6c5b4a3f2e1",
-    },
-    {
-      action: isGlobal ? "MACRO_PORTFOLIO_REBALANCE" : "AI_STRATEGY_REBALANCE",
-      amount: isGlobal ? "450.00 USDT" : "200.00 USDT",
-      route: dynamicRoute,
-      status: "ROUTED_SUCCESSFULLY",
-      slippage: "0.15% (WITHIN LIMITS)",
-      hash: "0x7bce9a8f7d6e5c4b3a2f1e0d9c8b7a6f5e4d3c2b",
-    },
-  ];
-
-  doc.font("Courier").fontSize(10);
-  mockExecutions.forEach((log, index) => {
-    const logTime = new Date(Date.now() - (3 - index) * 450000).toISOString();
-
-    doc.font("Courier-Bold").text(`[TX LOG #${index + 1}] - ${logTime}`);
-    doc.font("Courier");
-    doc.text(`  > ACTION   : ${log.action}`);
-    doc.text(`  > AMOUNT   : ${log.amount}`);
-    doc.text(`  > ROUTING  : ${log.route}`);
-    doc.text(`  > SLIPPAGE : ${log.slippage}`);
-    doc.text(`  > STATUS   : ${log.status}`);
-    doc.text(
-      `  > TX HASH  : ${log.hash.substring(0, 12)}...${log.hash.substring(36)}`,
-    );
-    doc.moveDown(1.5);
+  // generateDynamicVaultPDF akan mencari journal_${vaultId}.json secara otomatis
+  generateDynamicVaultPDF(res, vaultId).catch((err) => {
+    console.error("[PDF ERROR]", err);
+    if (!res.headersSent) {
+      res.status(500).send("Gagal meng-generate PDF: " + err.message);
+    }
   });
-
-  doc.moveDown(1);
-  doc.moveTo(50, doc.y).lineTo(545, doc.y).strokeColor("#cccccc").stroke();
-  doc.moveDown(1);
-  doc
-    .font("Courier-Oblique")
-    .fontSize(8)
-    .fillColor("#888888")
-    .text(
-      "End of report. NeuroLoom Protocol cryptographically verifies all on-chain data. This document is system-generated and reflects the current state of the smart contracts.",
-      { align: "center" },
-    );
-
-  doc.end();
 });
 
+// ==========================================
+// 4. SERVER START
+// ==========================================
 app.listen(PORT, () => {
   console.log(
     `\n[API SERVER] NeuroLoom Bridge runs on http://localhost:${PORT}`,
@@ -256,6 +116,6 @@ app.listen(PORT, () => {
     `   - Endpoint Sim API : http://localhost:${PORT}/api/live-simulation`,
   );
   console.log(
-    `   - Endpoint PDF     : http://localhost:${PORT}/api/report/pdf?vault=YieldFarm`,
+    `   - Endpoint PDF     : http://localhost:${PORT}/api/report/pdf?vault=global`,
   );
 });

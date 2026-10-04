@@ -14,7 +14,7 @@ export async function fetchQuantData(
   symbol: string = "BNB/USDT",
 ): Promise<QuantMarketData> {
   const apiKey = process.env.TAAPI_API_KEY;
-  // console.log(`[DATA] Menyedot data teknikal ${symbol} dari TAAPI.io v2...`);
+  console.log(`[DATA] Fetching technical data for ${symbol} from TAAPI.io`);
 
   try {
     if (!apiKey) throw new Error("TAAPI_API_KEY tidak ditemukan di .env");
@@ -24,9 +24,7 @@ export async function fetchQuantData(
       headers: { Authorization: `Bearer ${apiKey}` },
     };
 
-  
     const encodedSymbol = encodeURIComponent(symbol);
-
 
     const [rsiRes, macdRes, emaRes] = await Promise.all([
       fetch(
@@ -76,7 +74,7 @@ export async function fetchQuantData(
     };
   } catch (error: any) {
     console.log(
-      `[DATA WARNING] TAAPI v2 gagal (${error.message}). Fallback ke data simulasi historis...`,
+      `[DATA WARNING] TAAPI v2 failed (${error.message}). Falling back to historical simulation data.`,
     );
     return {
       symbol,

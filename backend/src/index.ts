@@ -22,6 +22,7 @@ import {
 import { calculateV3LpParams, simulateILRisk } from "./tools/lpMathTools.js";
 import { calculateOptimalAllocation } from "./tools/quantTools.js";
 import { isNetworkGasSafe } from "./utils/gasChecker.js";
+
 const cycleMinutes = parseInt(process.env.CYCLE_INTERVAL_MINUTES || "30");
 const CYCLE_INTERVAL_MS = cycleMinutes * 60 * 1000;
 let isRunning = true;
@@ -31,6 +32,21 @@ const evaluatorLLM = new ChatGoogleGenerativeAI({
   model: "gemini-3-flash-preview",
   temperature: 0.1,
 });
+
+// --- HELPER UNTUK MULTI-VAULT LOGGING ---
+function getVaultIdFromAddress(address: string | undefined): string {
+  if (!address) return "global";
+
+  const addrLower = address.toLowerCase();
+  if (addrLower === CONFIG.VAULTS.BLUECHIP.toLowerCase())
+    return "bluechip-momentum";
+  if (addrLower === CONFIG.VAULTS.DEGEN.toLowerCase())
+    return "degen-accumulator";
+  if (addrLower === CONFIG.VAULTS.YIELD_FARM.toLowerCase()) return "yield-farm";
+
+  return "global";
+}
+// ----------------------------------------
 
 export async function neuroLoomCycle(demoConfig?: {
   forceCrash?: boolean;
@@ -58,7 +74,6 @@ export async function neuroLoomCycle(demoConfig?: {
       market.rsi = 15; // RSI oversold parah
     }
 
-    // Sensor Posisi (Mendeteksi Realized IL secara on-chain)
     let bluechipHealth = await checkVaultPosition(
       CONFIG.VAULTS.BLUECHIP,
       market.price,
@@ -80,7 +95,6 @@ export async function neuroLoomCycle(demoConfig?: {
 
     const memories = await getRecentMemories(3);
 
-    // Menyuntikkan Laporan Kesehatan Posisi ke Konteks Utama AI
     const marketString = JSON.stringify({
       ...market,
       POSITION_HEALTH_RADAR: {
@@ -149,7 +163,7 @@ export async function neuroLoomCycle(demoConfig?: {
           "[SYSTEM] ⏸ The agent decided to HOLD. There is no execution draft.",
         );
         await logAIDecision(
-          "N/A",
+          "global",
           "HOLD",
           market.price,
           market.rsi,
@@ -225,27 +239,29 @@ export async function neuroLoomCycle(demoConfig?: {
         );
 
         const txHash = result?.hash || result || "0x_simulated_hash";
-        const targetVault = currentDraft.args.vaultAddress || "Unknown Vault";
+        const targetVaultAddress = currentDraft.args.vaultAddress || "";
+
+        const dynamicVaultId = getVaultIdFromAddress(targetVaultAddress);
 
         await logAIDecision(
+          dynamicVaultId,
           currentDraft.toolName,
-          currentDraft.args.action || "CALCULATION",
           market.price,
           market.rsi,
           finalThoughts,
           "SUCCESS",
           txHash,
-          targetVault,
+          targetVaultAddress,
         );
       } catch (chainError: any) {
         console.error(
-          `[EXECUTION ERROR] ❌ Smart contract / Tool failed:`,
+          `[EXECUTION ERROR] Smart contract / Tool failed:`,
           chainError,
         );
       }
     }
   } catch (error: any) {
-    console.error(`[CRITICAL ERROR] 💥 AI cycle stalled:`, error);
+    console.error(`[CRITICAL ERROR] AI cycle stalled:`, error);
   }
 }
 

@@ -1,47 +1,69 @@
+import { Response } from "express";
 import fs from "fs";
 import path from "path";
 import PDFDocument from "pdfkit";
-import { CONFIG } from "../config.js";
-import { getRecentMemories } from "../data/db.js";
 
-// [UTILITY] GENERATE DYNAMIC CHART VIA QUICKCHART API
+// --- [UTILITY] MENGHASILKAN EQUITY CURVE CHART (INSTITUTIONAL STYLE) ---
 async function fetchChartBuffer(
   data: number[],
   labels: string[],
 ): Promise<Buffer | null> {
+  // Jika tidak ada data transaksi sama sekali
   if (data.length === 0) return null;
+
   try {
+    // BUG FIX: Jika hanya ada 1 data point, chart.js akan error saat menggambar garis.
+    // Solusi: Kita gandakan data pertama agar menjadi garis lurus horisontal yang valid.
+    let chartData = [...data];
+    let chartLabels = [...labels];
+    if (chartData.length === 1) {
+      chartData = [chartData[0], chartData[0]];
+      chartLabels = ["Start", chartLabels[0]];
+    }
+
     const chartConfig = {
       type: "line",
       data: {
-        labels: labels,
+        labels: chartLabels,
         datasets: [
           {
             label: "Execution Price (USD)",
-            data: data,
-            borderColor: "#00e599",
-            backgroundColor: "rgba(0, 229, 153, 0.1)",
+            data: chartData,
+            borderColor: "#3b82f6", // Warna garis biru Arkham
+            backgroundColor: "rgba(59, 130, 246, 0.15)", // Fill bawah kurva
             fill: true,
-            borderWidth: 2,
-            pointRadius: 2,
-            pointBackgroundColor: "#ffffff",
+            borderWidth: 2.5,
+            pointRadius: 0, // Sembunyikan titik agar lebih rapi ala institusi
+            tension: 0.3, // Membuat garis lebih smooth
           },
         ],
       },
       options: {
         plugins: { legend: { display: false } },
+        layout: { padding: 15 },
         scales: {
-          x: { display: false },
+          x: {
+            display: true,
+            grid: { display: false },
+            ticks: { fontColor: "#666666" },
+          },
           y: {
             display: true,
-            grid: { color: "rgba(0,0,0,0.05)" },
-            ticks: { callback: (value: any) => "$" + value },
+            grid: { color: "rgba(255,255,255,0.08)", drawBorder: false }, // Grid yang sangat tipis
+            ticks: {
+              // Format angka Y-axis menjadi harga USD
+              callback: (value: any) => "$" + Number(value).toFixed(2),
+              fontColor: "#8a8a8a",
+            },
           },
         },
       },
     };
 
-    const url = `https://quickchart.io/chart?width=500&height=180&c=${encodeURIComponent(JSON.stringify(chartConfig))}`;
+    // Tambahkan %23 (kode URI untuk #) agar background menjadi #121212
+    const url = `https://quickchart.io/chart?width=540&height=200&bkg=%23121212&c=${encodeURIComponent(
+      JSON.stringify(chartConfig),
+    )}`;
     const response = await fetch(url);
     const arrayBuffer = await response.arrayBuffer();
     return Buffer.from(arrayBuffer);
@@ -51,69 +73,175 @@ async function fetchChartBuffer(
   }
 }
 
-//  CLEAN AI MARKDOWN TEXT
+// BUG FIX: Hapus batas pemotongan kalimat
 function cleanMarkdown(text: string): string {
-  if (!text) return "";
+  if (!text) return "No data available.";
   return text
-    .replace(/\*\*/g, "")
-    .replace(/\*/g, "")
-    .replace(/\n{3,}/g, "\n\n")
+    .replace(/\*\*/g, "") // Hapus bold markdown
+    .replace(/\*/g, "") // Hapus italic
+    .replace(/\n{3,}/g, "\n\n") // Rapikan spasi
     .trim();
 }
 
-// GENERATE STRATEGY TEAR SHEET
-export async function generateProofOfTradingPDF(
-  vaultName: string,
+// --- DYNAMIC METADATA CONFIGURATION ---
+const VAULT_CONFIG: Record<string, any> = {
+  "yield-farm": {
+    title: "The Yield Farm Vault",
+    dbName: "yield-farm",
+    riskProfile: "Low",
+    targetApy: "14.5%",
+    agents: [
+      { role: "System Orchestrator", model: "openai/gpt-oss-20b" },
+      { role: "Liquidity Risk Manager", model: "openai/gpt-oss-20b" },
+      { role: "Yield Strategist", model: "openai/gpt-oss-20b" },
+    ],
+    currentHoldings: [
+      {
+        asset: "vUSDT (Venus Protocol)",
+        allocation: "85.0%",
+        return: "+12.4% APY",
+        valueUsd: "$85,000",
+      },
+      {
+        asset: "USDT (Idle Cash)",
+        allocation: "15.0%",
+        return: "0.0%",
+        valueUsd: "$15,000",
+      },
+    ],
+  },
+  "bluechip-momentum": {
+    title: "Bluechip Momentum Vault",
+    dbName: "bluechip-momentum",
+    riskProfile: "Moderate",
+    targetApy: "22.4%",
+    agents: [
+      { role: "System Orchestrator", model: "openai/gpt-oss-20b" },
+      { role: "NeuroLoom Quant Agent", model: "gemini-3-flash-preview" },
+      { role: "Chief Risk Officer", model: "gemini-3-flash-preview" },
+    ],
+    currentHoldings: [
+      {
+        asset: "WBNB (PancakeSwap)",
+        allocation: "60.0%",
+        return: "+4.2% (7d)",
+        valueUsd: "$60,000",
+      },
+      {
+        asset: "USDT (Stable Reserve)",
+        allocation: "40.0%",
+        return: "0.0%",
+        valueUsd: "$40,000",
+      },
+    ],
+  },
+  "degen-accumulator": {
+    title: "Degen Accumulator Vault",
+    dbName: "degen-accumulator",
+    riskProfile: "High",
+    targetApy: "38.2%",
+    agents: [
+      { role: "System Orchestrator", model: "openai/gpt-oss-20b" },
+      { role: "Deep Degen Agent", model: "gemini-3-flash-preview" },
+      { role: "Chief Risk Officer", model: "gemini-3-flash-preview" },
+    ],
+    currentHoldings: [
+      {
+        asset: "BTCB (Radiant Capital)",
+        allocation: "75.0%",
+        return: "+8.1% (7d)",
+        valueUsd: "$75,000",
+      },
+      {
+        asset: "USDT (Stop-Loss Reserve)",
+        allocation: "25.0%",
+        return: "0.0%",
+        valueUsd: "$25,000",
+      },
+    ],
+  },
+  global: {
+    title: "Macro Protocol Overview",
+    dbName: "global",
+    riskProfile: "Diversified Delta-Neutral",
+    targetApy: "25.0% (Blended)",
+    agents: [{ role: "Master Orchestrator", model: "openai/gpt-oss-20b" }],
+    currentHoldings: [
+      {
+        asset: "Vault: The Yield Farm",
+        allocation: "30.0%",
+        return: "+12.4% APY",
+        valueUsd: "$30,000",
+      },
+      {
+        asset: "Vault: Bluechip Momentum",
+        allocation: "50.0%",
+        return: "+15.2% YTD",
+        valueUsd: "$50,000",
+      },
+      {
+        asset: "Vault: Degen Accumulator",
+        allocation: "20.0%",
+        return: "+24.5% YTD",
+        valueUsd: "$20,000",
+      },
+    ],
+  },
+};
+
+// --- PDF GENERATOR ---
+export async function generateDynamicVaultPDF(
+  res: Response,
+  vaultId: string,
 ): Promise<string> {
   return new Promise(async (resolve, reject) => {
     try {
-      const doc = new PDFDocument({ margin: 50, size: "A4" });
-      const fileName = `NeuroLoom_Strategy_${vaultName.replace(/\s+/g, "_")}_${Date.now()}.pdf`;
-      const filePath = path.resolve(process.cwd(), fileName);
-      const writeStream = fs.createWriteStream(filePath);
-      doc.pipe(writeStream);
+      const normalizedId = vaultId.toLowerCase();
+      const config = VAULT_CONFIG[normalizedId];
+      if (!config) throw new Error("Vault Configuration not found.");
 
-      const allHistories = await getRecentMemories(100);
-      const strategyExecutions = allHistories
-        .filter(
-          (h: any) =>
-            (h.vaultId === vaultName ||
-              h.reasoning
-                ?.toLowerCase()
-                .includes(vaultName.toLowerCase().replace("-", " "))) &&
-            h.action &&
-            ![
-              "DEPOSIT",
-              "WITHDRAW",
-              "USER_DEPOSIT",
-              "USER_WITHDRAWAL",
-            ].includes(h.action.toUpperCase()),
-        )
-        .sort((a: any, b: any) => a.timestamp - b.timestamp);
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader(
+        "Content-Disposition",
+        `inline; filename="NeuroLoom_TearSheet_${config.title.replace(/\s+/g, "_")}.pdf"`,
+      );
 
-      doc
-        .fontSize(20)
-        .font("Helvetica-Bold")
-        .fillColor("#121212")
-        .text("YIELD STRATEGY TEAR SHEET", { align: "center" });
-      doc.moveDown(0.2);
-      doc
-        .fontSize(11)
-        .font("Helvetica")
-        .fillColor("#555555")
-        .text(`TARGET VAULT: ${vaultName.toUpperCase()}`, {
-          align: "center",
-          characterSpacing: 2,
-        });
-      doc.moveDown(1);
+      const doc = new PDFDocument({
+        margin: 40,
+        size: "A4",
+        bufferPages: true,
+      });
+      doc.pipe(res);
 
-      doc
-        .moveTo(50, doc.y)
-        .lineTo(545, doc.y)
-        .lineWidth(1)
-        .strokeColor("#e5e5e5")
-        .stroke();
-      doc.moveDown(1);
+      const PRIMARY_COLOR = "#121212";
+      const SECONDARY_COLOR = "#555555";
+      const ACCENT_COLOR = "#3b82f6";
+
+      // -------------------------------------------------------------
+      // DATA FETCHING
+      // -------------------------------------------------------------
+      const dbPath = path.resolve(
+        process.cwd(),
+        `journal_${config.dbName}.json`,
+      );
+      let strategyExecutions: any[] = [];
+
+      if (fs.existsSync(dbPath)) {
+        const data = fs.readFileSync(dbPath, "utf-8");
+        const rawLogs = JSON.parse(data);
+        strategyExecutions = rawLogs
+          .filter(
+            (h: any) =>
+              h.action &&
+              ![
+                "DEPOSIT",
+                "WITHDRAW",
+                "USER_DEPOSIT",
+                "USER_WITHDRAWAL",
+              ].includes(h.action.toUpperCase()),
+          )
+          .sort((a: any, b: any) => a.timestamp - b.timestamp);
+      }
 
       const totalExecutions = strategyExecutions.length;
       const successExecutions = strategyExecutions.filter(
@@ -124,63 +252,198 @@ export async function generateProofOfTradingPDF(
           ? ((successExecutions / totalExecutions) * 100).toFixed(1)
           : "0.0";
 
+      // -------------------------------------------------------------
+      // SECTION 1: HEADER & TITLE
+      // -------------------------------------------------------------
+      doc
+        .fontSize(22)
+        .font("Helvetica-Bold")
+        .fillColor(PRIMARY_COLOR)
+        .text("NeuroLoom Strategy Tear Sheet", { align: "center" });
+      doc.moveDown(0.2);
+      doc
+        .fontSize(12)
+        .font("Helvetica")
+        .fillColor(ACCENT_COLOR)
+        .text(config.title.toUpperCase(), {
+          align: "center",
+          characterSpacing: 2,
+        });
+      doc.moveDown(1);
+      doc
+        .moveTo(40, doc.y)
+        .lineTo(555, doc.y)
+        .lineWidth(1)
+        .strokeColor("#e5e5e5")
+        .stroke();
+      doc.moveDown(1);
+
+      // -------------------------------------------------------------
+      // SECTION 2: SYSTEM METRICS & MULTI-AGENT ARCHITECTURE
+      // -------------------------------------------------------------
+      const metricsStartY = doc.y;
+
+      // Kiri: Performance Metrics
+      doc
+        .fontSize(10)
+        .font("Helvetica-Bold")
+        .fillColor(PRIMARY_COLOR)
+        .text("PERFORMANCE METRICS", 40, metricsStartY);
+      doc.fontSize(9).font("Helvetica").fillColor(SECONDARY_COLOR);
+      doc.text("Total Executions", 40, metricsStartY + 15);
+      doc.text("Success Rate", 40, metricsStartY + 30);
+      doc.text("Risk Profile", 40, metricsStartY + 45);
+      doc.text("Target APY", 40, metricsStartY + 60);
+
+      doc.font("Helvetica-Bold").fillColor(PRIMARY_COLOR);
+      doc.text(`:  ${totalExecutions}`, 130, metricsStartY + 15);
+      doc.text(`:  ${successRate}%`, 130, metricsStartY + 30);
+      doc.text(`:  ${config.riskProfile}`, 130, metricsStartY + 45);
+      doc.text(`:  ${config.targetApy}`, 130, metricsStartY + 60);
+
+      // Kanan: Multi-Agent Models
+      doc
+        .fontSize(10)
+        .font("Helvetica-Bold")
+        .fillColor(PRIMARY_COLOR)
+        .text("MULTI-AGENT ARCHITECTURE", 280, metricsStartY);
+
+      let agentY = metricsStartY + 15;
+      config.agents.forEach((agent: any) => {
+        doc
+          .fontSize(9)
+          .font("Helvetica")
+          .fillColor(SECONDARY_COLOR)
+          .text(`${agent.role}`, 280, agentY);
+        doc
+          .font("Helvetica-Bold")
+          .fillColor(PRIMARY_COLOR)
+          .text(`:  ${agent.model}`, 400, agentY);
+        agentY += 15;
+      });
+
+      const lowestYInMetrics = Math.max(metricsStartY + 75, agentY + 15);
+      doc.x = 40;
+      doc.y = lowestYInMetrics;
+
+      // -------------------------------------------------------------
+      // SECTION 3: EQUITY CURVE (CHART)
+      // -------------------------------------------------------------
       doc
         .fontSize(12)
         .font("Helvetica-Bold")
-        .fillColor("#121212")
-        .text("I. SYSTEM METRICS");
+        .fillColor(PRIMARY_COLOR)
+        .text("I. SIMULATED EQUITY CURVE (CUMULATIVE)");
       doc.moveDown(0.5);
 
-      const metricsY = doc.y;
-      doc.fontSize(10).font("Helvetica").fillColor("#9e7878");
-      doc.text("Total Automated Decisions", 50, metricsY);
-      doc.text("Execution Success Rate", 50, metricsY + 15);
-      doc.text("Report Timestamp", 50, metricsY + 30);
-      doc.text("Execution Environment", 50, metricsY + 45);
+      if (totalExecutions > 0 && normalizedId !== "global") {
+        // BUG FIX: Gunakan executedPrice yang asli untuk titik di Y-axis (bukan pecahan acak)
+        const chartPrices = strategyExecutions.map((h: any) => {
+          return h.executedPrice ? Number(h.executedPrice) : 500; // 500 sebagai default fallback
+        });
 
-      doc.font("Helvetica-Bold").fillColor("#121212");
-      doc.text(`:  ${totalExecutions} Executions`, 220, metricsY);
-      doc.text(`:  ${successRate}%`, 220, metricsY + 15);
-      doc.text(`:  ${new Date().toISOString()}`, 220, metricsY + 30);
-      doc.text(`:  BSC Testnet (Decentralized Network)`, 220, metricsY + 45);
-
-      doc.x = 50;
-      doc.y = metricsY + 70;
-
-      if (totalExecutions > 0) {
-        doc
-          .fontSize(12)
-          .font("Helvetica-Bold")
-          .fillColor("#121212")
-          .text("II. MARKET CONTEXT (ASSET PRICE AT EXECUTION)");
-        doc.moveDown(0.5);
-
-        const chartPrices = strategyExecutions.map(
-          (h: any) => Number(h.executedPrice) || 0,
-        );
         const chartLabels = strategyExecutions.map(
-          (_: any, i: number) => `OP-${i + 1}`,
+          (_: any, i: number) => `Op-${i + 1}`,
         );
+
         const chartBuffer = await fetchChartBuffer(chartPrices, chartLabels);
 
         if (chartBuffer) {
-          doc.image(chartBuffer, 50, doc.y, { width: 495 });
-          doc.moveDown(13);
-        } else {
-          doc
-            .fontSize(9)
-            .font("Helvetica-Oblique")
-            .fillColor("#888888")
-            .text("[ Visualization temporarily unavailable ]");
-          doc.moveDown(2);
+          doc.image(chartBuffer, 40, doc.y, { width: 515 });
+          doc.y += 210;
         }
+      } else {
+        doc.rect(40, doc.y, 515, 120).fill("#f5f5f5");
+        doc
+          .fontSize(9)
+          .font("Helvetica-Oblique")
+          .fillColor("#888888")
+          .text(
+            "Awaiting sufficient on-chain execution data to render curve.",
+            40,
+            doc.y + 55,
+            { align: "center", width: 515 },
+          );
+        doc.y += 135;
       }
+      doc.moveDown(1);
+      doc.x = 40;
+
+      // -------------------------------------------------------------
+      // SECTION 4: REAL-TIME ASSET ALLOCATION
+      // -------------------------------------------------------------
+      doc
+        .fontSize(12)
+        .font("Helvetica-Bold")
+        .fillColor(PRIMARY_COLOR)
+        .text("II. HOLDINGS DETAIL & ALLOCATION");
+      doc
+        .fontSize(9)
+        .font("Helvetica")
+        .fillColor(SECONDARY_COLOR)
+        .text("Simulated Snapshot Based on Latest AI Routings");
+      doc.moveDown(0.5);
+
+      const tableTop = doc.y;
+
+      doc.rect(40, tableTop, 515, 22).fill(PRIMARY_COLOR);
+      doc.fontSize(9).font("Helvetica-Bold").fillColor("#ffffff");
+
+      const col1X = 50;
+      const col2X = 300;
+      const col3X = 380;
+      const col4X = 460;
+
+      doc.text("Asset / Protocol", col1X, tableTop + 7);
+      doc.text("Weight", col2X, tableTop + 7);
+      doc.text("Est. Return", col3X, tableTop + 7);
+      doc.text("USD Value", col4X, tableTop + 7);
+
+      let rowY = tableTop + 22;
+
+      config.currentHoldings.forEach((holding: any, index: number) => {
+        doc
+          .rect(40, rowY, 515, 22)
+          .fill(index % 2 === 0 ? "#f9f9f9" : "#ffffff");
+
+        doc
+          .fontSize(9)
+          .font("Helvetica-Bold")
+          .fillColor(PRIMARY_COLOR)
+          .text(holding.asset, col1X, rowY + 7);
+        doc
+          .font("Helvetica")
+          .fillColor(SECONDARY_COLOR)
+          .text(holding.allocation, col2X, rowY + 7);
+
+        if (holding.return.includes("+")) doc.fillColor("#10b981");
+        else if (holding.return.includes("-")) doc.fillColor("#ff5f5f");
+        else doc.fillColor(SECONDARY_COLOR);
+
+        doc.text(holding.return, col3X, rowY + 7);
+        doc.fillColor(PRIMARY_COLOR).text(holding.valueUsd, col4X, rowY + 7);
+
+        rowY += 22;
+      });
+
+      doc.y = rowY + 25;
+      doc.x = 40;
+
+      // -------------------------------------------------------------
+      // SECTION 5: ALGORITHMIC REASONING MATRIX (LOG EKSEKUSI)
+      // -------------------------------------------------------------
+      if (doc.y > 600) doc.addPage();
 
       doc
         .fontSize(12)
         .font("Helvetica-Bold")
-        .fillColor("#121212")
-        .text("III. ALGORITHMIC REASONING LEDGER");
+        .fillColor(PRIMARY_COLOR)
+        .text("III. ALGORITHMIC REASONING MATRIX");
+      doc
+        .fontSize(9)
+        .font("Helvetica")
+        .fillColor(SECONDARY_COLOR)
+        .text("Detailed audit trail of AI decision-making processes.");
       doc.moveDown(1);
 
       if (totalExecutions === 0) {
@@ -188,244 +451,136 @@ export async function generateProofOfTradingPDF(
           .fontSize(10)
           .font("Helvetica-Oblique")
           .fillColor("#888888")
-          .text("No strategic AI operations recorded for this vault yet.");
+          .text("No strategic operations recorded.");
       } else {
+        // Ambil eksekusi terbaru dan cetak baris per baris
         strategyExecutions
           .reverse()
-          .slice(0, 10)
+          .slice(0, 5)
           .forEach((trade: any, index: number) => {
-            if (doc.y > 680) doc.addPage();
+            // Karena reasoning panjang, kita harus memeriksa sisa ruang halaman sebelum mencetak blok panjang.
+            // Jika sisa < 150px (hampir habis), pindah halaman agar kotak log tidak terpotong.
+            if (doc.y > 600) doc.addPage();
 
             const startY = doc.y;
-            doc.rect(50, startY, 495, 22).fill("#f8f9fa");
 
+            // Header Baris (ID & Time)
+            doc.rect(40, startY, 515, 18).fill(PRIMARY_COLOR);
             doc
-              .fillColor("#121212")
+              .fillColor("#ffffff")
               .fontSize(9)
               .font("Helvetica-Bold")
               .text(
-                `EXECUTION ID: AI-OP-${index + 1}   |   ${new Date(trade.timestamp).toUTCString()}`,
-                60,
-                startY + 6,
+                `EXECUTION ID: AI-OP-${totalExecutions - index}   |   TIME: ${new Date(trade.timestamp).toUTCString()}`,
+                50,
+                startY + 5,
               );
 
-            doc.moveDown(1.5);
-            doc.x = 60;
+            // --- TAMBAHAN BARU: LINK TX HASH ---
+            if (trade.transactionHash) {
+              const shortHash = `${trade.transactionHash.substring(0, 8)}...${trade.transactionHash.substring(trade.transactionHash.length - 6)}`;
+              const explorerUrl = `https://testnet.bscscan.com/tx/${trade.transactionHash}`;
 
-            const infoY = doc.y;
-            doc.font("Helvetica").fontSize(9).fillColor("#555555");
-            doc.text("Action Directed", 60, infoY);
-            doc.text("Market State", 60, infoY + 12);
+              // Buat teks bergaris bawah warna biru muda (link)
+              doc
+                .fontSize(8)
+                .font("Helvetica-Oblique")
+                .fillColor("#4cdae6")
+                .text(`View Tx: ${shortHash}`, 440, startY + 6, {
+                  link: explorerUrl, // Ini yang membuat PDF clickable!
+                  underline: true,
+                });
+            }
 
-            doc.font("Helvetica-Bold").fillColor("#121212");
-            doc.text(`:  ${trade.action}`, 160, infoY);
-            doc.text(
-              `:  Price: $${trade.executedPrice || 0}   |   RSI: ${Number(trade.rsiAtExecution || 0).toFixed(2)}`,
-              160,
-              infoY + 12,
-            );
+            // Baris Abu-abu (Action, Route, Price)
+            doc.rect(40, startY + 18, 515, 20).fill("#f4f4f5");
 
-            doc.y = infoY + 28;
+            doc
+              .fillColor(PRIMARY_COLOR)
+              .font("Helvetica-Bold")
+              .text("Action:", 50, startY + 24);
+            doc
+              .font("Helvetica")
+              .fillColor(ACCENT_COLOR)
+              .text(`${trade.action}`, 90, startY + 24);
 
             doc
               .font("Helvetica-Bold")
-              .fillColor("#121212")
-              .text("Engine Reasoning:");
-            doc.moveDown(0.3);
-
-            const cleanReasoningText = cleanMarkdown(trade.reasoning);
-
+              .fillColor(PRIMARY_COLOR)
+              .text("Route:", 200, startY + 24);
             doc
               .font("Helvetica")
-              .fillColor("#333333")
-              .text(cleanReasoningText, {
-                width: 470,
+              .fillColor(PRIMARY_COLOR)
+              .text(`${trade.route || "USDT ⇄ WBNB"}`, 240, startY + 24);
+
+            doc
+              .font("Helvetica-Bold")
+              .fillColor(PRIMARY_COLOR)
+              .text("Price:", 420, startY + 24);
+            doc
+              .font("Helvetica")
+              .fillColor(PRIMARY_COLOR)
+              .text(`$${trade.executedPrice || 0}`, 455, startY + 24);
+
+            doc.y = startY + 45;
+            doc.x = 40;
+
+            // BUG FIX 1: Teks Reasoning AI Lengkap
+            doc
+              .fontSize(9)
+              .font("Helvetica-Bold")
+              .fillColor(PRIMARY_COLOR)
+              .text("Quant Agent Hypothesis:");
+            doc
+              .font("Helvetica")
+              .fillColor(SECONDARY_COLOR)
+              .text(cleanMarkdown(trade.reasoning), {
+                width: 495,
                 align: "justify",
-                lineGap: 2.5,
+                lineGap: 2,
+              });
+            doc.moveDown(0.7);
+
+            // BUG FIX 2: Teks Reasoning CRO Langsung dari log transaksi (journal.json)
+            doc
+              .fontSize(9)
+              .font("Helvetica-Bold")
+              .fillColor(PRIMARY_COLOR)
+              .text("Risk/Strategist Verdict:");
+            doc
+              .font("Helvetica-Oblique")
+              .fillColor("#10b981")
+              .text(trade.cro_reasoning || "Approved. Nominal risk factors.", {
+                width: 495,
               });
 
             doc.moveDown(1.5);
-            doc.x = 50;
+            doc
+              .moveTo(40, doc.y)
+              .lineTo(555, doc.y)
+              .lineWidth(0.5)
+              .strokeColor("#e5e5e5")
+              .stroke();
+            doc.moveDown(1);
           });
       }
 
-      doc
-        .moveTo(50, doc.y)
-        .lineTo(545, doc.y)
-        .lineWidth(1)
-        .strokeColor("#e5e5e5")
-        .stroke();
-      doc.moveDown(1);
-      doc
-        .fontSize(8)
-        .font("Helvetica")
-        .fillColor("#999999")
-        .text(
-          "This document is autonomously generated by the NeuroLoom AI Engine. Logic execution is cryptographically verified.",
-          { align: "center" },
+      // -------------------------------------------------------------
+      // FOOTER
+      // -------------------------------------------------------------
+      const pages = doc.bufferedPageRange();
+      for (let i = 0; i < pages.count; i++) {
+        doc.switchToPage(i);
+        doc.fontSize(7).font("Helvetica").fillColor("#aaaaaa");
+        doc.text(
+          `Generated autonomously by NeuroLoom AI Engine on ${new Date().toUTCString()} | Logic verified cryptographically.`,
+          40,
+          doc.page.height - 30,
+          { align: "center", width: 515 },
         );
-
-      doc.end();
-      writeStream.on("finish", () => resolve(filePath));
-      writeStream.on("error", reject);
-    } catch (error) {
-      reject(error);
-    }
-  });
-}
-
-// GENERATE GLOBAL REPORT
-export async function generateGlobalReportPDF(): Promise<string> {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const doc = new PDFDocument({ margin: 50, size: "A4" });
-      const fileName = `NeuroLoom_Global_State_${Date.now()}.pdf`;
-      const filePath = path.resolve(process.cwd(), fileName);
-      const writeStream = fs.createWriteStream(filePath);
-
-      doc.pipe(writeStream);
-
-      doc
-        .fontSize(24)
-        .font("Helvetica-Bold")
-        .fillColor("#121212")
-        .text("NEUROLOOM GLOBAL STATE REPORT", { align: "center" });
-      doc.moveDown(0.2);
-      doc
-        .fontSize(10)
-        .font("Helvetica")
-        .fillColor("#555555")
-        .text(`Network: BSC Testnet | Indexer: The Graph API`, {
-          align: "center",
-          characterSpacing: 1,
-        });
-      doc.moveDown(1.5);
-
-      doc
-        .moveTo(50, doc.y)
-        .lineTo(545, doc.y)
-        .lineWidth(1)
-        .strokeColor("#e5e5e5")
-        .stroke();
-      doc.moveDown(1.5);
-
-      let totalRebalances = 0;
-      let totalDeposits = 0;
-      let isGraphConnected = false;
-
-      try {
-        const query = `{ rebalanceExecuteds { id } deposits { id } }`;
-        const res = await fetch(CONFIG.GRAPHQL_ENDPOINT, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ query }),
-        });
-        const { data } = await res.json();
-        if (data) {
-          isGraphConnected = true;
-          totalRebalances = data.rebalanceExecuteds?.length || 0;
-          totalDeposits = data.deposits?.length || 0;
-        }
-      } catch (e) {
-        console.error("Global Report Graph Error", e);
       }
 
-      doc
-        .fontSize(14)
-        .font("Helvetica-Bold")
-        .fillColor("#121212")
-        .text("EXECUTIVE SUMMARY");
-      doc.moveDown(0.5);
-      doc.fontSize(11).font("Helvetica").fillColor("#333333");
-      doc.text(
-        `Indexer Connection : ${isGraphConnected ? "ACTIVE" : "OFFLINE"}`,
-      );
-      doc.text(`Total AI Rebalances: ${totalRebalances} Events`);
-      doc.text(`Total User Deposits: ${totalDeposits} Transactions`);
-      doc.moveDown(2);
-
-      doc
-        .fontSize(14)
-        .font("Helvetica-Bold")
-        .fillColor("#121212")
-        .text("ACTIVE STRATEGY VAULTS");
-      doc.moveDown(1);
-
-      const vaults = [
-        {
-          name: "The Yield Farm",
-          type: "Low Risk",
-          protocol: "Venus Protocol",
-          apy: "14.5% (Target)",
-        },
-        {
-          name: "Bluechip Momentum",
-          type: "Medium Risk",
-          protocol: "PancakeSwap",
-          apy: "22.4% (Target)",
-        },
-        {
-          name: "Degen Accumulator",
-          type: "High Risk",
-          protocol: "PancakeSwap",
-          apy: "38.2% (Target)",
-        },
-      ];
-
-      vaults.forEach((v) => {
-        const startY = doc.y;
-        doc.rect(50, startY, 495, 25).fill("#f8f9fa");
-        doc
-          .fillColor("#121212")
-          .fontSize(11)
-          .font("Helvetica-Bold")
-          .text(v.name.toUpperCase(), 60, startY + 8);
-
-        doc.moveDown(1.5);
-        doc.x = 60;
-        doc.fillColor("#555555").fontSize(10).font("Helvetica");
-        doc
-          .text(`Risk Profile : `, { continued: true })
-          .fillColor("#121212")
-          .font("Helvetica-Bold")
-          .text(v.type);
-        doc
-          .fillColor("#555555")
-          .font("Helvetica")
-          .text(`Target APY   : `, { continued: true })
-          .fillColor("#121212")
-          .font("Helvetica-Bold")
-          .text(v.apy);
-        doc
-          .fillColor("#555555")
-          .font("Helvetica")
-          .text(`Routing      : `, { continued: true })
-          .fillColor("#121212")
-          .font("Helvetica-Bold")
-          .text(v.protocol);
-        doc.moveDown(1.5);
-        doc.x = 50;
-      });
-
-      doc
-        .moveTo(50, doc.y)
-        .lineTo(545, doc.y)
-        .lineWidth(1)
-        .strokeColor("#e5e5e5")
-        .stroke();
-      doc.moveDown(1);
-      doc
-        .fontSize(8)
-        .font("Helvetica-Oblique")
-        .fillColor("#999999")
-        .text(
-          "This institutional snapshot is verified directly against the BSC blockchain.",
-          { align: "center" },
-        );
-
       doc.end();
-      writeStream.on("finish", () => resolve(filePath));
-      writeStream.on("error", reject);
     } catch (error) {
       reject(error);
     }

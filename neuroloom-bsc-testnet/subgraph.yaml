@@ -11,9 +11,9 @@ dataSources:
     name: YieldFarm
     network: chapel
     source:
-      address: "0x9BA37554D997a7c4d536Ac94180C47f89BCEF0DD"
+      address: "0xf25297f1a2d83f738dc32fc5851bdff732c20141"
       abi: NeuroLoomVault
-      startBlock: 134165322
+      startBlock: 134493081
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.9
@@ -71,9 +71,9 @@ dataSources:
     name: BluechipMomentum
     network: chapel
     source:
-      address: "0x2Df494B6A330b1f08F5b720caD47756f251378f9"
+      address: "0x48d1edfaedd9ebae51abfb4d4d53a624b8411917"
       abi: NeuroLoomVault
-      startBlock: 134165379
+      startBlock: 134493231
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.9
@@ -131,9 +131,9 @@ dataSources:
     name: DegenAccumulator
     network: chapel
     source:
-      address: "0xbC82a09c1d5DfD82367515e51Ee3937ccC4c5D88"
+      address: "0x42de62e19704f591acb71a63f892751dc37f098c"
       abi: NeuroLoomVault
-      startBlock: 134165452
+      startBlock: 134493306
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.9

@@ -106,9 +106,7 @@ app.listen(PORT, () => {
   console.log(
     `   - Endpoint Sim API : http://localhost:${PORT}/api/live-simulation`,
   );
-  console.log(
-    `   - Endpoint Sandbox : http://localhost:${PORT}/api/run-demo-simulation`,
-  );
+  console.log(`   - Endpoint Sandbox : http://localhost:${PORT}/api/  `);
   console.log(
     `   - Endpoint PDF     : http://localhost:${PORT}/api/report/pdf?vault=global`,
   );

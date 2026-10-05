@@ -43,32 +43,26 @@ export const calculateV3LpParams = tool(
     amountADesiredWei,
     amountBDesiredWei,
   }) => {
-
     const { token0, token1, isReversed } = sortTokens(tokenA, tokenB);
 
-    // 2. Koreksi Harga Base
     const actualPrice = isReversed ? 1 / currentPrice : currentPrice;
     const currentTick = priceToTick(actualPrice);
 
-    // 3. Kalkulasi Volatility Bands (Rentang Harga Dasar)
-    // Di V3, pergerakan harga 1% setara dengan ~100 tick.
     const baseTickSpread = Math.floor(atrVolatilityPercent * 100);
 
-    // 4. Directional Bias (Manipulasi Rentang Asimetris)
+ 
     let lowerSpread = baseTickSpread;
     let upperSpread = baseTickSpread;
 
     if (marketDirection === "BULLISH") {
-      // Harga diproyeksikan naik: Pertahankan WBNB lebih lama dengan melempar batas atas sangat jauh.
-      lowerSpread = Math.floor(baseTickSpread * 0.2); // Jarak bawah sangat ketat (Cut loss cepat jika salah)
-      upperSpread = Math.floor(baseTickSpread * 2.0); // Jarak atas 2x lipat lebih luas
+    
+      lowerSpread = Math.floor(baseTickSpread * 0.2);
+      upperSpread = Math.floor(baseTickSpread * 2.0); 
     } else if (marketDirection === "BEARISH") {
-      // Harga diproyeksikan turun: Amankan ke USDT lebih awal dengan melempar batas bawah jauh.
-      lowerSpread = Math.floor(baseTickSpread * 2.0); // Jarak bawah 2x lipat (akumulasi perlahan)
-      upperSpread = Math.floor(baseTickSpread * 0.2); // Jarak atas sangat ketat
+      lowerSpread = Math.floor(baseTickSpread * 2.0); 
+      upperSpread = Math.floor(baseTickSpread * 0.2); 
     }
 
-    // 5. Pembulatan Sesuai Aturan Tick Spacing PancakeSwap (Fee 0.25% = Spacing 50)
     const TICK_SPACING = 50;
     const tickLower = nearestUsableTick(
       currentTick - lowerSpread,
@@ -107,6 +101,7 @@ export const calculateV3LpParams = tool(
     description:
       "Calculates mathematically safe and directional-biased parameters for V3 Concentrated Liquidity. Use this BEFORE simulating IL or providing liquidity.",
     schema: z.object({
+      vaultAddress: z.string().describe("Target vault address (e.g. 0x48d...)"),
       tokenA: z.string().describe("Address of the first token (e.g., WBNB)"),
       tokenB: z.string().describe("Address of the second token (e.g., USDT)"),
       currentPrice: z
@@ -131,7 +126,6 @@ export const calculateV3LpParams = tool(
     }),
   },
 );
-
 
 function tickToPrice(tick: number): number {
   return Math.pow(1.0001, tick);
@@ -168,9 +162,7 @@ export const simulateILRisk = tool(
     const priceDown = currentPrice * (1 - expectedVolatilityDecimal);
     const priceUp = currentPrice * (1 + expectedVolatilityDecimal);
 
-
     const { getX, getY } = calculateV3PositionValue(tickLower, tickUpper);
-
 
     const x0 = getX(currentPrice);
     const y0 = getY(currentPrice);
@@ -188,7 +180,6 @@ export const simulateILRisk = tool(
     const ilDown = calculateIL(priceDown);
     const ilUp = calculateIL(priceUp);
 
- 
     const rDown = priceDown / currentPrice;
     const v2IlDown = (2 * Math.sqrt(rDown)) / (1 + rDown) - 1;
     const amplificationFactor =

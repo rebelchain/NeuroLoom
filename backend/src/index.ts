@@ -65,11 +65,19 @@ export async function neuroLoomCycle(demoConfig?: {
     const market = await fetchQuantData("BNB/USDT");
     const vaultData = await getVaultState();
 
+    const realTestnetPrice = 792.5;
+    market.price = realTestnetPrice;
+
+  
+    const wbnbAmount = 0.01;
+    const usdtAmount = wbnbAmount * realTestnetPrice; 
+    const usdtAmountWei = BigInt(Math.floor(usdtAmount * 1e18)).toString();
+
     // DEMO DAY INJECTION
     if (demoConfig?.forceCrash) {
       console.log("\n🚨 [DEMO OVERRIDE] MENGINJEKSI KRISIS PASAR BUATAN...");
       market.price = market.price * 0.5;
-      market.rsi = 15; // RSI oversold parah
+      market.rsi = 15; 
     }
 
     let bluechipHealth = await checkVaultPosition(
@@ -122,16 +130,46 @@ export async function neuroLoomCycle(demoConfig?: {
 
     let feedbackContext = "";
     if (demoConfig?.stage === 1) {
-      feedbackContext =
-        "CRITICAL DEMO DIRECTIVE: This is STAGE 1 (Planning). You MUST analyze the market and ONLY output 'calculate_v3_lp_params'. IMPORTANT RULE: Our testnet WBNB balance is extremely low. You MUST set 'amountADesiredWei' to '10000000000000000' (0.01 WBNB) and 'amountBDesiredWei' to '5900000000000000000' (5.9 USDT) exactly.";
+      // 3. MASUKKAN ANGKA YANG TEPAT KE DALAM PROMPT AI
+      feedbackContext = `CRITICAL DEMO DIRECTIVE: This is STAGE 1 (Planning). You MUST analyze the market and ONLY output 'calculate_v3_lp_params'.
+IMPORTANT RULE: Our testnet WBNB balance is extremely low. You MUST output EXACTLY this JSON schema for your 'args':
+{
+  "vaultAddress": "${CONFIG.VAULTS.BLUECHIP}",
+  "tokenA": "${CONFIG.TOKENS.WBNB}",
+  "tokenB": "${CONFIG.TOKENS.USDT}",
+  "currentPrice": ${realTestnetPrice},
+  "atrVolatilityPercent": 5.0,
+  "marketDirection": "BULLISH",
+  "amountADesiredWei": "10000000000000000",
+  "amountBDesiredWei": "${usdtAmountWei}"
+}
+Note: 10000000000000000 is 0.01 WBNB and ${usdtAmountWei} is ${usdtAmount} USDT.`;
     } else if (demoConfig?.stage === 2) {
-      feedbackContext = `CRITICAL DEMO DIRECTIVE: This is STAGE 2 (Execution). Read the calculation from your MEMORIES. You MUST output 'provide_liquidity_v3' using those calculated ticks. IMPORTANT SCHEMA RULE: You MUST strictly use the argument keys: 'token0', 'token1', 'amount0DesiredWei', 'amount1DesiredWei', 'tickLower', 'tickUpper', 'fee' (set to 2500), 'slippageBps' (set to 10000), and 'vaultAddress' (set to "${CONFIG.VAULTS.BLUECHIP}"). DO NOT use 'tokenA' or 'amountA'.`;
+      feedbackContext = `CRITICAL DEMO DIRECTIVE: This is STAGE 2 (Execution). Read the calculation from your MEMORIES. You MUST output 'provide_liquidity_v3'. 
+IMPORTANT RULE: You MUST output EXACTLY this JSON schema for your 'args' (replace the values from your memory calculation):
+{
+  "vaultAddress": "${CONFIG.VAULTS.BLUECHIP}",
+  "token0": "value_from_memory",
+  "token1": "value_from_memory",
+  "fee": 2500,
+  "tickLower": 12345, 
+  "tickUpper": 12345,
+  "amount0DesiredWei": "value_from_memory",
+  "amount1DesiredWei": "value_from_memory",
+  "slippageBps": 10000
+}`;
     } else if (demoConfig?.stage === 3) {
-      feedbackContext = `CRITICAL DEMO DIRECTIVE: This is STAGE 3 (Emergency Rescue). The POSITION_HEALTH_RADAR indicates the pool is OUT_OF_RANGE due to a market crash. You MUST output 'close_liquidity_v3' to rescue the funds. IMPORTANT SCHEMA RULE: You MUST strictly use ONLY two argument keys: 'vaultAddress' (set to "${CONFIG.VAULTS.BLUECHIP}") and 'tokenId' (set exactly to "AUTO"). DO NOT include 'slippageBps' or any other parameters.`;
+      feedbackContext = `CRITICAL DEMO DIRECTIVE: This is STAGE 3 (Emergency Rescue). The POSITION_HEALTH_RADAR indicates the pool is OUT_OF_RANGE due to a market crash. You MUST output 'close_liquidity_v3' to rescue the funds.
+IMPORTANT RULE: You MUST output EXACTLY this JSON schema for your 'args':
+{
+  "vaultAddress": "${CONFIG.VAULTS.BLUECHIP}",
+  "tokenId": "AUTO"
+}`;
     }
-
     let currentDraft = null;
     let finalThoughts = "";
+    let finalEvaluationStatus = "";
+    let finalEvaluationFeedback = "";
     const MAX_ITERATIONS = 3;
 
     for (let attempt = 1; attempt <= MAX_ITERATIONS; attempt++) {
@@ -174,6 +212,9 @@ export async function neuroLoomCycle(demoConfig?: {
         market,
         vaultData.balances,
       );
+
+      finalEvaluationStatus = evaluation.status;
+      finalEvaluationFeedback = evaluation.feedback;
 
       console.log(`[EVALUATOR] Status: ${evaluation.status}`);
       console.log(`[EVALUATOR] Feedback: ${evaluation.feedback}`);
@@ -233,19 +274,30 @@ export async function neuroLoomCycle(demoConfig?: {
         );
 
         const txHash = result?.hash || result || "0x_simulated_hash";
-        const targetVaultAddress = currentDraft.args.vaultAddress || "";
+        const targetVaultAddress =
+          currentDraft.args.vaultAddress || CONFIG.VAULTS.BLUECHIP;
 
         const dynamicVaultId = getVaultIdFromAddress(targetVaultAddress);
 
+        let actionLabel = currentDraft.toolName.toUpperCase();
+        if (currentDraft.toolName === "calculate_v3_lp_params")
+          actionLabel = "MATHEMATICAL_PLANNING (STAGE 1)";
+        if (currentDraft.toolName === "provide_liquidity_v3")
+          actionLabel = "DEPLOY_LP (STAGE 2)";
+        if (currentDraft.toolName === "close_liquidity_v3")
+          actionLabel = "EMERGENCY_CLOSE_LP (STAGE 3)";
+
         await logAIDecision(
-          dynamicVaultId,
-          currentDraft.toolName,
-          market.price,
+          dynamicVaultId, 
+          actionLabel, 
+          market.price, 
           market.rsi,
-          finalThoughts,
-          "SUCCESS",
-          txHash,
+          `${finalThoughts}\n\n[CRO]: ${finalEvaluationFeedback}`, 
+          typeof txHash === "string" && txHash.includes("0x") ? txHash : "", 
           targetVaultAddress,
+        );
+        console.log(
+          `[DATABASE] Execution log saved to journal_${dynamicVaultId}.json for PDF generation.`,
         );
       } catch (chainError: any) {
         console.error(

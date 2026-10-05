@@ -39,27 +39,26 @@ async function runDiagnostics() {
   console.log("Get Onchain Agnostic Data");
 
   try {
-    // const balance = (await publicClient.readContract({
-    //   address: CONFIG.TOKENS.USDT as `0x${string}`,
-    //   abi: ERC20_ABI,
-    //   functionName: "balanceOf",
-    //   args: [CONFIG.VAULT_PROXY as `0x${string}`],
-    // })) as bigint;
+    const balance = (await publicClient.readContract({
+      address: CONFIG.TOKENS.USDT as `0x${string}`,
+      abi: ERC20_ABI,
+      functionName: "balanceOf",
+      args: [CONFIG.VAULTS.BLUECHIP as `0x${string}`],
+    })) as bigint;
 
-    // console.log(`\nUSDT BALANCE IN VAULT`);
-    // console.log(`Vault Address: ${CONFIG.VAULT_PROXY}`);
-    // console.log(`Current Balance: ${formatUnits(balance, 18)} USDT`);
+    console.log(`\nUSDT BALANCE IN VAULT`);
+    console.log(`Vault Address: ${CONFIG.VAULTS.BLUECHIP}`);
+    console.log(`Current Balance: ${formatUnits(balance, 18)} USDT`);
 
-    // if (balance === 0n) {
-    //   console.log("The vault has a balance of 0 USDT.");
-    //   console.log(
-    //     "   PancakeSwap reverted the transaction because the Vault attempted to perform a swap with zero funds!",
-    //   );
-    // } else {
-    //   console.log("The Vault balance is secure.");
-    // }
+    if (balance === 0n) {
+      console.log("The vault has a balance of 0 USDT.");
+      console.log(
+        "   PancakeSwap reverted the transaction because the Vault attempted to perform a swap with zero funds!",
+      );
+    } else {
+      console.log("The Vault balance is secure.");
+    }
 
-   
     const CHAINLINK_BNB_USD = "0x2514895c72f50D8bd4B4F9b1110F0D6bD2c97526";
     const roundData = await publicClient.readContract({
       address: CHAINLINK_BNB_USD as `0x${string}`,
@@ -74,9 +73,7 @@ async function runDiagnostics() {
     console.log(`BNB price: $${Number(price) / 1e8}`);
 
     const ageSeconds = Math.floor(Date.now() / 1000) - Number(updatedAt);
-    console.log(
-      `Oracle Data Age (Last Updated): ${ageSeconds} seconds ago`,
-    );
+    console.log(`Oracle Data Age (Last Updated): ${ageSeconds} seconds ago`);
 
     if (ageSeconds > 3600) {
       console.log("FOUND: Stale Chainlink Testnet Data!");

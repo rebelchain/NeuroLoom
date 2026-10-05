@@ -17,7 +17,6 @@ async function invokeGroqWithRetry(
 
   while (attempt <= maxRetries) {
     try {
-      // 1. Selalu inisialisasi LLM dengan Key yang aktif saat ini
       const llm = new ChatGroq({
         apiKey: getActiveGroqKey(),
         model: "openai/gpt-oss-20b",
@@ -27,7 +26,6 @@ async function invokeGroqWithRetry(
 
       return await llm.invoke(messages);
     } catch (error: any) {
-      // 2. Deteksi error kuota / rate limit (429)
       const isQuotaError =
         error.message?.includes("429") ||
         error.message?.toLowerCase().includes("rate limit") ||
@@ -37,10 +35,10 @@ async function invokeGroqWithRetry(
         console.warn(
           `\n⚠️ [WARNING] Groq API Limit habis. Mengeksekusi rotasi...`,
         );
-        rotateGroqKey(); // Putar ke API Key Groq berikutnya!
+        rotateGroqKey();
         attempt++;
       } else {
-        throw error; // Lempar error jika bukan karena limit atau sudah maksimal retry
+        throw error;
       }
     }
   }

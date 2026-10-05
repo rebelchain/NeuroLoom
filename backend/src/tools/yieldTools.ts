@@ -1,7 +1,6 @@
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
 
-
 export const checkLendingRates = tool(
   async ({ tokenSymbol, protocol }) => {
     console.log(
@@ -35,7 +34,6 @@ export const checkLendingRates = tool(
 export const checkDexPools = tool(
   async ({ pair, dex }) => {
     console.log(`[TOOL] Analyzing pool ${pair} on ${dex}...`);
-    // Simulasi respons API
     const data = {
       pair,
       dex,

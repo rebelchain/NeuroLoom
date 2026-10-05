@@ -9,7 +9,7 @@ dotenvx.config();
 const PANCAKE_V3_MANAGER = "0x427bF5b37357632377eCbEC9de3626C71A5396c1";
 
 async function initPool() {
-  console.log("🛠️ Membuat dan Menginisialisasi Pool V3: WBNB / mUSDT...");
+  console.log("Creating and Initializing V3 Pool: BNB / USDT");
 
   let rawPrivateKey = process.env.AI_PRIVATE_KEY || process.env.PRIVATE_KEY;
   if (!rawPrivateKey?.startsWith("0x")) rawPrivateKey = `0x${rawPrivateKey}`;
@@ -30,7 +30,7 @@ async function initPool() {
   let price = 590;
 
   if (token0.toLowerCase() > token1.toLowerCase()) {
-    console.log("🔄 Menukar posisi token agar sesuai aturan V3...");
+    console.log("Swapping token positions to comply with V3 rules");
     token0 = CONFIG.TOKENS.USDT;
     token1 = CONFIG.TOKENS.WBNB;
     price = 1 / 590;
@@ -58,10 +58,10 @@ async function initPool() {
     });
 
     const txHash = await walletClient.writeContract(request);
-    console.log(`\n✅ Pool Berhasil Diinisialisasi! TxHash: ${txHash}`);
-    console.log("Sekarang Brankasmu sudah punya wadah untuk menaruh LP!");
+    console.log(`\nPool Successfully Initialized! TxHash: ${txHash}`);
+    console.log("Your vault now has a container for holding LP tokens!");
   } catch (error) {
-    console.error("❌ Gagal membuat Pool:", error);
+    console.error("❌ Failed to create Pool:", error);
   }
 }
 

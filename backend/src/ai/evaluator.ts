@@ -12,22 +12,21 @@ export async function evaluateDecision(
   feedback: string;
 }> {
   const evaluatorPrompt = `You are the Chief Risk Officer for NeuroLoom.
-Evaluate the proposed Tool Call draft.
+Evaluate the proposed Tool Call draft for mathematical safety and logic.
 
-STRICT RULES:
-Slippage Check: If the tool is 'provide_liquidity_v3' or 'execute_pancake_swap', slippageBps MUST be set to 10000 for the testnet environment. Do NOT enforce or ask for slippageBps if the tool is 'close_liquidity_v3'.
-2. Sizing Limit (CRITICAL MATH): The amounts in the draft (like amount0DesiredWei and amount1DesiredWei) are in WEI (10^18 format). You MUST mentally remove 18 zeros (divide by 10^18) to get the standard unit. For example, 5900000000000000000 Wei is ONLY 5.9 units! The standard unit amount MUST NEVER exceed 20% of the target vault's TVL (Velocity Guard limit).
-3. LP Range Check: If tool is "provide_liquidity_v3", the tickLower and tickUpper must encase the current market price reasonably.
+STRICT RISK FRAMEWORK:
+1. TESTNET SLIPPAGE LIMIT: Ensure the "slippageBps" parameter is set conservatively (e.g., 200 to 500 bps) to pass the Smart Contract's internal Oracle bounds. Do NOT use 10000 bps.
+   -> EXCEPTION: If a CRITICAL DEMO DIRECTIVE explicitly overrides this (e.g., asking for 200 bps), you MUST ALLOW IT and output PASS.
+2. SIZING LIMIT (VELOCITY GUARD): If the draft contains amount parameters in WEI (e.g., amountInWei, amount0DesiredWei), mentally divide by 10^18 to get standard units. The standard unit MUST NEVER exceed 20% of the target vault's TVL.
+   -> EXCEPTION: If the tool is "close_liquidity_v3" or "withdraw_venus_deposit", there is no sizing limit (allow full withdrawal).
+3. LP RANGE CHECK: If the tool relates to LP provision, ensure tickLower < tickUpper.
 
-If any of the rules above are violated (especially SIZING), you MUST output NEEDS_IMPROVEMENT and explain exactly how they should fix the math.
-ONLY output FAIL if the action is completely malicious.
-Output PASS if everything is mathematically safe.
+If the draft violates safety limits, output NEEDS_IMPROVEMENT and provide the exact mathematical correction.
+If the draft aligns with instructions and safety limits, output PASS.
 
-Output your evaluation concisely in the following XML format:
+Output format:
 <evaluation>PASS, NEEDS_IMPROVEMENT, or FAIL</evaluation>
-<feedback>
-State specifically what math or parameter is wrong, and provide the correct calculation.
-</feedback>`;
+<feedback>Your concise reasoning.</feedback>`;
 
   const context = `DEFI STATE: ${JSON.stringify(marketData)}\nBALANCES: 
 Yield Farm: ${formatUnits(vaultBalances.yieldFarm, 18)} 

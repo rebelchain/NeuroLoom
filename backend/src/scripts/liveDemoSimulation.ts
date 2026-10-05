@@ -3,10 +3,9 @@ import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { Router } from "express";
 import fs from "fs";
 import path from "path";
-import { parseUnits } from "viem";
 
 import { CONFIG } from "../config.js";
-import { executePancakeSwap, closeLiquidityV3 } from "../tools/defiTools.js";
+import { closeLiquidityV3, executePancakeSwap } from "../tools/defiTools.js";
 import { pushLog } from "../utils/push-log.js";
 
 import { generateDecision, ToolDraft } from "../ai/agent.js";
@@ -52,12 +51,14 @@ router.post("/run-demo-simulation", async (req, res) => {
     const simulatedPrice = 510.0;
     const marketData = {
       price: simulatedPrice,
-      POSITION_HEALTH_RADAR: { BLUECHIP_VAULT: "OUT_OF_RANGE_DRIFT_6_PERCENT" },
+      POSITION_HEALTH_RADAR: {
+        BLUECHIP_VAULT: "IN_RANGE_BUT_UNDERWEIGHT_WBNB",
+      },
     };
     const vaultBalances = {
-      yieldFarm: 10000n,
-      bluechip: 50000n,
-      degen: 20000n,
+      yieldFarm: 10000000000000000000000n, // 10.000 USDT
+      bluechip: 50000000000000000000000n, // 50.000 USDT
+      degen: 20000000000000000000000n, // 20.000 USDT
     };
     const vaultState = {
       targetWeights: "vUSDT 40% | WBNB 30% | bCSPX 30%",
@@ -114,13 +115,24 @@ router.post("/run-demo-simulation", async (req, res) => {
     let feedbackContext = `CRITICAL DEMO DIRECTIVE: 
 The Quant Engine (MVO) demands WBNB allocation to reach ${newWbnbTarget}%. Current is 26.1%.
 
-STEP 1: Formulate your strategy to 'BUY_WBNB' using 'execute_pancake_swap'.
-STEP 2: Acknowledge that the Kelly Criterion would dictate a larger trade size based on the reports.
-STEP 3: However, because this is a Testnet Environment with limited liquidity, you MUST scale down the execution to a MICRO-TRANSACTION. 
+ANALYSIS:
+The POSITION_HEALTH_RADAR confirms the vault is STILL IN RANGE ("IN_RANGE_BUT_UNDERWEIGHT_WBNB"). Do NOT close the liquidity. An emergency close is NOT required. 
+Instead, a tactical rebalance is needed to restore the WBNB target.
 
-Set 'amountInUsdtStr' EXACTLY to '0.01'.
-Set 'slippageBps' EXACTLY to 200.
-Do NOT attempt any other tools. Output the exact JSON format.`;
+STEP 1: Formulate your strategy to 'BUY_WBNB' using the 'execute_pancake_swap' tool.
+STEP 2: Because this is a Testnet Environment with strictly limited liquidity, you MUST execute a MICRO-TRANSACTION using exact WEI formatting.
+
+CRITICAL PARAMETER RULES - You MUST output exactly this JSON schema for your 'args':
+{
+  "vaultAddress": "${BLUECHIP_VAULT}",
+  "action": "BUY_WBNB",
+  "amountInWei": "10000000000000000", 
+  "currentPriceStr": "60000000000", 
+  "slippageBps": 200
+}
+
+Note: "10000000000000000" represents 0.01 USDT in WEI. The current price is statically set to match Oracle.
+Do NOT use 'tokenIn', 'tokenOut', or 'amountInUsdtStr'. Do NOT attempt any other tools. Output the exact JSON format requested.`;
 
     let finalThoughts = "";
     let finalDraft: ToolDraft | null = null;
@@ -150,7 +162,6 @@ Do NOT attempt any other tools. Output the exact JSON format.`;
           "Agent decided to HOLD. Simulation requires a transaction.",
         );
 
-      await pushLog(`\n💡 [AGENT THOUGHTS]:\n"${thoughts}"`);
       await pushLog(`\n[AGENT DRAFT]: Proposed Tool -> ${draft.toolName}`);
       await pushLog(
         `[AGENT DRAFT ARGS]: ${JSON.stringify(draft.args, null, 2)}`,
@@ -204,24 +215,30 @@ Do NOT attempt any other tools. Output the exact JSON format.`;
       if (finalDraft!.toolName === "execute_pancake_swap") {
         finalActionLabel = finalDraft!.args.action || "BUY_WBNB";
 
-        const amountInWeiStr = parseUnits(
-          finalDraft!.args.amountInUsdtStr || "0.01",
-          18,
-        ).toString();
-
-        const swapArgs = {
-          vaultAddress: finalDraft!.args.vaultAddress || BLUECHIP_VAULT,
-          action: finalActionLabel,
-          amountInWei: amountInWeiStr,
-          currentPriceStr: finalDraft!.args.currentPriceStr || "60000000000",
-          slippageBps: finalDraft!.args.slippageBps || 200,
-        } as const;
-
         await pushLog(
-          `[TOOL] AI Executing PancakeSwap Swap (${swapArgs.action}) with ${swapArgs.slippageBps} bps slippage`,
+          `[TOOL] AI Executing PancakeSwap Swap (${finalDraft!.args.action}) with ${finalDraft!.args.slippageBps} bps slippage`,
         );
 
-        const result: any = await executePancakeSwap.invoke(swapArgs);
+        const safeArgs = {
+          vaultAddress: String(finalDraft!.args.vaultAddress || BLUECHIP_VAULT),
+
+          // UBAH BARIS INI: Gunakan 'as' untuk mengunci tipenya sesuai Schema Zod
+          action: String(finalActionLabel) as
+            | "BUY_WBNB"
+            | "SELL_WBNB"
+            | "BUY_BTCB"
+            | "SELL_BTCB",
+
+          amountInWei: String(
+            finalDraft!.args.amountInWei || "10000000000000000",
+          ),
+          currentPriceStr: String(
+            finalDraft!.args.currentPriceStr || "51000000000",
+          ),
+          slippageBps: Number(finalDraft!.args.slippageBps || 10000),
+        };
+
+        const result: any = await executePancakeSwap.invoke(safeArgs);
 
         const txHashMatch = result.toString().match(/0x[a-fA-F0-9]{64}/);
         txHash = txHashMatch ? txHashMatch[0] : "0x_UNKNOWN_HASH";

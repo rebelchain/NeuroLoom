@@ -72,13 +72,14 @@ export function DashboardView() {
     //   "https://neuroloom-api.duckdns.org/api/report/pdf?vault=global",
     //   "_blank",
     // );
-    window.open("http://localhost:4000/api/report/pdf?vault=global", "_blank");
+    window.open("http://localhost:9000/api/report/pdf?vault=global", "_blank");
     setTimeout(() => {
       setIsPrinting(false);
     }, 2000);
   };
 
   useEffect(() => {
+    ``;
     let isMounted = true;
     async function fetchRebalanceCount() {
       try {

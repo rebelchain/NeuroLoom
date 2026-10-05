@@ -55,10 +55,9 @@ export function AgentOrchestratorLog() {
           setVisibleLogs(data.logs);
         }
       } catch (error) {
-        // Tangani masalah jaringan (Network Error, server mati total)
-        console.error(
-          "[Log Fetch] Gagal mengambil log AI. Pastikan server berjalan pada port 4000.",
-          error,
+        // Ubah dari console.error menjadi console.warn agar Next.js tidak memunculkan overlay error
+        console.warn(
+          "[Log Fetch] Gagal mengambil log AI. Server backend mungkin sedang mati.",
         );
       }
     };
@@ -97,7 +96,8 @@ export function AgentOrchestratorLog() {
         );
       }
     } catch (e) {
-      console.error("[Log Clear] Gagal reset logs (Network Error):", e);
+      // Ubah dari console.error menjadi console.warn
+      console.warn("[Log Clear] Gagal reset logs (Network Error)");
     }
   };
 

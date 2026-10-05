@@ -524,13 +524,28 @@ function Side({
   withAI,
   t,
   manualTotal,
+  txResult,
 }: {
   withAI: boolean;
   t: number;
   manualTotal: number;
+  txResult?: SimulationResult | null;
 }) {
   const state = portfolioAt(t, withAI);
   const isAiWin = withAI && state.portfolioValue > manualTotal + 10;
+
+  let aiActionLabel = "Awaiting Market Trigger...";
+  if (t > 630) {
+    if (txResult?.execution?.tool_used === "close_liquidity_v3") {
+      aiActionLabel = "Agent Executed Emergency LP Close 🚨";
+    } else if (txResult?.execution?.tool_used === "execute_pancake_swap") {
+      aiActionLabel = "Agent tactically buys the dip 📈";
+    } else if (txResult) {
+      aiActionLabel = `Agent Executed ${txResult.execution?.tool_used}`;
+    } else {
+      aiActionLabel = "AI Agents are debating strategy...";
+    }
+  }
 
   return (
     <section className="rounded-2xl bg-[#121212] border border-[#1f1f1f] p-5 sm:p-6 flex flex-col gap-4 shadow-[0_16px_40px_rgba(0,0,0,0.5)]">
@@ -541,13 +556,17 @@ function Side({
           </div>
           <div className="flex items-center gap-2 mt-1">
             <span
-              className="w-2 h-2 rounded-full shrink-0"
-              style={{ background: withAI ? "#8b5cf6" : "#8a8a8a" }}
+              className={`w-2 h-2 rounded-full shrink-0 ${
+                withAI
+                  ? t > 630 && !txResult
+                    ? "animate-ping bg-emerald-400"
+                    : "bg-[#8b5cf6]"
+                  : "bg-[#8a8a8a]"
+              }`}
             />
             <span className="text-sm sm:text-base font-medium text-[#f5f5f5]">
-              {withAI
-                ? "NeuroLoom Agent buys the dip"
-                : "Manual portfolio, no action"}
+              {/* GUNAKAN LABEL DINAMIS DI SINI */}
+              {withAI ? aiActionLabel : "Manual portfolio, no action"}
             </span>
           </div>
         </div>
@@ -685,7 +704,7 @@ export function DemoVaultRebalanceSimulator() {
     try {
       console.log("Memicu Live Simulation API...");
       const response = await fetch(
-        "http://localhost:9000/api/live-simulation/bluechip-momentum",
+        "http://localhost:9000/api/run-demo-simulation",
         {
           method: "POST",
           headers: {
@@ -695,16 +714,13 @@ export function DemoVaultRebalanceSimulator() {
         },
       );
 
-      // Cek apakah response benar-benar OK sebelum melakukan parsing JSON
       if (!response.ok) {
-        // Jika server mengembalikan 404 (Not Found) atau 500 (Internal Server Error)
         const errorText = await response.text();
         throw new Error(
           `Server merespons dengan status ${response.status}: ${errorText.substring(0, 100)}...`,
         );
       }
 
-      // Pastikan Content-Type adalah JSON
       const contentType = response.headers.get("content-type");
       if (!contentType || !contentType.includes("application/json")) {
         const text = await response.text();
@@ -717,24 +733,26 @@ export function DemoVaultRebalanceSimulator() {
 
       if (data.status === "success") {
         setTxResult(data);
-        setPlaying(true);
+
+        // ⏱️ SYNCHRONIZATION MAGIC (BULLET-TIME EFFECT) ⏱️
+        // 1. Beri jeda 2 detik agar komponen AiTeamChat selesai memunculkan log "Transaction Confirmed"
+        setTimeout(() => {
+          // 2. Turunkan kecepatan animasi menjadi 15x (Slow Motion) agar visual rebalance terlihat jelas!
+          setSpeed(15);
+          // 3. Lanjutkan animasi garis
+          setPlaying(true);
+        }, 2000);
       } else {
         console.error("Simulation Error:", data);
         alert(`AI Execution Failed: ${data.message}`);
       }
     } catch (error) {
-      // <-- UBAH DI SINI: Hapus : any
-      console.error("Gagal menghubungi backend:", error);
-
-      // Lakukan pengecekan tipe dengan aman (Type Guard)
-      let errorMessage = "Terjadi kesalahan yang tidak diketahui.";
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      } else if (typeof error === "string") {
-        errorMessage = error;
+      if (error instanceof TypeError && error.message === "Failed to fetch") {
+        console.warn("Backend mati. Mode simulasi dibatalkan.");
+        setPlaying(false);
+      } else {
+        console.error("Gagal menghubungi backend:", error);
       }
-
-      alert(`Gagal menghubungi server AI backend. Detail: ${errorMessage}`);
     } finally {
       setIsAiExecuting(false);
     }
@@ -743,35 +761,41 @@ export function DemoVaultRebalanceSimulator() {
   const restart = useCallback(() => {
     setT(0);
     setPlaying(true);
-    apiLockRef.current = false; // Reset kunci instan
-    setHasTriggeredApi(false); // Reset
-    setTxResult(null); // Reset
-  }, []);
-
-  useEffect(() => {
-    const id = setTimeout(() => setPlaying(true), 700);
-    return () => clearTimeout(id);
+    setSpeed(60);
+    apiLockRef.current = false;
+    setHasTriggeredApi(false);
+    setTxResult(null);
   }, []);
 
   useEffect(() => {
     if (!playing) return;
     let raf = 0;
     let last = performance.now();
+
     const tick = (now: number) => {
       const dt = (now - last) / 1000;
       last = now;
+
       setT((prev) => {
         const next = prev + dt * speed;
 
         // --- LOGIKA TRIGGER API BARU ---
-        // Jika waktu mencapai atau melewati 630 (Event e3) dan API belum pernah dipanggil
         if (next >= 630 && !apiLockRef.current && !isAiExecuting) {
-          apiLockRef.current = true; // Kunci secara instan (kebal Double Render)
-          setHasTriggeredApi(true); // Update state untuk re-render UI
-          setPlaying(false); // Pause animasi UI
-          triggerLiveSimulation(); // Panggil API HANYA SEKALI
+          apiLockRef.current = true;
+          setHasTriggeredApi(true);
+          setPlaying(false);
+          triggerLiveSimulation();
         }
-        // -------------------------------
+
+        // ⏱️ SYNCHRONIZATION MAGIC BARU (DI DALAM LOOP ANIMASI) ⏱️
+        // Jika animasi sudah melewati fase rebalance (t > 720)
+        // dan kecepatan masih dalam status Slow-Motion (15x),
+        // kembalikan kecepatannya ke normal secara sinkron tanpa useEffect eksternal.
+        if (next > 720 && speed === 15) {
+          // Menggunakan setTimeout 0 untuk mengantri perubahan state (Menghindari "update during render" warning)
+          setTimeout(() => setSpeed(60), 0);
+        }
+        // -------------------------------------------------------------
 
         if (next >= DUR) {
           setPlaying(false);
@@ -813,7 +837,12 @@ export function DemoVaultRebalanceSimulator() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Side withAI={false} t={t} manualTotal={manualTotal} />
-        <Side withAI={true} t={t} manualTotal={manualTotal} />
+        <Side
+          withAI={true}
+          t={t}
+          manualTotal={manualTotal}
+          txResult={txResult}
+        />
       </div>
 
       <section className="rounded-2xl bg-[#121212] border border-[#1f1f1f] px-5 py-4">

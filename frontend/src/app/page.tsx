@@ -7,7 +7,6 @@ import { useEffect, useState } from "react";
 // Komponen
 import { AITerminalView } from "@/components/AITerminalView";
 import { DashboardView } from "@/components/DashboardView";
-import { DemoVaultRebalanceSimulator } from "@/components/DemoVaultRebalanceSimulator";
 import { ExecutionPipeline } from "@/components/ExecutionPipeline";
 import { Footer } from "@/components/Footer";
 import { HeroSection } from "@/components/HeroSection";
@@ -19,6 +18,7 @@ import { Reveal } from "@/components/Reveal";
 import { SmartVaultsView } from "@/components/SmartVaultsView";
 import { TopNav, type PageId } from "@/components/TopNav";
 import { VaultRebalanceSimulator } from "@/components/VaultRebalanceSimulator";
+import { SimulationView } from "@/components/SimulationView";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -91,7 +91,7 @@ export default function NeuroLoomApp() {
       case "history":
         return <HistoryView />;
       case "simulation":
-        return <DemoVaultRebalanceSimulator />;
+        return <SimulationView />;
       default:
         return <DashboardView />;
     }

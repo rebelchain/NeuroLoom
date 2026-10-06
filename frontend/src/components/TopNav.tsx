@@ -31,7 +31,6 @@ export function TopNav({
 }: TopNavProps) {
   return (
     <header className="relative shrink-0 flex items-center justify-between gap-4 px-4 md:px-6 py-4 bg-[#0a0a0a]/90 backdrop-blur-md border-b border-[#1f1f1f] z-40 sticky top-0">
-      {/* LEFT: Logo & Brand */}
       <div className="flex items-center shrink-0">
         <button
           onClick={onBackToLanding}
@@ -56,7 +55,6 @@ export function TopNav({
         </button>
       </div>
 
-      {/* CENTER: Pill Navigation (Text only, clean brutalist matte) */}
       <nav className="flex-1 max-w-[600px] flex items-center justify-center overflow-x-auto no-scrollbar">
         <div className="flex items-center bg-[#121212] border border-[#1f1f1f] p-1 rounded-full shrink-0">
           {navItems.map((item) => {
@@ -78,7 +76,6 @@ export function TopNav({
         </div>
       </nav>
 
-      {/* RIGHT: Wallet Connect & Demo Button */}
       <div className="flex items-center shrink-0 gap-3">
         <button
           onClick={() => onNavigate("simulation")}

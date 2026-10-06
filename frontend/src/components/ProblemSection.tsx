@@ -20,15 +20,11 @@ export function ProblemSection() {
       id="features"
       className="relative w-full max-w-7xl mx-auto px-6 lg:px-8 py-24 lg:py-32"
     >
-      {/* Background Subtle Ambience */}
       <div
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/[0.03] rounded-full blur-[140px] pointer-events-none"
         aria-hidden="true"
       />
 
-      {/* ========================================================
-          1. HEADER (The Hook)
-         ======================================================== */}
       <div className="max-w-3xl mb-16 lg:mb-20">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.03] border border-white/[0.08] text-[11px] font-mono tracking-widest uppercase text-[#8a8a8a] mb-6">
           <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_var(--color-primary)]"></span>
@@ -51,13 +47,7 @@ export function ProblemSection() {
         </p>
       </div>
 
-      {/* ========================================================
-          2. THE 3 BENTO CARDS
-         ======================================================== */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-stretch">
-        {/* --------------------------------------------------------
-            CARD 1: The Barrier to Entry (The Setup Nightmare)
-           -------------------------------------------------------- */}
         <div
           onMouseEnter={() => setActiveTab(0)}
           onMouseLeave={() => setActiveTab(null)}
@@ -79,7 +69,7 @@ export function ProblemSection() {
               The Barrier to Entry
             </h3>
 
-            {/* Copywriting (100% English) */}
+            {/* Copywriting  */}
             <p className="text-sm text-[#8a8a8a] leading-relaxed mb-6 font-light">
               Earning yield in DeFi today demands you to be a crypto trader and
               financial engineer at once. Managing seed phrases, calculating gas
@@ -88,7 +78,7 @@ export function ProblemSection() {
             </p>
           </div>
 
-          {/* Micro-Visualizer: The Setup Friction Badges */}
+          {/* Micro-Visualizer */}
           <div className="pt-6 border-t border-[#1f1f1f] flex flex-col gap-3">
             <div className="text-[10px] font-mono text-[#8a8a8a] uppercase tracking-wider flex items-center justify-between">
               <span>Manual DeFi Friction</span>
@@ -122,9 +112,6 @@ export function ProblemSection() {
           </div>
         </div>
 
-        {/* --------------------------------------------------------
-            CARD 2: The 24/7 Market (The Maintenance Trap)
-           -------------------------------------------------------- */}
         <div
           onMouseEnter={() => setActiveTab(1)}
           onMouseLeave={() => setActiveTab(null)}
@@ -146,7 +133,7 @@ export function ProblemSection() {
               The 24/7 Market
             </h3>
 
-            {/* Copywriting (100% English) */}
+            {/* Copywriting  */}
             <p className="text-sm text-[#8a8a8a] leading-relaxed mb-6 font-light">
               DeFi never sleeps. While you are busy at the office or asleep at
               night, yield strategies that were profitable hours ago can
@@ -155,7 +142,7 @@ export function ProblemSection() {
             </p>
           </div>
 
-          {/* Micro-Visualizer: Yield Decay Timeline (Completely Spaced & Clean) */}
+          {/* Micro-Visualizer */}
           <div className="pt-6 border-t border-[#1f1f1f] flex flex-col gap-3">
             <div className="text-[10px] font-mono text-[#8a8a8a] uppercase tracking-wider flex items-center justify-between">
               <span>Night Yield Decay</span>
@@ -164,9 +151,7 @@ export function ProblemSection() {
               </span>
             </div>
 
-            {/* Structured Card with Clear Header, Clean SVG Curve, and Distinct Footer */}
             <div className="w-full bg-[#161616] rounded-2xl p-3.5 border border-[#222] flex flex-col gap-2">
-              {/* Top Reading (Before sleep) */}
               <div className="flex items-center justify-between text-[11px] font-mono">
                 <span className="text-[#8a8a8a]">11:00 PM (Active)</span>
                 <span className="text-emerald-400 font-semibold">
@@ -174,7 +159,6 @@ export function ProblemSection() {
                 </span>
               </div>
 
-              {/* Minimalist SVG Yield Curve with generous height and no text collision */}
               <div className="w-full h-10 py-1">
                 <svg
                   viewBox="0 0 240 40"
@@ -208,7 +192,7 @@ export function ProblemSection() {
                 </svg>
               </div>
 
-              {/* Bottom Reading (After sleep drop) */}
+              {/* Bottom Reading  */}
               <div className="flex items-center justify-between text-[11px] font-mono pt-1 border-t border-[#202020]">
                 <span className="text-red-400 flex items-center gap-1.5">
                   <Moon className="w-3 h-3" />
@@ -227,9 +211,6 @@ export function ProblemSection() {
           </div>
         </div>
 
-        {/* --------------------------------------------------------
-            CARD 3: Automation Without Seatbelts (The Security Illusion)
-           -------------------------------------------------------- */}
         <div
           onMouseEnter={() => setActiveTab(2)}
           onMouseLeave={() => setActiveTab(null)}
@@ -251,16 +232,15 @@ export function ProblemSection() {
               Automation Without Seatbelts
             </h3>
 
-            {/* Copywriting (100% English) */}
+            {/* Copywriting  */}
             <p className="text-sm text-[#8a8a8a] leading-relaxed mb-6 font-light">
               Handing your capital to unconstrained bots or opaque AI is a fatal
               gamble. Meanwhile, legacy vaults are too rigid to react when
-              market conditions shift. You need intelligent autopilot
-              execution, backed by mathematical smart contract seatbelts.
+              market conditions shift. You need intelligent autopilot execution,
+              backed by mathematical smart contract seatbelts.
             </p>
           </div>
 
-          {/* Micro-Visualizer: Big Stat $7.5M+ & Seatbelt Guardrails */}
           <div className="pt-6 border-t border-[#1f1f1f] flex flex-col gap-3">
             <div className="flex items-baseline justify-between">
               <div className="text-3xl sm:text-4xl font-extrabold font-mono text-[#f5f5f5] tracking-tight">
@@ -290,11 +270,7 @@ export function ProblemSection() {
         </div>
       </div>
 
-      {/* ========================================================
-          3. TRANSITION SECTION (To "The Solution")
-         ======================================================== */}
       <div className="mt-16 lg:mt-24 relative overflow-hidden rounded-3xl p-8 sm:p-12 bg-gradient-to-r from-[#141414] via-[#101010] to-[#0d0d0d] border border-white/[0.08] shadow-[0_20px_50px_rgba(0,0,0,0.6)]">
-        {/* Subtle Violet Edge Accent */}
         <div className="absolute top-0 left-0 bottom-0 w-1.5 bg-gradient-to-b from-primary via-primary-light to-transparent" />
 
         <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-6 sm:gap-8">

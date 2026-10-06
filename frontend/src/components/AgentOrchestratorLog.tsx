@@ -32,32 +32,27 @@ export function AgentOrchestratorLog() {
           cache: "no-store",
         });
 
-        // 1. Tangani HTTP Error (404, 500, dll) TANPA melempar exception keras
         if (!response.ok) {
           console.warn(
             `[Log Fetch] Server mengembalikan status ${response.status}. Menunggu pemulihan server...`,
           );
-          return; // Hentikan eksekusi fungsi ini dengan aman (akan dicoba lagi oleh interval)
+          return;
         }
 
-        // 2. Tangani format respons yang salah (bukan JSON)
         const contentType = response.headers.get("content-type");
         if (!contentType || !contentType.includes("application/json")) {
           console.warn(
             `[Log Fetch] Menerima format non-JSON. Menunggu pemulihan server...`,
           );
-          return; // Sama, hentikan eksekusi dengan aman
+          return;
         }
 
-        // 3. Jika aman, lakukan parsing JSON
         const data = await response.json();
 
-        // 4. Update state jika komponen masih mount dan data valid
         if (isMounted && data && Array.isArray(data.logs)) {
           setVisibleLogs(data.logs);
         }
       } catch (error) {
-        // Ubah dari console.error menjadi console.warn agar Next.js tidak memunculkan overlay error
         console.warn(
           "[Log Fetch] Gagal mengambil log AI. Server backend mungkin sedang mati.",
         );
@@ -88,7 +83,6 @@ export function AgentOrchestratorLog() {
         body: JSON.stringify({ action: "clear" }),
       });
 
-      // Pastikan respons valid sebelum mengosongkan state UI
       if (response.ok) {
         setVisibleLogs([]);
       } else {
@@ -98,7 +92,6 @@ export function AgentOrchestratorLog() {
         );
       }
     } catch (e) {
-      // Ubah dari console.error menjadi console.warn
       console.warn("[Log Clear] Gagal reset logs (Network Error)");
     }
   };

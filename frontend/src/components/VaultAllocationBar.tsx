@@ -4,7 +4,7 @@ import { useSectionReveal } from "@/lib/useSectionReveal";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 
-// --- INTERFACES ---
+// INTERFACES
 export interface AIAllocation {
   protocolName: string;
   amount: number;
@@ -23,7 +23,7 @@ export interface VaultData {
   apy: number;
 }
 
-// --- HELPERS ---
+// HELPERS
 const getProtocolStyles = (protocolName: string) => {
   const name = protocolName.toLowerCase();
   if (name.includes("venus"))
@@ -63,7 +63,7 @@ function formatCurrencyLocal(value: string | number) {
   }).format(num);
 }
 
-// --- MAIN COMPONENT ---
+// MAIN COMPONENT
 export function VaultAllocationBar({
   vault,
   onDeposit,

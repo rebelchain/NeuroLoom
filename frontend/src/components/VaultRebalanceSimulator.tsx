@@ -8,10 +8,6 @@ import React, {
   useState,
 } from "react";
 
-/* ─────────────────────────────────────────────────────────────
-   1. SYNTHETIC DATA LAYER & RIGOROUS MATH LOGIC
-   ───────────────────────────────────────────────────────────── */
-
 const DUR = 1500; // 25 minutes in seconds
 
 interface Point {
@@ -67,7 +63,6 @@ const EVENTS: SimEvent[] = [
   { key: "e6", t: 900, kind: "recovery", label: "BNB starts partial recovery" },
 ];
 
-/** Generate synthetic BNB/USDT price curve: $620 → crash to ~$510 → recover to ~$545 */
 function generatePriceData(): Point[] {
   const pts: Point[] = [];
   for (let t = 0; t <= DUR; t += 15) {
@@ -106,7 +101,6 @@ function priceAt(t: number): number {
   return PRICE_DATA[PRICE_DATA.length - 1]!.bnbPrice;
 }
 
-// Linear interpolation helper
 function lerp(start: number, end: number, t: number) {
   return start * (1 - t) + end * t;
 }
@@ -126,11 +120,9 @@ function portfolioAt(t: number, withAI: boolean): PortfolioState {
   const currentPrice = priceAt(t);
   const initialPrice = 620;
 
-  // Track units of WBNB instead of just fiat value
-  const wbnbInitialUnits = 3000 / initialPrice; // ~4.8387 WBNB
+  const wbnbInitialUnits = 3000 / initialPrice;
 
-  // 1. Calculate MANUAL values (Without AI)
-  const vusdtBase = 4000 + (t / DUR) * 50; // Base stablecoin + small yield
+  const vusdtBase = 4000 + (t / DUR) * 50;
   const wbnbBaseValue = wbnbInitialUnits * currentPrice;
   const bcspxBase = 3000;
 
@@ -156,12 +148,10 @@ function portfolioAt(t: number, withAI: boolean): PortfolioState {
     };
   }
 
-  // 2. Calculate AI REBALANCE Logic
   const REBALANCE_START = 630;
   const REBALANCE_END = 720;
-  const REBALANCE_MID = 660; // Execution tick
+  const REBALANCE_MID = 660;
 
-  // State exactly at execution point
   const priceAtRebalance = priceAt(REBALANCE_MID);
   const vusdtAtRebalance = 4000 + (REBALANCE_MID / DUR) * 50;
   const wbnbValueAtRebalance = wbnbInitialUnits * priceAtRebalance;
@@ -169,16 +159,13 @@ function portfolioAt(t: number, withAI: boolean): PortfolioState {
   const totalAtRebalance =
     vusdtAtRebalance + wbnbValueAtRebalance + bcspxAtRebalance;
 
-  // AI calculates strict 40/30/30 targets from the depleted total
   const targetVusdt = totalAtRebalance * 0.4;
   const targetWbnbValue = totalAtRebalance * 0.3;
   const targetBcspx = totalAtRebalance * 0.3;
 
-  // The magic: AI accumulates more WBNB units at the discounted price!
-  const wbnbNewUnits = targetWbnbValue / priceAtRebalance; // e.g. goes from 4.83 to 5.58
+  const wbnbNewUnits = targetWbnbValue / priceAtRebalance;
 
   if (t < REBALANCE_START) {
-    // Before AI acts
     const total = vusdtBase + wbnbBaseValue + bcspxBase;
     const vusdtPct = (vusdtBase / total) * 100;
     const wbnbPct = (wbnbBaseValue / total) * 100;
@@ -201,7 +188,6 @@ function portfolioAt(t: number, withAI: boolean): PortfolioState {
   }
 
   if (t <= REBALANCE_END) {
-    // Transition period (Smooth visual interpolation for the UI)
     const progress = (t - REBALANCE_START) / (REBALANCE_END - REBALANCE_START);
     const eased = progress * progress * (3 - 2 * progress); // smoothstep
 
@@ -236,7 +222,6 @@ function portfolioAt(t: number, withAI: boolean): PortfolioState {
     };
   }
 
-  // 3. After Rebalance is fully complete
   const finalVusdt = targetVusdt + ((t - REBALANCE_MID) / DUR) * 50;
   const finalWbnbValue = wbnbNewUnits * currentPrice;
   const finalBcspx = targetBcspx;
@@ -261,10 +246,6 @@ function portfolioAt(t: number, withAI: boolean): PortfolioState {
 
 const fmtUsd = (v: number) =>
   `$${v.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
-
-/* ─────────────────────────────────────────────────────────────
-   2. SVG PRICE CHART (from PriceChart.tsx)
-   ───────────────────────────────────────────────────────────── */
 
 const CW = 520;
 const CH = 200;
@@ -453,10 +434,6 @@ function BnbPriceChart({ t, withAI }: { t: number; withAI: boolean }) {
   );
 }
 
-/* ─────────────────────────────────────────────────────────────
-   3. COUNTER & SIDE PANEL
-   ───────────────────────────────────────────────────────────── */
-
 function Counter({
   value,
   label,
@@ -640,10 +617,6 @@ const tickColor = (kind: SimEvent["kind"]) => {
   }
 };
 
-/* ─────────────────────────────────────────────────────────────
-   4. MAIN EXPORT
-   ───────────────────────────────────────────────────────────── */
-
 const SPEEDS = [30, 60, 120] as const;
 
 export function VaultRebalanceSimulator() {
@@ -687,7 +660,6 @@ export function VaultRebalanceSimulator() {
     setPlaying(true);
   }, []);
 
-  // Calculate manual portfolio value to pass down for comparison
   const manualTotal = portfolioAt(t, false).portfolioValue;
 
   return (

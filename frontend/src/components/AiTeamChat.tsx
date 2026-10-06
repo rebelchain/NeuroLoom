@@ -9,7 +9,6 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-// Struktur data obrolan yang sudah di-parsing
 interface ChatMessage {
   id: number;
   sender:
@@ -29,15 +28,12 @@ export function AiTeamChat() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isTyping, setIsTyping] = useState<string | null>(null);
 
-  // 1. PINDAHKAN FUNGSI INI KE ATAS (Sebelum useEffect yang memanggilnya)
-  // Atau gunakan syntax "function" biasa seperti ini agar kena hoisting:
   const parseLogsToChat = (rawLogs: string[]) => {
     const newMessages: ChatMessage[] = [];
     let currentTyping: string | null = null;
-    let isFinished = false; // FLAG BARU
+    let isFinished = false;
 
     rawLogs.forEach((log, index) => {
-      // 1. Tangkap Analisis Orchestrator
       if (log.includes("[ORCHESTRATOR ANALYSIS]:")) {
         const text = log
           .split("[ORCHESTRATOR ANALYSIS]:")[1]
@@ -49,9 +45,7 @@ export function AiTeamChat() {
             sender: "Orchestrator",
             content: text,
           });
-      }
-      // 2. Tangkap Pikiran / Laporan Worker
-      else if (
+      } else if (
         log.includes("[YIELD STRATEGIST REASONING]:") ||
         log.includes("[YIELD STRATEGIST REPORT]:")
       ) {
@@ -73,18 +67,14 @@ export function AiTeamChat() {
             sender: "Liquidity Manager",
             content: text,
           });
-      }
-      // 3. Tangkap Pikiran Quant Agent
-      else if (log.includes("[AGENT THOUGHTS]:")) {
+      } else if (log.includes("[AGENT THOUGHTS]:")) {
         const text = log
           .split("[AGENT THOUGHTS]:")[1]
           ?.replace(/"/g, "")
           .trim();
         if (text)
           newMessages.push({ id: index, sender: "Quant Agent", content: text });
-      }
-      // 4. Tangkap Evaluasi Risk Officer
-      else if (log.includes("[EVALUATOR FEEDBACK]:")) {
+      } else if (log.includes("[EVALUATOR FEEDBACK]:")) {
         const text = log
           .split("[EVALUATOR FEEDBACK]:")[1]
           ?.replace(/"/g, "")
@@ -100,9 +90,7 @@ export function AiTeamChat() {
             content: text,
             isError: isRejected,
           });
-      }
-      // 5. Tangkap Indikator Mengetik (Hanya visual)
-      else if (
+      } else if (
         log.includes("is analyzing the market...") ||
         log.includes("Evaluating threats")
       ) {
@@ -116,18 +104,16 @@ export function AiTeamChat() {
         currentTyping = "Risk Officer";
       }
 
-      // 🚨 TANGKAP INDIKATOR SELESAI 🚨
       if (
         log.includes("[DATABASE]") ||
         log.includes("[PDF]") ||
         log.includes("Transaction confirmed successfully") ||
-        log.includes("APPROVED the transaction") // Opsional jika ingin berhenti lebih cepat
+        log.includes("APPROVED the transaction")
       ) {
         isFinished = true;
       }
     });
 
-    // Jika sudah ada flag selesai, matikan paksa indikator typing!
     if (isFinished) {
       currentTyping = null;
     }
@@ -136,7 +122,6 @@ export function AiTeamChat() {
     setIsTyping(currentTyping);
   };
 
-  // 2. USE EFFECT SEKARANG BISA MEMANGGILNYA DENGAN AMAN
   useEffect(() => {
     let isMounted = true;
     let lastLogCount = 0;
@@ -154,15 +139,12 @@ export function AiTeamChat() {
         const data = await response.json();
 
         if (isMounted && data && Array.isArray(data.logs)) {
-          // Hanya memproses jika ada log baru
           if (data.logs.length !== lastLogCount) {
             lastLogCount = data.logs.length;
-            parseLogsToChat(data.logs); // Tidak akan error lagi
+            parseLogsToChat(data.logs);
           }
         }
-      } catch (error) {
-        // Abaikan error fetch diam-diam
-      }
+      } catch (error) {}
     };
 
     void fetchLogs();

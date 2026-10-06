@@ -13,12 +13,10 @@ const VAULT_MAP: Record<string, string> = {
   [ACTIVE_VAULTS[2].toLowerCase()]: "Degen Accumulator",
 };
 
-// --- TAMBAHAN BARU: Token & Protocol Mapping ---
-// Ganti alamat Mock Venus ini (0x5ee8...) dengan alamat aslimu!
 const PROTOCOL_MAP: Record<string, string> = {
   "0x1b81d678ffb9c0263b24a97847620c99d213eb14": "PancakeSwap V3",
   "0x427bf5b37357632377ecbec9de3626c71a5396c1": "PancakeSwap V3 Manager",
-  "0x5ee89d4357d71368cf54a0407c64e36500dbc475": "Venus Protocol",
+  "0x5ee89D4357d71368cF54a0407c64E36500dbc475": "Venus Protocol",
   "0xfa45fd644b34606cabfb7c8acc546e770e248b83": "USDT",
   "0xae13d989dac2f0debff460ac112a837c89baa7cd": "WBNB",
 };
@@ -30,16 +28,13 @@ function getProtocolOrTokenName(address: string) {
   if (VAULT_MAP[lowerAddr]) return "Vault";
   if (PROTOCOL_MAP[lowerAddr]) return PROTOCOL_MAP[lowerAddr];
 
-  // Kembalikan alamat disingkat jika tidak dikenal
   return `${address.slice(0, 4)}...${address.slice(-4)}`;
 }
 
-// --- LOGIKA CERDAS: MENGANALISIS RUTE TRANSAKSI ---
 function analyzeRebalanceFlow(tokenIn: string, tokenOut: string) {
   const inName = getProtocolOrTokenName(tokenIn);
   const outName = getProtocolOrTokenName(tokenOut);
 
-  // Jika AI menarik (Withdraw) dari Venus (Vault membakar vUSDT, dapat USDT)
   if (inName.includes("Venus")) {
     return {
       actionBadge: "WITHDRAW",
@@ -48,7 +43,6 @@ function analyzeRebalanceFlow(tokenIn: string, tokenOut: string) {
     };
   }
 
-  // Jika AI menyetor (Deposit) ke Venus (Vault memberikan USDT, dapat vUSDT)
   if (outName.includes("Venus")) {
     return {
       actionBadge: "DEPOSIT",
@@ -57,7 +51,6 @@ function analyzeRebalanceFlow(tokenIn: string, tokenOut: string) {
     };
   }
 
-  // Jika AI menambahkan LP di PancakeSwap V3 Manager
   if (
     inName.includes("PancakeSwap V3 Manager") ||
     outName.includes("PancakeSwap V3 Manager")
@@ -69,7 +62,6 @@ function analyzeRebalanceFlow(tokenIn: string, tokenOut: string) {
     };
   }
 
-  // Default: Swap Biasa
   return {
     actionBadge: "SWAP",
     actionColor: "text-[#f59e0b] border-[#f59e0b]/30 bg-[#f59e0b]/10",
@@ -172,7 +164,6 @@ export function LiveSettlementTable() {
           <thead>
             <tr className="bg-[#141414] text-[#8a8a8a] font-mono text-[10px] uppercase tracking-widest border-b border-[#1f1f1f]">
               <th className="px-6 py-3.5 font-normal w-1/4">Target Vault</th>
-              {/* Berikan penanda lebar khusus agar kolom ini konsisten */}
               <th className="px-6 py-3.5 font-normal w-[400px]">
                 Rebalance Flow
               </th>
@@ -194,7 +185,6 @@ export function LiveSettlementTable() {
               events.map((event) => {
                 const vaultName = getVaultName(event.address);
 
-                // Panggil fungsi logika analisis rute
                 const { actionBadge, actionColor, flowDescription } =
                   analyzeRebalanceFlow(event.tokenIn, event.tokenOut);
 
@@ -217,7 +207,6 @@ export function LiveSettlementTable() {
 
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        {/* Jumlah Nilai Aset - Lebar tetap agar sejajar */}
                         <div className="w-[85px] text-right">
                           <span className="text-[#d5d5d5] font-bold tnum text-[12.5px]">
                             {formatCurrency(
@@ -229,12 +218,10 @@ export function LiveSettlementTable() {
                           </span>
                         </div>
 
-                        {/* Deskripsi Rute Protokol - Lebar tetap agar sejajar dan rata tengah */}
                         <span className="w-[180px] text-center text-[#999] text-[10px] bg-[#1a1a1a] rounded px-2.5 py-1.5 border border-[#262626] whitespace-nowrap overflow-hidden text-ellipsis">
                           {flowDescription}
                         </span>
 
-                        {/* Badge Aksi Spesifik - Lebar tetap agar sejajar dan rata tengah */}
                         <span
                           className={`w-[75px] text-center font-semibold text-[9px] uppercase tracking-wider border rounded px-2 py-1 ${actionColor}`}
                         >

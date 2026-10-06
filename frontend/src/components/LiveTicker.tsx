@@ -11,7 +11,6 @@ const tickerItems = [
 export function LiveTicker() {
   return (
     <div className="relative overflow-hidden border-y border-[#1f1f1f] bg-[#0a0a0a] z-20">
-      {/* SUNTIKAN KEYFRAMES ANIMASI */}
       <style>{`
         @keyframes marquee {
           0% { transform: translateX(0); }

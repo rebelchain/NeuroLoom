@@ -17,27 +17,18 @@ export function SimulationView() {
         </p>
       </div>
 
-      {/* 
-        LAYOUT SUPER LEBAR: 
-        Menggunakan max-w-[1600px] agar Simulator (2 grafik) 
-        dan Chat AI punya ruang napas yang cukup.
-      */}
       <div className="w-full max-w-[1600px] grid grid-cols-1 xl:grid-cols-12 gap-6">
-        {/* KIRI: Simulator (Makan 8 Kolom) */}
         <div className="xl:col-span-8 flex flex-col">
           <DemoVaultRebalanceSimulator />
         </div>
 
-        {/* KANAN: AI Chat Room (Makan 4 Kolom) */}
         <div className="xl:col-span-4 mt-12 flex flex-col h-full">
-          {/* Kita buat Chat-nya mengikuti tinggi Simulator */}
           <div className="sticky top-6">
             <AiTeamChat />
           </div>
         </div>
       </div>
 
-      {/* BAWAH: Terminal Sistem (Full Width) */}
       <div className="w-full max-w-[1600px] mt-8 pb-12">
         <AgentOrchestratorLog />
       </div>

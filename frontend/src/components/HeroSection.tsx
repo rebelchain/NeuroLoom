@@ -23,7 +23,6 @@ export function HeroSection({
   const [pointer, setPointer] = useState({ x: 0, y: 0 });
   const [activeAllocation, setActiveAllocation] = useState(0);
 
-  // Auto-cycle allocation highlight for subtle live feel
   useEffect(() => {
     const timer = setInterval(() => {
       setActiveAllocation((prev) => (prev + 1) % 3);
@@ -31,7 +30,6 @@ export function HeroSection({
     return () => clearInterval(timer);
   }, []);
 
-  // Mouse Parallax & 3D Tilt calculation (inspired by reference motion.tsx)
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     const el = sceneRef.current;
     if (!el) return;
@@ -57,11 +55,7 @@ export function HeroSection({
 
   return (
     <section className="relative w-full max-w-7xl mx-auto px-6 lg:px-8 pt-10 pb-20 lg:pt-16 lg:pb-32 overflow-hidden">
-      {/* 2-Column Asymmetric Grid Layout (Inspired by Reference Hero) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
-        {/* =========================================
-            LEFT COLUMN: Direct Copy & Value Proposition
-           ========================================= */}
         <div className="lg:col-span-7 flex flex-col items-start text-left z-10">
           {/* Eyebrow Badge */}
           <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-white/[0.03] border border-white/[0.08] text-xs font-mono tracking-wider uppercase text-[#c5c5c5] backdrop-blur-md mb-6 hover:border-primary/40 transition-colors">
@@ -86,7 +80,7 @@ export function HeroSection({
               Zero Human{" "}
               <span className="relative inline-block text-white">
                 Bottleneck.
-                {/* Glow Highlighter Stroke under key phrase (inspired by reference .heroLast) */}
+                {/* Glow Highlighter Stroke under key phrase ) */}
                 <span
                   className="absolute left-0 -bottom-1 sm:-bottom-2 w-full h-[6px] sm:h-[8px] rounded-full bg-gradient-to-r from-primary via-primary-light to-transparent opacity-85 -rotate-1 pointer-events-none shadow-[0_0_12px_rgba(139,92,246,0.6)]"
                   aria-hidden="true"
@@ -104,7 +98,7 @@ export function HeroSection({
             zero human intervention.
           </p>
 
-          {/* Dual Action Group (Primary Pill + Secondary Text Link with Arrow) */}
+          {/* Dual Action Group  */}
           <div className="mt-9 flex flex-wrap items-center gap-4 sm:gap-6">
             <button
               onClick={onLaunchDashboard}
@@ -161,7 +155,7 @@ export function HeroSection({
             aria-hidden="true"
           />
 
-          {/* Orbit Geometry & Crosshairs (Reference sceneOrbit & tick-frames) */}
+          {/* Orbit Geometry & Crosshairs  */}
           <svg
             className="absolute inset-0 w-full h-full pointer-events-none opacity-20 text-[#8a8a8a]"
             viewBox="0 0 500 500"
@@ -187,7 +181,6 @@ export function HeroSection({
               strokeDasharray="2 6"
               className="opacity-40"
             />
-            {/* Technical grid tick markers */}
             <path
               d="M40 40v16m-8-8h16M460 40v16m-8-8h16M40 460v16m-8-8h16M460 460v16m-8-8h16"
               stroke="currentColor"
@@ -210,9 +203,9 @@ export function HeroSection({
             </div>
           </div>
 
-          {/* Center Stage: Layered Floating Tilted Cards with Mouse Parallax */}
+          {/*  Layered Floating Tilted Cards with Mouse Parallax */}
           <div className="relative flex-1 my-6 flex flex-col justify-center">
-            {/* CARD 1: AI Agent Execution Node (Tilted -3deg) */}
+            {/*  AI Agent Execution Node  */}
             <div
               className="relative w-[92%] sm:w-[88%] self-start bg-[#141414]/95 border border-white/[0.08] rounded-2xl p-4 sm:p-5 shadow-[0_16px_36px_rgba(0,0,0,0.6)] backdrop-blur-md transition-transform duration-300 ease-out z-10"
               style={{
@@ -254,7 +247,7 @@ export function HeroSection({
               </div>
             </div>
 
-            {/* CARD 2: Execution Receipt & Vault Allocation (Tilted +3deg) */}
+            {/* Execution Receipt & Vault Allocation (Tilted +3deg) */}
             <div
               className="relative w-[94%] sm:w-[90%] self-end -mt-8 bg-[#181818]/95 border border-primary/20 rounded-2xl p-4 sm:p-5 shadow-[0_20px_45px_rgba(0,0,0,0.7)] backdrop-blur-md transition-transform duration-300 ease-out z-20"
               style={{
@@ -330,7 +323,7 @@ export function HeroSection({
             </div>
           </div>
 
-          {/* Stage Bottom Live Telemetry (Reference sceneBottom) */}
+          {/* Stage Bottom Live Telemetry  */}
           <div className="relative z-10 flex items-center justify-between pt-3 border-t border-[#1f1f1f] text-[10px] font-mono text-[#8a8a8a]">
             <div className="flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>

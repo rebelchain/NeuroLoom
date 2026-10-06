@@ -55,7 +55,6 @@ function buildRouteString(
     return `${vaultName}: Withdraw from Venus`;
   }
 
-  // Logika khusus untuk PancakeSwap LP
   if (
     inName.includes("PancakeSwap V3 Manager") ||
     outName.includes("PancakeSwap V3 Manager")
@@ -63,10 +62,8 @@ function buildRouteString(
     return `${vaultName}: LP Management (V3)`;
   }
 
-  // Default Swap Route (Contoh: Vault -> USDT -> WBNB)
   return `${vaultName}: Swap ${inName} → ${outName}`;
 }
-// -----------------------------------------------
 
 function getVaultName(address?: string) {
   if (!address) return "NeuroLoom Vault";

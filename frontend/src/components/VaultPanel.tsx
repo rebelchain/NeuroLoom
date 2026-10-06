@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useState } from "react";
-// Sesuaikan path import useVault ini dengan lokasi file-mu!
 import { useVault } from "../lib/useVault";
 
 interface VaultPanelProps {
@@ -29,7 +28,6 @@ export function VaultPanel({
   const [action, setAction] = useState<"deposit" | "withdraw">("deposit");
   const [amount, setAmount] = useState("");
 
-  // Panggil Custom Hook!
   const {
     isConnected,
     formattedWalletBalance,
@@ -46,7 +44,6 @@ export function VaultPanel({
     needsSharesApproval,
   } = useVault(vaultAddress as `0x${string}`);
 
-  // FIX LINTER: Gunakan setTimeout untuk menghindari cascading renders
   useEffect(() => {
     if (isSuccessDeposit || isSuccessWithdraw) {
       const timer = setTimeout(() => {
@@ -56,7 +53,6 @@ export function VaultPanel({
     }
   }, [isSuccessDeposit, isSuccessWithdraw]);
 
-  // Fungsi untuk mengisi nilai Max dengan aman
   const handleMax = () => {
     setAmount(
       action === "deposit" ? formattedWalletBalance : formattedVaultShares,
@@ -72,7 +68,6 @@ export function VaultPanel({
     }
   };
 
-  // --- LOGIKA TEXT TOMBOL ---
   const isInputEmpty = !amount || Number(amount) <= 0;
   const isExecuting = action === "deposit" ? isDepositing : isWithdrawing;
   const isSuccess = action === "deposit" ? isSuccessDeposit : isSuccessWithdraw;
@@ -96,7 +91,6 @@ export function VaultPanel({
 
   const isButtonDisabled = !isConnected || isInputEmpty || isExecuting;
 
-  // FIX TAMPILAN SALDO:
   const displayBalance =
     action === "deposit" ? formattedWalletBalance : formattedVaultShares;
 
@@ -153,7 +147,6 @@ export function VaultPanel({
             className="text-[#a0a0a0] cursor-pointer hover:text-primary transition-colors border-b border-dashed border-[#555] pb-[1px]"
             onClick={handleMax}
           >
-            {/* FIX: Menampilkan displayBalance mentah tanpa toFixed() untuk mencegah pembulatan ke nol pada nilai kecil */}
             {action === "deposit" ? "Wallet" : "Vault"}: {cleanDisplayBalance}{" "}
             {assetLabel}
           </span>

@@ -85,6 +85,7 @@ function guessProtocolName(tokenOutAddress: string) {
   }
 
   if (
+    (CONFIG.TOKENS?.WBNB && addr === CONFIG.TOKENS.WBNB.toLowerCase()) ||
     (CONFIG.PROTOCOLS?.PANCAKE_ROUTER &&
       addr === CONFIG.PROTOCOLS.PANCAKE_ROUTER.toLowerCase()) ||
     (CONFIG.PROTOCOLS?.PANCAKE_V3_MANAGER &&

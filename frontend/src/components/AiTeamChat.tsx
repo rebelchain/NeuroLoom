@@ -22,6 +22,8 @@ interface ChatMessage {
   isError?: boolean;
 }
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000";
+
 export function AiTeamChat() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -141,7 +143,7 @@ export function AiTeamChat() {
 
     const fetchLogs = async () => {
       try {
-        const response = await fetch("http://localhost:9000/api/ai-logs", {
+        const response = await fetch(`${API_URL}/api/ai-logs`, {
           cache: "no-store",
         });
         if (!response.ok) return;

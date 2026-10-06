@@ -93,9 +93,6 @@ function guessProtocolName(tokenOutAddress: string) {
     return "PancakeSwap V3";
   }
 
-  if (CONFIG.TOKENS?.BTCB && addr === CONFIG.TOKENS.BTCB.toLowerCase()) {
-    return "Radiant Capital";
-  }
   if (CONFIG.TOKENS?.BCSPX && addr === CONFIG.TOKENS.BCSPX.toLowerCase()) {
     return "Backed.fi";
   }

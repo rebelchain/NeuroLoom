@@ -173,21 +173,20 @@ NeuroLoom utilizes a Factory-Proxy architecture to deploy isolated ERC-4626 stan
 | Component | Address / Link (BscScan) |
 | :--- | :--- |
 | **Agent EOA (AI Executor)** | [`0x5f2AC81d58582C16f606d38927120e4676A1e07b`](https://testnet.bscscan.com/address/0x5f2AC81d58582C16f606d38927120e4676A1e07b) |
-| **Vault Factory** | [`0x2d2e967e3114bb32175f4dfcf81cddcfb35bff6b`](https://testnet.bscscan.com/address/0x2d2e967e3114bb32175f4dfcf81cddcfb35bff6b) |
-| **Master Logic (Implementation)** | [`0xee02cc386315d42d4d9ca34acb3967b6b27d92a6`](https://testnet.bscscan.com/address/0xee02cc386315d42d4d9ca34acb3967b6b27d92a6) |
-| **Vault 1: The Yield Farm** (Proxy) | [`0xD00b514048AFC47bFc4DE6a1646D5c63Bd23401a`](https://testnet.bscscan.com/address/0xD00b514048AFC47bFc4DE6a1646D5c63Bd23401a) |
-| **Vault 2: Bluechip Momentum** (Proxy) | [`0xF4be9e83543cc31e93B1a10EAe502B49fe3be92e`](https://testnet.bscscan.com/address/0xF4be9e83543cc31e93B1a10EAe502B49fe3be92e) |
-| **Vault 3: Degen Accumulator** (Proxy) | [`0xc86dB8fBeC6eb19DCF70aC9d34cb159867B36e55`](https://testnet.bscscan.com/address/0xc86dB8fBeC6eb19DCF70aC9d34cb159867B36e55) |
+| **Master Logic (Implementation)** | [`0xe3cfeb620af19f887dbe0ddd410fb3acebc4c0f9`](https://testnet.bscscan.com/address/0xe3cfeb620af19f887dbe0ddd410fb3acebc4c0f9) |
+| **Vault 1: The Yield Farm** (Proxy) | [`0xf25297f1a2d83f738dc32fc5851bdff732c20141`](https://testnet.bscscan.com/address/0xf25297f1a2d83f738dc32fc5851bdff732c20141) |
+| **Vault 2: Bluechip Momentum** (Proxy) | [`0x48d1edfaedd9ebae51abfb4d4d53a624b8411917`](https://testnet.bscscan.com/address/0x48d1edfaedd9ebae51abfb4d4d53a624b8411917) |
+| **Vault 3: Degen Accumulator** (Proxy) | [`0x42de62e19704f591acb71a63f892751dc37f098c`](https://testnet.bscscan.com/address/0x42de62e19704f591acb71a63f892751dc37f098c) |
 
 ### Oracles & Infrastructure
 | Entity | Address / Endpoint |
 | :--- | :--- |
 | **Chainlink BNB/USD Oracle** | `0x2514895c72f50D8bd4B4F9b1110F0D6bD2c97526` |
 | **Chainlink BTC/USD Oracle** | `0x5741306c21795FdCBb9b265Ea0255F499DFe515C` |
-| **Venus Protocol (vUSDT)** | `0xb7526572FFE56AB9D7489838Bf2E18e3323b441A`
-| **PancakeSwap Router (v3)** *(Testnet)* | `0x1b81D678ffb9C0263b24A97847620C99d213eB14` |
-| **Mock Swap Router** *(Hackathon Tesnet)* | `0xf33c30a801720294eba818a143339e487cddf129`
-| **The Graph Subgraph API** | `https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.7` |
+| **Mock Venus (mvUSDT)** | `0x5ee89D4357d71368cF54a0407c64E36500dbc475` |
+| **PancakeSwap SwapRouter (v3)** *(BSC Testnet)* | `0x1b81D678ffb9C0263b24A97847620C99d213eB14` |
+| **NonfungiblePositionManager** *(BSC Tesnet)* | `0x427bF5b37357632377eCbEC9de3626C71A5396c1`
+| **The Graph Subgraph API** | `https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.10` |
 
 ---
 
@@ -198,7 +197,7 @@ NeuroLoom/
 ├── frontend/                        # Next.js App Router (Web3 Dashboard)
 │   ├── public/                      # Static assets & background videos
 │   └── src/
-│       ├── app/                     # Page layouts and Next.js API routes (e.g., ai-logs)
+│       ├── app/                     # Page layouts 
 │       ├── components/              # UI modules (SmartVaultsView, AITerminalView, EventLog)
 │       ├── config/                  # Subgraph & contract address configurations
 │       └── lib/                     # Custom React hooks (useVaultTelemetry) and utilities
@@ -207,10 +206,11 @@ NeuroLoom/
 │   ├── src/
 │       ├── ai/                      # LangChain agents and strategy evaluators
 │       ├── chain/                   # Viem clients and smart contract interactions
-│       ├── data/                    # External data integrations (Binance, TAAPI, DB)
+│       ├── data/                    # External data integrations (TAAPI, DB)
 │       ├── scripts/                 # Core automation (demo_rebalance, demo_unwind, setup)
 │       ├── tools/                   # DeFi execution tools for the AI agent
 │       ├── utils/                   # Helpers including Institutional PDF Generator
+|       ├── test/                    # Swap test, deposit-withdraw venus test, liquidity provision & close LP test
 │       └── server.ts                # Express server entry point
 │   
 │
@@ -219,10 +219,13 @@ NeuroLoom/
 │   │   ├── NeuroLoomVault.sol       # Main ERC-4626 Vault Logic (Implementation)
 │   │   ├── NeuroLoomVaultFactory.sol# Factory for generating ERC1967 Proxies
 │   │   ├── NeuroLoomProxy.sol       # Custom ERC1967 Proxy structure
-│   │   ├── MockRouterV2.sol         # DEX Router simulation for safe local/testnet testing
+│   │   ├── MockVToken.sol           # Venus Mock Token
+|   |   ├── MockOracle.sol           # Mock Oracle
+|   |   ├── MockERC20.sol            # Mock USDT
+|   |   ├── MockBCSPX.sol            # Mock SPYx (S&P 500 xStock)
 │   │   └── MockEcosystem.sol        # Testnet mock tokens (MockWBNB, MockBTCB)
-│   ├── scripts/                     # Deployment scripts (deploy-factory, fund-router)
-│   ├── test/                        # Hardhat unit tests (SecurityGuard, E2ESlippage)
+│   ├── scripts/                     # Deployment scripts 
+│   ├── test/                        # Hardhat unit tests 
 │   └── hardhat.config.ts            # Network configurations (BSC Testnet)
 │
 └── neuroloom-bsc-testnet/           # The Graph (Subgraph Indexer)
@@ -241,13 +244,14 @@ The NeuroLoom ecosystem is built on a modern, high-performance web3 stack, stric
 | Layer | Technologies Used |
 | :--- | :--- |
 | **Smart Contracts** | Solidity `^0.8.28`, Hardhat v3 (Ignition & Viem), OpenZeppelin v5 (ERC-4626 & ERC-1967 Proxies) |
-| **Frontend (Core & UI)** | Next.js 16.3 (App Router), React 19, Tailwind CSS v4, Three.js (WebGL), GSAP, Framer Motion, tsParticles |
+| **Frontend (Core & UI)** | Next.js 16.3 (App Router), React 19, Tailwind CSS v4, Framer Motion, tsParticles |
 | **Frontend (Analytics)** | Lightweight Charts (TradingView UI), jsPDF & html-to-image |
 | **Frontend (Web3 & Data)**| Wagmi v2, Viem, RainbowKit, Apollo Client (GraphQL), TanStack React Query, @x402/evm |
-| **Backend (API & AI Engine)** | Express.js (REST API), Node.js (tsx), TypeScript v7, Viem (Tx Signer), LangChain (`@langchain/core`), TAAPI.io (Quant Market Data), PDFKit PDFKit |
+| **Backend (API & AI Engine)** | Express.js (REST API), Node.js (tsx), TypeScript v7, Viem (Tx Signer), LangChain (`@langchain/core`), TAAPI.io (Quant Market Data), PDFKit |
+| **Backend (Quant Engine)** | Python 3.12, FastAPI, Uvicorn, PyPortfolioOpt, Pandas, NumPy, Pydantic |
 | **AI Model & Memory** | Groq API (openai/gpt-oss-20b) *— Dynamic Orchestrator*, SQLite (Local Agent State) |
 | **On-chain Indexing** | The Graph (Subgraph API for real-time event streaming) |
-| **Infrastructure & Backend Deployment** | Oracle Cloud (Linux VPS), Nginx (Reverse Proxy), DuckDNS (Dynamic DNS), Let's Encrypt (SSL/TLS)|
+| **Infrastructure & Backend Deployment** | Oracle Cloud (Linux VPS), Nginx (Reverse Proxy), DuckDNS (Dynamic DNS), Let's Encrypt (SSL/TLS), Python venv|
 
 ---
 

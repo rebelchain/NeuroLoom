@@ -255,35 +255,106 @@ The NeuroLoom ecosystem is built on a modern, high-performance web3 stack, stric
 
 ---
 
-## Cloud Architecture & Autonomous Execution
+## ☁️ Cloud Architecture & Autonomous Execution
 
-NeuroLoom's architecture cleanly separates the client-facing Web3 UI from the autonomous AI execution engine.
+NeuroLoom's architecture cleanly separates the client-facing Web3 UI from the autonomous AI execution engine, ensuring high performance, security, and scalability.
 
 ### 1. Frontend Dashboard (Vercel)
-The UI is built with Next.js (App Router) and deployed via Vercel.
-- **Environment:** Zero-config. All network configurations and proxy contract addresses are hardcoded constants.
+The UI is built with Next.js 16.3 (App Router) and deployed via Vercel edge networks.
+- **Environment:** Zero-config deployment. All network configurations, Subgraph endpoints, and Smart Contract proxy addresses are securely managed as environment variables or hardcoded constants for seamless integration.
 
-### 2. API Server, PDF Engine & AI Worker (Oracle Cloud)
-To ensure high availability, the Express.js backend and the autonomous AI worker are deployed on an Oracle Cloud Ubuntu VM behind an Nginx reverse proxy with SSL (Let's Encrypt).
-- **Function:** Serves live history data via `/api/history` and dynamically generates Institutional PDF Tear Sheets via `pdfkit`.
-- **Autonomous AI Engine:** The execution script (`autonomous_yield_farm.ts`) is architected for 24/7 continuous tick-by-tick execution. However, for this demo deployment, it is throttled to a **strict 12-hour cron schedule** to accommodate Groq's free-tier API rate limits. It ingests live market data from TAAPI, synthesizes strategies through a multi-agent LangChain/Groq pipeline, and executes real on-chain transactions (BSC Testnet) via Viem.
-- **Ledger:** All AI reasoning, risk evaluation outputs, and on-chain transaction hashes are actively written to `autonomous_ai_logs.json`, providing a real-time, transparent audit trail.
+### 2. Backend Bridge & AI Worker (Oracle Cloud)
+To ensure high availability and continuous execution, the Express.js backend and the autonomous AI workers are deployed on an Oracle Cloud Ubuntu VM behind an Nginx reverse proxy with SSL (Let's Encrypt). 
+
+The Node.js server (`server.ts`) acts as the central nervous system, exposing several critical endpoints:
+- **`POST /api/run-demo-simulation`**: The core execution pipeline for the live demo. It integrates the LangChain Multi-Agent system (Workers + Agent + Risk Evaluator) with the Python Quant Engine (MVO) to formulate and execute simulated on-chain transactions.
+- **`GET /api/history`**: Serves live, real-time trading history and AI memory states to the frontend dashboard.
+- **`POST /api/force-cycle`**: An on-demand trigger mechanism for the Multi-Agent pipeline, allowing manual initialization of specific execution stages (Planning, Execution, Emergency Rescue).
+- **`GET /api/report/pdf`**: A dynamic reporting engine utilizing `pdfkit` to generate institutional-grade PDF Tear Sheets based on the specific vault's JSON journal.
+
+### 3. The Multi-Agent Execution Pipeline
+The core execution script is architected for 24/7 continuous tick-by-tick execution.
+- **Data Ingestion:** Ingests live market data (Price, RSI, MACD) via the TAAPI.io API.
+- **AI Orchestration:** Synthesizes strategies through a **Multi-Model AI Architecture**: 
+  - **Groq API:** Powers the high-speed inference for specialized sub-workers (Yield Strategist & Liquidity Risk Manager).
+  - **Gemini API:** Acts as the core Quant Agent and Risk Officer (Evaluator) to process complex JSON schemas and mathematically validate tool execution.
+- **Quant Optimization:** Communicates with the Python FastAPI microservice (port 8000) to perform Mean-Variance Optimization (MVO) via PyPortfolioOpt.
+- **On-Chain Execution:** Executes mathematically verified, dynamic slippage-adjusted transactions on the BSC Testnet via the `Viem` library.
+
+### 4. Global Logging & Immutable Audit Ledger
+Transparency is a core tenet of NeuroLoom. 
+- **Real-Time Logs:** The system utilizes a centralized push-log mechanism (`POST /api/ai-logs`) that buffers the last 100 internal AI thoughts and system events, which can be streamed to the UI via `GET /api/ai-logs`.
+- **Immutable Ledger:** All AI reasoning, worker reports, Chief Risk Officer (CRO) evaluations, executed prices, and successful on-chain transaction hashes (BSCScan) are actively written to local JSON journal files (e.g., `journal_bluechip-momentum.json`). This provides a real-time, transparent audit trail that powers both the UI and the PDF Generation Engine.
+---
+
+## Reporting & Immutable Audit Ledger
+
+NeuroLoom is designed with transparency and institutional-grade compliance in mind. Every autonomous action is meticulously tracked, logged, and can be rendered into a professional Tear Sheet.
+
+### The Immutable Audit Ledger (`db.ts`)
+The system employs a unified logging mechanism that writes all AI executions to strategy-specific local JSON journals (e.g., `journal_bluechip-momentum.json`). 
+
+Each `TradeRecord` captures:
+- **Execution Metadata:** Timestamp, Action, Route, and Executed Price.
+- **AI Telemetry:** The Quant Agent's hypothesis and reasoning for proposing the trade.
+- **Risk Evaluation:** The Chief Risk Officer's (CRO) verdict and reasoning.
+- **On-chain Proof:** The final confirmed Transaction Hash linked directly to BSCScan.
+
+This journal acts as the central source of truth for both the Frontend UI (`/api/history`) and the PDF Generator.
+
+### Dynamic PDF Tear Sheets (`pdfGenerator.ts`)
+To provide stakeholders with executive summaries, NeuroLoom features an integrated dynamic PDF generation engine using `pdfkit`.
+
+Accessible via `GET /api/report/pdf?vault={vaultId}`, this engine autonomously aggregates the ledger data to construct a comprehensive strategy Tear Sheet on the fly. 
+
+**Key Features of the PDF Generator:**
+- **Dynamic Vault Metadata:** Adapts the title, risk profile, target APY, and current holdings based on the queried vault.
+- **Visual Equity Curves:** Integrates with QuickChart.io to generate real-time, aesthetically pleasing line charts depicting the execution price history of the strategy.
+- **Algorithmic Reasoning Matrix:** Generates a detailed, multi-page audit trail that chronologically displays the AI's internal dialogue, the Risk Officer's feedback, and clickable BSCScan explorer links for the last five executed operations.
+
 ---
 
 ## Getting Started
 
-**Prerequisites:** Node.js 18+ and npm/yarn.
-*Note: NeuroLoom enforces Separation of Duties. You must use two distinct wallets for Admin & AI (or use the same wallet strictly for local Testnet demonstration).*
+**Prerequisites:** 
+- Node.js 18+ and npm/yarn (for Smart Contracts, Backend & Frontend)
+- Python 3.10+ (for the Quant Engine)
+- *Note: NeuroLoom enforces Separation of Duties. You must use two distinct wallets for Admin & AI (or use the same wallet strictly for local Testnet demonstration).*
 
 ### 1. Installation
+
+Clone the repository:
 ```bash
 git clone <repo-url>
 cd NeuroLoom
+```
 
-# Install dependencies across all workspaces
+#### Step 1A: Setup Node.js Workspaces
+Install the JavaScript/TypeScript dependencies across all primary workspaces:
+
+```Bash
 cd contracts && npm install
-cd backend && npm install
-cd frontend && npm install
+cd ../backend && npm install
+cd ../frontend && npm install
+cd ..
+```
+#### Step 1B: Setup Python Quant Engine
+NeuroLoom utilizes a dedicated Python microservice for heavy Mean-Variance Optimization mathematics. It is highly recommended to use a Virtual Environment (venv).
+
+```Bash
+cd quant-engine
+
+# Create a virtual environment
+python -m venv venv
+
+# Activate the virtual environment
+# On macOS/Linux:
+source venv/bin/activate
+# On Windows:
+# venv\Scripts\activate
+
+# Install the required data science packages
+pip install -r requirements.txt
 ```
 
 ### 2. Environment Variables
@@ -293,9 +364,13 @@ Create a `.env` file in both `/contracts` and `/backend` directories.
 | **Variable** | **Location** | **Required** | **Purpose** |
 | --- | --- | --- | --- |
 | `PRIVATE_KEY` | `/contracts/.env` | Yes | Admin Deployer Wallet for proxy upgrades & whitelisting. |
+| `BSCSCAN_API_KEY` | `/contracts/.env` | Yes | Required for Hardhat to verify Smart Contract source code on BSCScan. |
 | `AI_PRIVATE_KEY` | `/backend/.env` | Yes | AI Executor Wallet for signing live omnichain trades. |
-| `GROQ_API_KEY` | `/backend/.env` | Yes | LLM Engine inference capability. |
-| `MOCK_SCENARIO` | `/backend/.env` | No | Set to `"DEMO"` for micro-transactions. |
+| `CYCLE_INTERVAL_MINUTES` | `/backend/.env` | Yes | Defines the time gap between autonomous AI execution cycles. |
+| `TAAPI_API_KEY` | `/backend/.env` | Yes | Authentic API key for pulling real-time quantitative market data. |
+| `GROQ_API_KEY_1`, `2`, `3` | `/backend/.env` | Yes | LLM Engine inference capability. Supports API rotation. |
+| `GEMINI_API_KEY_1`, `2`, `3`| `/backend/.env` | Yes | Secondary LLM Engine used for the CRO Evaluator agent. Supports API rotation. |
+| `MOCK_SCENARIO` | `/backend/.env` | No | Set to `"PRODUCTION"` for real on-chain execution. |
 
 ### 3. Quick Start Commands
 
@@ -303,11 +378,50 @@ Run these core services from their respective directories in separate terminal w
 
 | **Service** | **Command** | **Description** |
 | :--- | :--- | :--- |
-| **Smart Contracts** | `npx hardhat test test/NeuroLoomVault.test.ts` | [Security & Threat Mitigation](#security--threat-mitigation) test |
-| **API & PDF Server** | `npx tsx src/server.ts` | Boots the Express backend (Port 4000) for PDF rendering and history logs. |
-| **AI Orchestrator** | `npx tsx src/index.ts` | Boots the autonomous LangChain Harness (requires Groq key). |
+| **Smart Contracts** | `npx hardhat test test/NeuroLoomVault.test.ts` | Runs the local test suite for Security & Threat Mitigation. |
+| **API & PDF Server** | `npx tsx src/server.ts` | Boots the Express backend (Port 9000) for the API, AI execution, and PDF rendering. |
 | **Frontend UI** | `npm run dev` | Launches the Next.js Web3 Dashboard at `http://localhost:7000`. |
+| **Quant Engine** | `uvicorn main:app --reload --port 8000` | Starts the Python FastAPI microservice for MVO mathematics. |
 
+### 4. Triggering the Live AI Demo
+
+NeuroLoom is designed to run autonomously, but for Hackathon demonstrations, we provide two direct ways to interact with the execution pipeline:
+
+#### Method A: One-Click via Frontend Dashboard (Primary)
+Once all four core services are running, navigate to `http://localhost:7000`. Click Demo Simulation on Dashboard page. You can click "play" on "Agentic Backtest: -18% Flash Crash Simulation" component. 
+
+This triggers the `POST /api/run-demo-simulation` endpoint, executing the full end-to-end multi-agent pipeline in a single flow:
+1. Orchestrator analyzes the market and dispatches specialized workers.
+2. System fetches re-calibrated optimal weights from the Python Quant Engine (MVO).
+3. The Quant Agent drafts a transaction, which is evaluated and approved by the Chief Risk Officer.
+4. The verified on-chain transaction (e.g., PancakeSwap swap or LP provision) is executed on the BSC Testnet.
+
+#### Method B: Manual Stage-by-Stage via Terminal (Advanced Demo)
+If you wish to demonstrate the specific algorithmic stages individually (Planning, Execution, Emergency Rescue) bypassing the UI, open a new terminal and use these `curl` commands to hit the `/api/force-cycle` endpoint:
+
+**Stage 1: Mathematical Planning**
+*Forces the AI to analyze the market and calculate mathematically safe Liquidity Provision parameters.*
+```bash
+curl -X POST http://localhost:9000/api/force-cycle \
+-H "Content-Type: application/json" \
+-d '{"stage": 1}'
+```
+
+**Stage 2: On-Chain Execution**
+*The AI reads the Stage 1 parameters from its memory and executes the transaction.*
+```bash
+curl -X POST http://localhost:9000/api/force-cycle \
+-H "Content-Type: application/json" \
+-d '{"stage": 2}'
+```
+**Stage 3: Emergency Rescue (Risk Mitigation)**
+*Simulates a Flash Crash. The Chief Risk Officer (CRO) agent will override standard protocols and execute an emergency LP withdrawal.*
+```bash
+curl -X POST http://localhost:9000/api/force-cycle \
+-H "Content-Type: application/json" \
+-d '{"stage": 3}'
+```
+---
 ### Security & Threat Mitigation
 
 | **Threat** | **Applied Mitigation** | **Status** |

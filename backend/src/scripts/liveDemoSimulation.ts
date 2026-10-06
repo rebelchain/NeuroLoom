@@ -31,10 +31,12 @@ function generateSimulatedPriceHistory(days: number = 30) {
   let wbnb = 500;
   let btcb = 60000;
   for (let i = 0; i < days; i++) {
-    wbnb = wbnb * (1 + (Math.random() * 0.05 - 0.025));
-    btcb = btcb * (1 + (Math.random() * 0.03 - 0.015));
+    wbnb = wbnb * (1 + (Math.random() * 0.05 - 0.015));
+    btcb = btcb * (1 + (Math.random() * 0.03 - 0.01));
+
     history.WBNB.push(Number(wbnb.toFixed(2)));
     history.BTCB.push(Number(btcb.toFixed(2)));
+
     const usdtNoise = 1.0 + (Math.random() * 0.002 - 0.001);
     history.USDT.push(Number(usdtNoise.toFixed(4)));
   }
@@ -96,15 +98,36 @@ router.post("/run-demo-simulation", async (req, res) => {
     await pushLog(
       `[QUANT] Requesting Mean-Variance Optimization from Engine (Port 8000)...`,
     );
-    const pyResponse = await fetch("http://localhost:8000/api/optimize", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prices: mockPrices }),
-    });
 
-    if (!pyResponse.ok)
-      throw new Error(`Quant Engine Error: ${pyResponse.statusText}`);
-    const mvoResult = await pyResponse.json();
+    let mvoResult = null;
+    let pyResponse = null;
+    const MAX_RETRIES = 3;
+
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      const mockPrices = generateSimulatedPriceHistory(30);
+
+      pyResponse = await fetch("http://localhost:8000/api/optimize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prices: mockPrices }),
+      });
+
+      if (pyResponse.ok) {
+        mvoResult = await pyResponse.json();
+        break;
+      }
+
+      await pushLog(
+        `[QUANT WARNING] MVO Optimization failed mathematically. Regenerating timeline (Attempt ${attempt}/${MAX_RETRIES})...`,
+      );
+    }
+
+    if (!mvoResult) {
+      throw new Error(
+        `Quant Engine Error: Failed to find convex optimization after ${MAX_RETRIES} attempts. Status: ${pyResponse?.status}`,
+      );
+    }
+
     const newWbnbTarget = (mvoResult.data.weights.WBNB * 100).toFixed(1);
 
     await pushLog(`[QUANT] Mathematical Allocation Targets Re-calibrated.`);

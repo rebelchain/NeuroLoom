@@ -537,6 +537,10 @@ function Side({
     }
   }
 
+  const vusdtRounded = Math.round(state.vusdtPct);
+  const wbnbRounded = Math.round(state.wbnbPct);
+  const bcspxRounded = 100 - vusdtRounded - wbnbRounded;
+
   return (
     <section className="rounded-2xl bg-[#121212] border border-[#1f1f1f] p-5 sm:p-6 flex flex-col gap-4 shadow-[0_16px_40px_rgba(0,0,0,0.5)]">
       <div className="flex items-start justify-between gap-3">
@@ -616,17 +620,17 @@ function Side({
           <div
             className="h-full transition-all duration-300"
             style={{ width: `${state.vusdtPct}%`, background: "#4a84e6" }}
-            title={`vUSDT ${state.vusdtPct.toFixed(0)}%`}
+            title={`vUSDT ${vusdtRounded}%`}
           />
           <div
             className="h-full transition-all duration-300"
             style={{ width: `${state.wbnbPct}%`, background: "#ffd75f" }}
-            title={`WBNB ${state.wbnbPct.toFixed(0)}%`}
+            title={`WBNB ${wbnbRounded}%`}
           />
           <div
             className="h-full transition-all duration-300"
             style={{ width: `${state.bcspxPct}%`, background: "#8b5cf6" }}
-            title={`bCSPX ${state.bcspxPct.toFixed(0)}%`}
+            title={`bCSPX ${bcspxRounded}%`}
           />
         </div>
         <div className="flex items-center gap-4 mt-2 text-[10px] font-mono text-[#8a8a8a]">

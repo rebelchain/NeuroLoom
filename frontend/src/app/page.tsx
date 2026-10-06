@@ -663,7 +663,7 @@ export default function NeuroLoomApp() {
                       <div className="text-[10px] font-mono text-[#8a8a8a] mb-6 flex items-center justify-between">
                         <span>Target Weights:</span>
                         <span className="text-primary font-semibold">
-                          40% vUSDT | 30% WBNB | 30% bCSPX
+                          40% vUSDT | 30% WBNB | 30% SPYx
                         </span>
                       </div>
 

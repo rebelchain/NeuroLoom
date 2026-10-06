@@ -136,7 +136,6 @@ export function HeroSection({
 
         {/* =========================================
             RIGHT COLUMN: The Protocol Scene Stage
-            (Inspired by Reference AgentScene & motion.tsx)
            ========================================= */}
         <div
           ref={sceneRef}
@@ -272,21 +271,21 @@ export function HeroSection({
               <div className="mt-3 flex flex-col gap-2">
                 {[
                   {
-                    name: "PancakeSwap V3",
+                    name: "The Yield Farm",
                     pair: "USDT / USDC LP",
-                    apy: "19.8% APY",
+                    apy: "14.5% APY",
                     state: "Active",
                   },
                   {
-                    name: "Venus Protocol",
-                    pair: "vUSDT Supply",
-                    apy: "13.4% APY",
+                    name: "Bluechip Momentum",
+                    pair: "3 Assets",
+                    apy: "22.4% APY",
                     state: "Allocated",
                   },
                   {
-                    name: "Backed.fi (SPYx)",
-                    pair: "S&P 500 xStock",
-                    apy: "11.2% APY",
+                    name: "Degen Accumulator",
+                    pair: "narrative based",
+                    apy: "38.2% APY",
                     state: "Routed RWA",
                   },
                 ].map((item, idx) => (
@@ -318,7 +317,7 @@ export function HeroSection({
               {/* Card Footer Note */}
               <div className="mt-3.5 pt-2 border-t border-dashed border-[#262626] flex items-center justify-between text-[10px] font-mono text-[#8a8a8a]">
                 <span>Automated Yield Optimization</span>
-                <span className="text-[#f5f5f5]">Net Projected: +21.8%</span>
+                <span className="text-[#f5f5f5]">Net Projected: +25.03%</span>
               </div>
             </div>
           </div>

@@ -453,7 +453,7 @@ To transition this architecture into a production-ready Mainnet environment, the
 - *Production Target:* Migrate to KMS-backed signing (AWS KMS / HashiCorp Vault). The raw private key must never exist in plaintext or process memory during autonomous execution.
 
 **AI Memory & Long-Term Execution Learning**
-- *Current Prototype:* The system uses a local JSON ledger (`autonomous_ai_logs.json`) for short-term memory, and the Evaluator agent provides immediate, intra-cycle self-correction.
+- *Current Prototype:* The system uses a local JSON ledger (`journal_bluechip-momentum.json`) for short-term memory, and the Evaluator agent provides immediate, intra-cycle self-correction.
 - *Production Target:* Migrate to a distributed PostgreSQL/Vector database. This enables semantic retrieval of past failures, allowing the AI to dynamically learn from long-term on-chain rejections (e.g., automatically widening its baseline slippage tolerance if the last 30 days of transactions reverted due to liquidity crunches).
 
 **Oracle Feed Diversity & Redundancy**

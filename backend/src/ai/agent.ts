@@ -7,7 +7,7 @@ import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { CONFIG } from "../config.js";
 import { getActiveGeminiKey, rotateGeminiKey } from "../utils/apiRotator.js";
 import { getAdaptiveContext } from "../utils/memoryMiddleware.js";
-import { pushLog } from "../utils/push-log.js"; // <-- TAMBAHKAN INI
+import { pushLog } from "../utils/push-log.js"; 
 
 export function extractXML(text: string, tag: string): string {
   const regex = new RegExp(`<${tag}>([\\s\\S]*?)</${tag}>`, "i");
@@ -20,7 +20,7 @@ export interface ToolDraft {
   args: any;
 }
 
-// FUNGSI HELPERRETRY & ROTASI GEMINI
+
 async function invokeGeminiWithRetry(
   messages: BaseMessage[],
   maxRetries = 2,
@@ -55,7 +55,6 @@ async function invokeGeminiWithRetry(
   }
 }
 
-// FUNGSI UTAMA AGENT
 export async function generateDecision(
   marketData: any,
   vaultState: any,
@@ -107,7 +106,6 @@ Example for HOLDING:
   }
 
   try {
-    // === TAMPILKAN LOG BAHWA AGENT SEDANG BERPIKIR ===
     await pushLog(
       "[AGENT] Typing reasoning and calculating math based on context...",
     );
@@ -146,9 +144,9 @@ Example for HOLDING:
     let thoughts = extractXML(rawContent, "thoughts");
     const responseJsonString = extractXML(rawContent, "response");
 
-    // if (thoughts) {
-    //   await pushLog(`[AGENT THOUGHTS]:\n"${thoughts}"`);
-    // }
+    if (thoughts) {
+      await pushLog(`[AGENT THOUGHTS]:\n"${thoughts}"`);
+    }
 
     if (!responseJsonString) {
       const isHolding =

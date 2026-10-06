@@ -77,20 +77,29 @@ function guessProtocolName(tokenOutAddress: string) {
 
   const addr = tokenOutAddress.toLowerCase();
 
-  if (addr === CONFIG.PROTOCOLS.VENUS_VUSDT.toLowerCase()) {
+  if (
+    CONFIG.PROTOCOLS?.VENUS_VUSDT &&
+    addr === CONFIG.PROTOCOLS.VENUS_VUSDT.toLowerCase()
+  ) {
     return "Venus Protocol";
   }
-  if (addr === CONFIG.TOKENS.WBNB.toLowerCase()) {
+
+  if (
+    (CONFIG.PROTOCOLS?.PANCAKE_ROUTER &&
+      addr === CONFIG.PROTOCOLS.PANCAKE_ROUTER.toLowerCase()) ||
+    (CONFIG.PROTOCOLS?.PANCAKE_V3_MANAGER &&
+      addr === CONFIG.PROTOCOLS.PANCAKE_V3_MANAGER.toLowerCase())
+  ) {
     return "PancakeSwap V3";
   }
 
-  if (addr === CONFIG.TOKENS.BTCB.toLowerCase()) {
+  if (CONFIG.TOKENS?.BTCB && addr === CONFIG.TOKENS.BTCB.toLowerCase()) {
     return "Radiant Capital";
   }
-
-  if (addr === CONFIG.TOKENS.BCSPX.toLowerCase()) {
+  if (CONFIG.TOKENS?.BCSPX && addr === CONFIG.TOKENS.BCSPX.toLowerCase()) {
     return "Backed.fi";
   }
+
   return "Unknown Protocol";
 }
 

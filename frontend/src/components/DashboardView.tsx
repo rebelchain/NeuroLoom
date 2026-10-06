@@ -15,6 +15,17 @@ import { GRAPHQL_ENDPOINT } from "../config/config";
 import { EventLog } from "./EventLog";
 import { KPICard } from "./KPICard";
 import { PageHero } from "./PageHero";
+import { CONFIG } from "../config/config";
+
+const erc20ABI = [
+  {
+    inputs: [{ internalType: "address", name: "account", type: "address" }],
+    name: "balanceOf",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+] as const;
 
 const vaultABI = [
   {
@@ -26,35 +37,52 @@ const vaultABI = [
   },
 ] as const;
 
+const USDT_TESTNET = CONFIG.TOKENS.USDT as `0x${string}`;
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000";
 
 export function DashboardView() {
   const [totalRebalances, setTotalRebalances] = useState(0);
   const [isPrinting, setIsPrinting] = useState(false);
 
-  const { data: totalAssetsData, isLoading: isTvlLoading } = useReadContracts({
-    contracts: ACTIVE_VAULTS.map((address) => ({
-      address: address as `0x${string}`,
-      abi: vaultABI,
-      functionName: "totalAssets",
-    })),
+  const { data: onChainData, isLoading: isTvlLoading } = useReadContracts({
+    contracts: [
+      ...ACTIVE_VAULTS.map((address) => ({
+        address: address as `0x${string}`,
+        abi: vaultABI,
+        functionName: "totalAssets",
+      })),
+      ...ACTIVE_VAULTS.map((address) => ({
+        address: USDT_TESTNET,
+        abi: erc20ABI,
+        functionName: "balanceOf",
+        args: [address as `0x${string}`],
+      })),
+    ],
     query: { refetchInterval: 10000 },
   });
 
-  const tvlYieldFarm = totalAssetsData?.[0]?.result
-    ? Number(totalAssetsData[0].result) / 1e18
+  const tvlYieldFarm = onChainData?.[0]?.result
+    ? Number(onChainData[0].result) / 1e18
     : 0;
-  const tvlBluechip = totalAssetsData?.[1]?.result
-    ? Number(totalAssetsData[1].result) / 1e18
+  const tvlBluechip = onChainData?.[1]?.result
+    ? Number(onChainData[1].result) / 1e18
     : 0;
-  const tvlDegen = totalAssetsData?.[2]?.result
-    ? Number(totalAssetsData[2].result) / 1e18
+  const tvlDegen = onChainData?.[2]?.result
+    ? Number(onChainData[2].result) / 1e18
     : 0;
 
   const realTVL = tvlYieldFarm + tvlBluechip + tvlDegen;
-  const availableYieldFarm = tvlYieldFarm * 0.1;
-  const availableBluechip = tvlBluechip * 0.1;
-  const availableDegen = tvlDegen * 0.15;
+
+  const availableYieldFarm = onChainData?.[3]?.result
+    ? Number(onChainData[3].result) / 1e18
+    : 0;
+  const availableBluechip = onChainData?.[4]?.result
+    ? Number(onChainData[4].result) / 1e18
+    : 0;
+  const availableDegen = onChainData?.[5]?.result
+    ? Number(onChainData[5].result) / 1e18
+    : 0;
+
   const trueAvailableLiquidity =
     availableYieldFarm + availableBluechip + availableDegen;
 
@@ -70,10 +98,6 @@ export function DashboardView() {
 
   const handleDownloadPDF = () => {
     setIsPrinting(true);
-    // window.open(
-    //   "https://neuroloom-api.duckdns.org/api/report/pdf?vault=global",
-    //   "_blank",
-    // );
     window.open(`${API_URL}/api/report/pdf?vault=global`, "_blank");
     setTimeout(() => {
       setIsPrinting(false);
@@ -107,7 +131,7 @@ export function DashboardView() {
     }
 
     fetchRebalanceCount();
-    const interval = setInterval(fetchRebalanceCount, 15000);
+    const interval = setInterval(fetchRebalanceCount, 120000);
     return () => {
       isMounted = false;
       clearInterval(interval);

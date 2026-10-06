@@ -377,7 +377,7 @@ export function SmartVaultsView() {
     }
 
     fetchAllVaultAllocations();
-    const interval = setInterval(fetchAllVaultAllocations, 10000);
+    const interval = setInterval(fetchAllVaultAllocations, 60000);
     return () => {
       isMounted = false;
       clearInterval(interval);

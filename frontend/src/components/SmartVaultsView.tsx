@@ -145,16 +145,11 @@ function VaultCard({
     }
   };
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000";
+
   const handleDownloadProof = () => {
     setIsDownloading(true);
-    // window.open(
-    //   `https://neuroloom-api.duckdns.org/api/report/pdf?vault=${vault.id}`,
-    //   "_blank",
-    // );
-    window.open(
-      `http://localhost:9000/api/report/pdf?vault=${vault.id}`,
-      "_blank",
-    );
+    window.open(`${API_URL}/api/report/pdf?vault=${vault.id}`, "_blank");
     setTimeout(() => setIsDownloading(false), 2000);
   };
 

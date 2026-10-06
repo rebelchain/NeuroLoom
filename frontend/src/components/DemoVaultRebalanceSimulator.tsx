@@ -682,6 +682,8 @@ const tickColor = (kind: SimEvent["kind"]) => {
 
 const SPEEDS = [30, 60, 120] as const;
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000";
+
 export function DemoVaultRebalanceSimulator() {
   const [t, setT] = useState(0);
   const [playing, setPlaying] = useState(false);
@@ -703,16 +705,13 @@ export function DemoVaultRebalanceSimulator() {
 
     try {
       console.log("Memicu Live Simulation API...");
-      const response = await fetch(
-        "http://localhost:9000/api/run-demo-simulation",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ trigger: "UI_SIMULATOR" }),
+      const response = await fetch(`${API_URL}/api/run-demo-simulation`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      );
+        body: JSON.stringify({ trigger: "UI_SIMULATOR" }),
+      });
 
       if (!response.ok) {
         const errorText = await response.text();

@@ -26,6 +26,8 @@ const vaultABI = [
   },
 ] as const;
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000";
+
 export function DashboardView() {
   const [totalRebalances, setTotalRebalances] = useState(0);
   const [isPrinting, setIsPrinting] = useState(false);
@@ -72,7 +74,7 @@ export function DashboardView() {
     //   "https://neuroloom-api.duckdns.org/api/report/pdf?vault=global",
     //   "_blank",
     // );
-    window.open("http://localhost:9000/api/report/pdf?vault=global", "_blank");
+    window.open(`${API_URL}/api/report/pdf?vault=global`, "_blank");
     setTimeout(() => {
       setIsPrinting(false);
     }, 2000);

@@ -3,6 +3,8 @@
 import { TerminalSquare } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000";
+
 export function AgentOrchestratorLog() {
   const [visibleLogs, setVisibleLogs] = useState<string[]>([]);
   const [wibTime, setWibTime] = useState<string>("");
@@ -26,7 +28,7 @@ export function AgentOrchestratorLog() {
     let isMounted = true;
     const fetchLogs = async () => {
       try {
-        const response = await fetch("http://localhost:9000/api/ai-logs", {
+        const response = await fetch(`${API_URL}/api/ai-logs`, {
           cache: "no-store",
         });
 
@@ -80,7 +82,7 @@ export function AgentOrchestratorLog() {
 
   const clearLogs = async () => {
     try {
-      const response = await fetch("http://localhost:9000/api/ai-logs", {
+      const response = await fetch(`${API_URL}/api/ai-logs`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "clear" }),

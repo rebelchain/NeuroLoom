@@ -68,16 +68,15 @@ export async function neuroLoomCycle(demoConfig?: {
     const realTestnetPrice = 792.5;
     market.price = realTestnetPrice;
 
-  
     const wbnbAmount = 0.01;
-    const usdtAmount = wbnbAmount * realTestnetPrice; 
+    const usdtAmount = wbnbAmount * realTestnetPrice;
     const usdtAmountWei = BigInt(Math.floor(usdtAmount * 1e18)).toString();
 
     // DEMO DAY INJECTION
     if (demoConfig?.forceCrash) {
       console.log("\n🚨 [DEMO OVERRIDE] MENGINJEKSI KRISIS PASAR BUATAN...");
       market.price = market.price * 0.5;
-      market.rsi = 15; 
+      market.rsi = 15;
     }
 
     let bluechipHealth = await checkVaultPosition(
@@ -92,7 +91,7 @@ export async function neuroLoomCycle(demoConfig?: {
     if (demoConfig?.forceCrash) {
       bluechipHealth = "OUT_OF_RANGE" as any;
       degenHealth = "OUT_OF_RANGE" as any;
-      console.log("🚨 [DEMO OVERRIDE] SENSOR POSISI DIPAKSA: OUT_OF_RANGE");
+      console.log("[DEMO OVERRIDE] SENSOR POSISI DIPAKSA: OUT_OF_RANGE");
     }
 
     const memories = await getRecentMemories(3);
@@ -288,12 +287,12 @@ IMPORTANT RULE: You MUST output EXACTLY this JSON schema for your 'args':
           actionLabel = "EMERGENCY_CLOSE_LP (STAGE 3)";
 
         await logAIDecision(
-          dynamicVaultId, 
-          actionLabel, 
-          market.price, 
+          dynamicVaultId,
+          actionLabel,
+          market.price,
           market.rsi,
-          `${finalThoughts}\n\n[CRO]: ${finalEvaluationFeedback}`, 
-          typeof txHash === "string" && txHash.includes("0x") ? txHash : "", 
+          `${finalThoughts}\n\n[CRO]: ${finalEvaluationFeedback}`,
+          typeof txHash === "string" && txHash.includes("0x") ? txHash : "",
           targetVaultAddress,
         );
         console.log(

@@ -45,7 +45,6 @@ Provide a concise strategic report highlighting EXACT NUMBERS in decimals:
     const aiMessage = await llmWithTools.invoke(messages);
     messages.push(aiMessage);
 
-    // TANGKAP REASONING AWAL (Bahkan jika kosong, kita berikan fallback)
     const initialThoughts = aiMessage.content?.toString().trim();
     if (initialThoughts) {
       await pushLog(` [YIELD STRATEGIST REASONING]:\n"${initialThoughts}"`);
@@ -84,7 +83,6 @@ Provide a concise strategic report highlighting EXACT NUMBERS in decimals:
 
       await pushLog("[WORKER] Synthesizing yield data into final report...");
 
-      // PAKSA LLM UNTUK MENJAWAB SETELAH TOOLS
       messages.push(
         new HumanMessage(
           "Now that you have the tool data, generate your final strategic report based ONLY on the data fetched.",

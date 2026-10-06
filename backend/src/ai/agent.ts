@@ -20,9 +20,7 @@ export interface ToolDraft {
   args: any;
 }
 
-// ============================================================================
-// FUNGSI HELPER UNTUK RETRY & ROTASI GEMINI
-// ============================================================================
+// FUNGSI HELPERRETRY & ROTASI GEMINI
 async function invokeGeminiWithRetry(
   messages: BaseMessage[],
   maxRetries = 2,
@@ -57,9 +55,7 @@ async function invokeGeminiWithRetry(
   }
 }
 
-// ============================================================================
 // FUNGSI UTAMA AGENT
-// ============================================================================
 export async function generateDecision(
   marketData: any,
   vaultState: any,
@@ -150,9 +146,8 @@ Example for HOLDING:
     let thoughts = extractXML(rawContent, "thoughts");
     const responseJsonString = extractXML(rawContent, "response");
 
-    // === TAMPILKAN HASIL PEMIKIRAN AGENT SECARA LANGSUNG ===
     // if (thoughts) {
-    //   await pushLog(`💡 [AGENT THOUGHTS]:\n"${thoughts}"`);
+    //   await pushLog(`[AGENT THOUGHTS]:\n"${thoughts}"`);
     // }
 
     if (!responseJsonString) {

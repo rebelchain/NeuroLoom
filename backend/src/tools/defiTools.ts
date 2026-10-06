@@ -197,7 +197,6 @@ export const executePancakeSwap = tool(
       expectedAmountOut = (amountIn * currentPrice) / 100000000n;
     }
 
-    // DYNAMIC SLIPPAGE FROM AI
     const slippageMultiplier = 10000n - BigInt(slippageBps);
     const amountOutMin = (expectedAmountOut * slippageMultiplier) / 10000n;
     const deadline = BigInt(Math.floor(Date.now() / 1000) + 600);
@@ -367,12 +366,10 @@ export const provideLiquidityV3 = tool(
     tickUpper,
     amount0DesiredWei,
     amount1DesiredWei,
-    amount0Desired, // Tambahkan parameter fallback (opsional)
-    amount1Desired, // Tambahkan parameter fallback (opsional)
+    amount0Desired,
+    amount1Desired,
     slippageBps,
   }) => {
-    // 🛠️️ FALLBACK LOGIC 🛠️
-    // Jika AI mengirim "amount0Desired" (tanpa Wei) alih-alih "amount0DesiredWei", gunakan nilai tersebut.
     const finalAmount0Wei = BigInt(amount0DesiredWei || amount0Desired || "0");
     const finalAmount1Wei = BigInt(amount1DesiredWei || amount1Desired || "0");
 

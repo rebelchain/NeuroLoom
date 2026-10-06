@@ -45,7 +45,6 @@ You MUST output your final report with this specific quantitative metric:
     const aiMessage = await llmWithTools.invoke(messages);
     messages.push(aiMessage);
 
-    // TANGKAP REASONING AWAL (Bahkan jika kosong)
     const initialThoughts = aiMessage.content?.toString().trim();
     if (initialThoughts) {
       await pushLog(` [LIQUIDITY MANAGER REASONING]:\n"${initialThoughts}"`);
@@ -79,7 +78,6 @@ You MUST output your final report with this specific quantitative metric:
 
       await pushLog("[WORKER] ✍️ Formulating risk clearance report...");
 
-      // PAKSA LLM UNTUK MENJAWAB SETELAH TOOLS
       messages.push(
         new HumanMessage(
           "Now that you have the tool data, generate your final risk clearance report based ONLY on the data fetched.",

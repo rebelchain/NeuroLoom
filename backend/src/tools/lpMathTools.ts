@@ -50,17 +50,15 @@ export const calculateV3LpParams = tool(
 
     const baseTickSpread = Math.floor(atrVolatilityPercent * 100);
 
- 
     let lowerSpread = baseTickSpread;
     let upperSpread = baseTickSpread;
 
     if (marketDirection === "BULLISH") {
-    
       lowerSpread = Math.floor(baseTickSpread * 0.2);
-      upperSpread = Math.floor(baseTickSpread * 2.0); 
+      upperSpread = Math.floor(baseTickSpread * 2.0);
     } else if (marketDirection === "BEARISH") {
-      lowerSpread = Math.floor(baseTickSpread * 2.0); 
-      upperSpread = Math.floor(baseTickSpread * 0.2); 
+      lowerSpread = Math.floor(baseTickSpread * 2.0);
+      upperSpread = Math.floor(baseTickSpread * 0.2);
     }
 
     const TICK_SPACING = 50;

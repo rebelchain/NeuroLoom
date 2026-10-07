@@ -184,6 +184,7 @@ NeuroLoom utilizes a Factory-Proxy architecture to deploy isolated ERC-4626 stan
 | **Chainlink BNB/USD Oracle** | `0x2514895c72f50D8bd4B4F9b1110F0D6bD2c97526` |
 | **Chainlink BTC/USD Oracle** | `0x5741306c21795FdCBb9b265Ea0255F499DFe515C` |
 | **Mock Venus (mvUSDT)** | `0x5ee89D4357d71368cF54a0407c64E36500dbc475` |
+| **Mock bcSPX (SPYx Mock)** | `0xe2e0f08d4fe0ed7c737353cf03404bf153a0938a` |
 | **PancakeSwap SwapRouter (v3)** *(BSC Testnet)* | `0x1b81D678ffb9C0263b24A97847620C99d213eB14` |
 | **NonfungiblePositionManager** *(BSC Tesnet)* | `0x427bF5b37357632377eCbEC9de3626C71A5396c1`
 | **The Graph Subgraph API** | `https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.10` |

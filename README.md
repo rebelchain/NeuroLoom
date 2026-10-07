@@ -158,7 +158,7 @@ The core infrastructure of NeuroLoom utilizes a scalable Factory Pattern. The `N
 ## System Flow
 
 <div align="center">
-  <img src="frontend/public/system-flow.png" width="100%" alt="NEUROLOOM — System Flow" />
+  <img src="frontend/public/system-flow-2.png" width="100%" alt="NEUROLOOM — System Flow" />
 </div>
 
 ---

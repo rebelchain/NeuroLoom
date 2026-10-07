@@ -7,7 +7,7 @@
 
 > **Autonomous AI-Driven DeFi Yield Optimizer**
 
-NeuroLoom is a fully autonomous DeFi protocol that fuses multi-agent AI workflows with deterministic on-chain execution. It empowers an AI engine to analyze market conditions and dynamically route capital, via tactical asset swaps, secure lending, and active concentrated liquidity provision (PancakeSwap V3 NFTs) 24/7 across the BNB Chain ecosystem. To guarantee absolute security, strict smart contract guardrails, including a hard-capped 20% velocity allocation limit, real-time Chainlink oracle validation, and ERC-4626 inflation overrides—protect the Total Value Locked from MEV bots, vault exploits, and AI hallucinations.
+NeuroLoom is a fully autonomous DeFi protocol that fuses multi-agent AI workflows with deterministic on-chain execution. It empowers an AI engine to analyze market conditions and dynamically route capital across the BNB Chain ecosystem 24/7—utilizing tactical asset swaps, secure lending, active concentrated liquidity provision (PancakeSwap V3 NFTs), and strategic exposure to tokenized Real-World Assets (RWAs). To guarantee absolute security, strict smart contract guardrails—including a hard-capped 20% velocity allocation limit, real-time Chainlink oracle validation, and ERC-4626 inflation overrides, protect the Total Value Locked from MEV bots, vault exploits, and AI hallucinations.
 
 Built for the **Indonesia Web3 Hackathon 2026**. **BNB Chain**.
 Link: https://indonesiaweb3hack.xyz/en/projects/proj_231bfb01edfeb05edc
@@ -158,7 +158,7 @@ The core infrastructure of NeuroLoom utilizes a scalable Factory Pattern. The `N
 ## System Flow
 
 <div align="center">
-  <img src="frontend/public/system-flow.png" width="100%" alt="NEUROLOOM — System Flow" />
+  <img src="frontend/public/system-flow-2.png" width="100%" alt="NEUROLOOM — System Flow" />
 </div>
 
 ---
@@ -184,6 +184,7 @@ NeuroLoom utilizes a Factory-Proxy architecture to deploy isolated ERC-4626 stan
 | **Chainlink BNB/USD Oracle** | `0x2514895c72f50D8bd4B4F9b1110F0D6bD2c97526` |
 | **Chainlink BTC/USD Oracle** | `0x5741306c21795FdCBb9b265Ea0255F499DFe515C` |
 | **Mock Venus (mvUSDT)** | `0x5ee89D4357d71368cF54a0407c64E36500dbc475` |
+| **Mock bcSPX (SPYx Mock)** | `0xe2e0f08d4fe0ed7c737353cf03404bf153a0938a` |
 | **PancakeSwap SwapRouter (v3)** *(BSC Testnet)* | `0x1b81D678ffb9C0263b24A97847620C99d213eB14` |
 | **NonfungiblePositionManager** *(BSC Tesnet)* | `0x427bF5b37357632377eCbEC9de3626C71A5396c1`
 | **The Graph Subgraph API** | `https://api.studio.thegraph.com/query/1760378/neuroloom-bsc-testnet/v0.0.10` |

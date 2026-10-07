@@ -7,7 +7,7 @@
 
 > **Autonomous AI-Driven DeFi Yield Optimizer**
 
-NeuroLoom is a fully autonomous DeFi protocol that fuses multi-agent AI workflows with deterministic on-chain execution. It empowers an AI engine to analyze market conditions and dynamically route capital, via tactical asset swaps, secure lending, and active concentrated liquidity provision (PancakeSwap V3 NFTs) 24/7 across the BNB Chain ecosystem. To guarantee absolute security, strict smart contract guardrails, including a hard-capped 20% velocity allocation limit, real-time Chainlink oracle validation, and ERC-4626 inflation overrides—protect the Total Value Locked from MEV bots, vault exploits, and AI hallucinations.
+NeuroLoom is a fully autonomous DeFi protocol that fuses multi-agent AI workflows with deterministic on-chain execution. It empowers an AI engine to analyze market conditions and dynamically route capital across the BNB Chain ecosystem 24/7—utilizing tactical asset swaps, secure lending, active concentrated liquidity provision (PancakeSwap V3 NFTs), and strategic exposure to tokenized Real-World Assets (RWAs). To guarantee absolute security, strict smart contract guardrails—including a hard-capped 20% velocity allocation limit, real-time Chainlink oracle validation, and ERC-4626 inflation overrides, protect the Total Value Locked from MEV bots, vault exploits, and AI hallucinations.
 
 Built for the **Indonesia Web3 Hackathon 2026**. **BNB Chain**.
 Link: https://indonesiaweb3hack.xyz/en/projects/proj_231bfb01edfeb05edc
